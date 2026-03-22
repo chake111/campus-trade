@@ -209,7 +209,7 @@ onMounted(() => {
 .product-list {
   width: min(100%, 1440px);
   margin: 0 auto;
-  padding: 20px;
+  padding: 18px;
 }
 
 .header {
@@ -217,9 +217,9 @@ onMounted(() => {
   justify-content: space-between;
   align-items: center;
   flex-wrap: wrap;
-  gap: 16px 20px;
-  margin-bottom: 30px;
-  padding: 20px;
+  gap: 14px 16px;
+  margin-bottom: 24px;
+  padding: 18px 20px;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   border-radius: 12px;
   color: #fff;
@@ -233,24 +233,32 @@ onMounted(() => {
 
 .controls {
   display: flex;
-  gap: 12px;
+  gap: 10px;
   align-items: center;
-  flex: 1 1 420px;
-  min-width: 280px;
+  flex: 1 1 500px;
+  min-width: 320px;
   justify-content: flex-end;
   flex-wrap: wrap;
 }
 
 .search-input {
-  flex: 1 1 320px;
-  min-width: 220px;
+  flex: 1 1 360px;
+  min-width: 240px;
   max-width: 480px;
+}
+
+.controls .el-button {
+  min-width: 92px;
+}
+
+.controls :deep(.el-input-group__append .el-button) {
+  min-width: 72px;
 }
 
 .product-grid {
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 20px;
 }
 
 .recommend-section {
@@ -280,19 +288,19 @@ onMounted(() => {
 
 .recommend-list {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-  gap: 20px;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 14px;
 }
 
 .recommend-card {
   cursor: pointer;
-  transition: all 0.3s;
+  transition: transform 0.24s ease, box-shadow 0.24s ease;
   border-radius: 8px;
 }
 
 .recommend-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 4px 12px rgba(230, 162, 60, 0.3);
+  transform: translateY(-3px);
+  box-shadow: 0 6px 14px rgba(230, 162, 60, 0.25);
 }
 
 .recommend-placeholder {
@@ -308,14 +316,14 @@ onMounted(() => {
 }
 
 .content {
-  padding: 10px 0;
+  padding: 6px 0 2px;
 }
 
 .title {
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 600;
   color: #303133;
-  margin: 0 0 10px 0;
+  margin: 0 0 8px 0;
   overflow: hidden;
   text-overflow: ellipsis;
   display: -webkit-box;
@@ -324,9 +332,9 @@ onMounted(() => {
 }
 
 .description {
-  font-size: 14px;
+  font-size: 13px;
   color: #909399;
-  margin: 0 0 15px 0;
+  margin: 0 0 10px 0;
   overflow: hidden;
   text-overflow: ellipsis;
   display: -webkit-box;
@@ -338,10 +346,10 @@ onMounted(() => {
   display: flex;
   align-items: flex-start;
   gap: 6px;
-  padding: 10px;
+  padding: 8px;
   background: #fdf6ec;
   border-radius: 6px;
-  margin-bottom: 12px;
+  margin-bottom: 10px;
   border-left: 3px solid #e6a23c;
 }
 
@@ -359,7 +367,7 @@ onMounted(() => {
 }
 
 .price {
-  font-size: 20px;
+  font-size: 18px;
   font-weight: 700;
   color: #f56c6c;
 }
@@ -367,12 +375,12 @@ onMounted(() => {
 .section-title {
   display: flex;
   align-items: center;
-  gap: 10px;
-  font-size: 20px;
+  gap: 8px;
+  font-size: 18px;
   font-weight: 600;
   color: #303133;
-  margin-top: 20px;
-  padding: 15px;
+  margin-top: 16px;
+  padding: 12px 14px;
   background: #f5f7fa;
   border-radius: 8px;
 }
@@ -380,26 +388,26 @@ onMounted(() => {
 
 .all-products-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-  gap: 20px;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 16px;
 }
 .product-card {
   cursor: pointer;
-  transition: all 0.3s;
+  transition: transform 0.24s ease, box-shadow 0.24s ease;
   border-radius: 12px;
 }
 
 .product-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+  transform: translateY(-3px);
+  box-shadow: 0 10px 20px rgba(31, 35, 41, 0.12);
 }
 
 .image-container {
   width: 100%;
-  height: 200px;
+  height: 176px;
   overflow: hidden;
   border-radius: 8px;
-  margin-bottom: 15px;
+  margin-bottom: 10px;
 }
 
 .image-container img {
@@ -410,7 +418,7 @@ onMounted(() => {
 }
 
 .product-card:hover .image-container img {
-  transform: scale(1.1);
+  transform: scale(1.05);
 }
 
 .image-placeholder {
@@ -441,6 +449,7 @@ onMounted(() => {
   .controls {
     min-width: 100%;
     justify-content: flex-start;
+    gap: 8px;
   }
 
   .search-input {

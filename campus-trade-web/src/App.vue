@@ -104,18 +104,18 @@ function handleLogout() {
   align-items: center;
   justify-content: space-between;
   flex-wrap: wrap;
-  column-gap: 16px;
+  column-gap: 12px;
   row-gap: 8px;
-  min-height: 64px;
+  min-height: 56px;
   height: auto;
-  padding: 10px 24px;
+  padding: 8px 20px;
   background: #fff;
   border-bottom: 1px solid #ebeef5;
 }
 
 .brand {
   flex-shrink: 0;
-  font-size: 18px;
+  font-size: 17px;
   font-weight: 600;
   color: #303133;
   cursor: pointer;
@@ -123,31 +123,47 @@ function handleLogout() {
 
 .nav-menu {
   flex: 1 1 520px;
-  margin: 0 8px;
+  margin: 0 4px;
   border-bottom: none;
   min-width: 280px;
 }
 
+.nav-menu :deep(.el-menu-item) {
+  height: 46px;
+  line-height: 46px;
+  padding: 0 14px;
+  font-size: 14px;
+}
+
 .user-actions {
   flex: 0 0 auto;
-  min-width: 120px;
+  min-width: 0;
   display: flex;
   justify-content: flex-end;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: #f5f7fa;
+  border: 1px solid #ebeef5;
   white-space: nowrap;
 }
 
 .username {
-  max-width: 180px;
+  max-width: 160px;
   color: #606266;
-  font-size: 14px;
+  font-size: 13px;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
+.user-actions :deep(.el-button.is-link) {
+  padding: 2px 0;
+  font-size: 13px;
+}
+
 .page-content {
-  padding: 20px;
+  padding: 18px;
 }
 
 @media (max-width: 980px) {
@@ -169,6 +185,9 @@ function handleLogout() {
   .user-actions {
     margin-left: auto;
     min-width: 0;
+    padding: 0;
+    border: none;
+    background: transparent;
   }
 
   .username {
