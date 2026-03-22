@@ -11,10 +11,10 @@
           @keyup.enter="searchProducts"
         >
           <template #append>
-            <el-button type="primary" @click="searchProducts">搜索</el-button>
+            <el-button type="warning" @click="searchProducts">搜索</el-button>
           </template>
         </el-input>
-        <el-button type="success" @click="createProduct">发布商品</el-button>
+        <el-button class="publish-btn" @click="createProduct">发布商品</el-button>
       </div>
     </div>
 
@@ -22,7 +22,7 @@
       <el-card class="recommend-section">
         <template #header>
           <div class="section-header">
-            <el-icon size="20" color="#e6a23c"><Star /></el-icon>
+            <el-icon size="20" color="#d99a00"><Star /></el-icon>
             <span>为你推荐</span>
           </div>
           <div class="recommend-subtitle">根据你的浏览 / 点赞 / 购买行为动态推荐</div>
@@ -220,15 +220,17 @@ onMounted(() => {
   gap: 14px 16px;
   margin-bottom: 24px;
   padding: 18px 20px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #fffdf4 0%, #fff7dd 100%);
+  border: 1px solid #f4e3b3;
   border-radius: 12px;
-  color: #fff;
+  color: #3c3c3c;
 }
 
 .header h1 {
   font-size: clamp(24px, 2.2vw, 30px);
   margin: 0;
   line-height: 1.2;
+  color: #3c3c3c;
 }
 
 .controls {
@@ -253,6 +255,27 @@ onMounted(() => {
 
 .controls :deep(.el-input-group__append .el-button) {
   min-width: 72px;
+  background: #ffd45a;
+  border-color: #ffd45a;
+  color: #3c3c3c;
+  font-weight: 600;
+}
+
+.controls :deep(.el-input-group__append .el-button:hover) {
+  background: #ffca33;
+  border-color: #ffca33;
+}
+
+.publish-btn {
+  color: #8a5f00;
+  background: #fff;
+  border: 1px solid #f0ce75;
+}
+
+.publish-btn:hover {
+  color: #6f4a00;
+  border-color: #e5bd55;
+  background: #fff8e3;
 }
 
 .product-grid {
@@ -262,9 +285,9 @@ onMounted(() => {
 }
 
 .recommend-section {
-  border: 2px solid #e6a23c;
+  border: 1px solid #ece4cf;
   border-radius: 12px;
-  background: linear-gradient(135deg, #fff9f0 0%, #fff 100%);
+  background: #fff;
 }
 
 .section-header {
@@ -273,13 +296,17 @@ onMounted(() => {
   gap: 10px;
   font-size: 18px;
   font-weight: 600;
-  color: #e6a23c;
+  color: #3c3c3c;
 }
 
 .recommend-subtitle {
+  display: inline-block;
   margin-top: 8px;
-  font-size: 13px;
-  color: #909399;
+  padding: 4px 10px;
+  font-size: 12px;
+  color: #8a6d2f;
+  background: #fff6da;
+  border-radius: 999px;
 }
 
 .recommend-loading {
@@ -296,21 +323,22 @@ onMounted(() => {
   cursor: pointer;
   transition: transform 0.24s ease, box-shadow 0.24s ease;
   border-radius: 8px;
+  border: 1px solid #f0f0f0;
 }
 
 .recommend-card:hover {
   transform: translateY(-3px);
-  box-shadow: 0 6px 14px rgba(230, 162, 60, 0.25);
+  box-shadow: 0 8px 18px rgba(82, 74, 57, 0.12);
 }
 
 .recommend-placeholder {
   width: 100%;
   height: 100%;
-  background: linear-gradient(135deg, #ffd89b 0%, #e6a23c 100%);
+  background: linear-gradient(135deg, #fff1c4 0%, #f5e3b0 100%);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #fff;
+  color: #8a6d2f;
   font-size: 16px;
   font-weight: 600;
 }
@@ -347,15 +375,15 @@ onMounted(() => {
   align-items: flex-start;
   gap: 6px;
   padding: 8px;
-  background: #fdf6ec;
+  background: #fffaf0;
   border-radius: 6px;
   margin-bottom: 10px;
-  border-left: 3px solid #e6a23c;
+  border-left: 3px solid #f2c253;
 }
 
 .reason-text {
   font-size: 12px;
-  color: #e6a23c;
+  color: #8a6d2f;
   line-height: 1.5;
   flex: 1;
 }
@@ -381,25 +409,27 @@ onMounted(() => {
   color: #303133;
   margin-top: 16px;
   padding: 12px 14px;
-  background: #f5f7fa;
+  background: #fff;
+  border: 1px solid #ececec;
   border-radius: 8px;
 }
-
 
 .all-products-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
   gap: 16px;
 }
+
 .product-card {
   cursor: pointer;
   transition: transform 0.24s ease, box-shadow 0.24s ease;
   border-radius: 12px;
+  border: 1px solid #efefef;
 }
 
 .product-card:hover {
   transform: translateY(-3px);
-  box-shadow: 0 10px 20px rgba(31, 35, 41, 0.12);
+  box-shadow: 0 10px 20px rgba(31, 35, 41, 0.1);
 }
 
 .image-container {
@@ -408,6 +438,7 @@ onMounted(() => {
   overflow: hidden;
   border-radius: 8px;
   margin-bottom: 10px;
+  background: #f6f7f8;
 }
 
 .image-container img {
@@ -427,8 +458,8 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: #fff;
+  background: linear-gradient(135deg, #f4f5f7 0%, #eceef1 100%);
+  color: #9a9ea6;
   font-size: 14px;
 }
 
