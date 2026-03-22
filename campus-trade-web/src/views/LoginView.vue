@@ -48,6 +48,11 @@
         </el-form-item>
       </el-form>
 
+      <div class="register-link">
+        <span>没有账号？</span>
+        <el-button link type="primary" @click="goRegister">立即注册</el-button>
+      </div>
+
       <div class="login-footer">
         <p>校园二手交易平台</p>
       </div>
@@ -113,6 +118,10 @@ function pickUser(payload) {
   }
 
   return null
+}
+
+const goRegister = () => {
+  router.push('/register')
 }
 
 const handleLogin = async () => {
@@ -204,6 +213,14 @@ const handleLogin = async () => {
   width: 100%;
   font-size: 16px;
   font-weight: 500;
+}
+
+.register-link {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 6px;
+  color: #aa8c4f;
 }
 
 .login-footer {
