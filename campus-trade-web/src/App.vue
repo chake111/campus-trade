@@ -96,7 +96,7 @@ function handleLogout() {
 <style scoped>
 .app-shell {
   min-height: 100vh;
-  background: #f5f7fa;
+  background: #f7f7f8;
 }
 
 .top-nav {
@@ -109,19 +109,26 @@ function handleLogout() {
   min-height: 56px;
   height: auto;
   padding: 8px 20px;
-  background: #fff;
-  border-bottom: 1px solid #ebeef5;
+  background: linear-gradient(180deg, #fff8df 0%, #fffdf4 100%);
+  border-bottom: 1px solid #f1e2b8;
 }
 
 .brand {
   flex-shrink: 0;
   font-size: 17px;
-  font-weight: 600;
-  color: #303133;
+  font-weight: 700;
+  color: #3c3c3c;
   cursor: pointer;
 }
 
 .nav-menu {
+  --el-menu-bg-color: transparent;
+  --el-menu-text-color: #595959;
+  --el-menu-hover-text-color: #3c3c3c;
+  --el-menu-hover-bg-color: #fff3c2;
+  --el-menu-active-color: #3c3c3c;
+  --el-menu-item-height: 46px;
+  --el-menu-horizontal-height: 46px;
   flex: 1 1 520px;
   margin: 0 4px;
   border-bottom: none;
@@ -133,6 +140,18 @@ function handleLogout() {
   line-height: 46px;
   padding: 0 14px;
   font-size: 14px;
+  border-radius: 8px;
+  margin: 0 2px;
+}
+
+.nav-menu :deep(.el-menu-item.is-active) {
+  background: #ffe69c;
+  color: #3c3c3c;
+  font-weight: 600;
+}
+
+.nav-menu :deep(.el-menu--horizontal > .el-menu-item.is-active) {
+  border-bottom: none;
 }
 
 .user-actions {
@@ -144,14 +163,14 @@ function handleLogout() {
   gap: 6px;
   padding: 4px 10px;
   border-radius: 999px;
-  background: #f5f7fa;
-  border: 1px solid #ebeef5;
+  background: #fff3c2;
+  border: 1px solid #f0d58a;
   white-space: nowrap;
 }
 
 .username {
   max-width: 160px;
-  color: #606266;
+  color: #5b4a28;
   font-size: 13px;
   overflow: hidden;
   text-overflow: ellipsis;
