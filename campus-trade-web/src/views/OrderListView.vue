@@ -4,15 +4,46 @@
       <h1>我的订单</h1>
     </div>
 
-    <div v-loading="loading" class="order-table">
-      <el-table :data="orders" border style="width: 100%">
+    <div class="order-table" v-loading="loading">
+      <div class="toolbar">
+        <el-radio-group v-model="activeRole" size="default" @change="handleRoleChange">
+          <el-radio-button label="buyer">我买到的</el-radio-button>
+          <el-radio-button label="seller">我卖出的</el-radio-button>
+        </el-radio-group>
+
+        <div class="toolbar-right">
+          <el-select v-model="statusFilter" placeholder="状态筛选" clearable class="status-filter">
+            <el-option label="全部" value="ALL" />
+            <el-option label="PENDING" value="PENDING" />
+            <el-option label="PAID" value="PAID" />
+            <el-option label="CONFIRMED" value="CONFIRMED" />
+            <el-option label="FINISHED" value="FINISHED" />
+            <el-option label="CANCELLED" value="CANCELLED" />
+          </el-select>
+
+          <el-input
+            v-model="keyword"
+            placeholder="搜索商品名 / 订单号"
+            clearable
+            class="keyword-input"
+          >
+            <template #prefix>
+              <el-icon><Search /></el-icon>
+            </template>
+          </el-input>
+
+          <el-button type="primary" plain @click="fetchOrders">刷新</el-button>
+        </div>
+      </div>
+
+      <el-table :data="filteredOrders" border style="width: 100%">
         <el-table-column prop="id" label="订单编号" width="100" />
 
         <el-table-column label="商品信息" width="300">
           <template #default="{ row }">
             <div class="product-info">
               <div class="product-title">
-                {{ row.product?.title || row.productTitle || `商品ID: ${row.productId || '-'} ` }}
+                {{ row.product?.title || row.productName || row.name || row.productTitle || `商品ID: ${row.productId || '-'} ` }}
               </div>
               <div class="product-price">¥{{ row.product?.price ?? row.productPrice ?? 0 }}</div>
             </div>
@@ -107,17 +138,18 @@
         </el-table-column>
       </el-table>
 
-      <div v-if="!orders.length && !loading" class="empty-state">
-        <el-empty description="暂无订单" />
+      <div v-if="!filteredOrders.length && !loading" class="empty-state">
+        <el-empty description="暂无符合条件的订单" />
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { Search } from '@element-plus/icons-vue'
 import { getOrderList, updateOrder } from '../api/order'
 import { getUserId } from '../utils/user'
 
@@ -126,6 +158,16 @@ const route = useRoute()
 const orders = ref([])
 const loading = ref(false)
 const actionLoading = ref({ id: null, status: '' })
+const statusFilter = ref('ALL')
+const keyword = ref('')
+const activeRole = ref(getInitialRole())
+
+function getInitialRole() {
+  const role = route.query?.role
+  if (typeof role !== 'string') return 'buyer'
+  if (role === 'seller' || role === 'buyer') return role
+  return 'buyer'
+}
 
 const getApiData = (res) => (res && typeof res === 'object' && 'data' in res ? res.data : res)
 
@@ -143,10 +185,23 @@ const resolveMessage = (res, fallback) => {
   return data?.message || res?.message || fallback
 }
 
-const getCurrentRole = () => {
-  const role = route.query?.role
-  return typeof role === 'string' && role.trim() ? role.trim() : undefined
-}
+const filteredOrders = computed(() => {
+  const normalizedKeyword = keyword.value.trim().toLowerCase()
+
+  return orders.value.filter((order) => {
+    const statusMatched = statusFilter.value === 'ALL' || order.status === statusFilter.value
+    if (!statusMatched) return false
+
+    if (!normalizedKeyword) return true
+
+    const productName = String(
+      order.product?.title || order.productName || order.name || order.productTitle || ''
+    ).toLowerCase()
+    const orderId = String(order.id ?? '').toLowerCase()
+
+    return productName.includes(normalizedKeyword) || orderId.includes(normalizedKeyword)
+  })
+})
 
 const fetchOrders = async () => {
   const userId = getUserId()
@@ -158,8 +213,7 @@ const fetchOrders = async () => {
 
   loading.value = true
   try {
-    const role = getCurrentRole()
-    const res = await getOrderList(userId, role)
+    const res = await getOrderList(userId, activeRole.value)
     orders.value = extractOrderList(res)
   } catch (error) {
     const message =
@@ -172,6 +226,10 @@ const fetchOrders = async () => {
   } finally {
     loading.value = false
   }
+}
+
+const handleRoleChange = () => {
+  fetchOrders()
 }
 
 const getStatusType = (status) => {
@@ -259,7 +317,7 @@ onMounted(() => {
 }
 
 .header {
-  margin-bottom: 30px;
+  margin-bottom: 20px;
 }
 
 .header h1 {
@@ -273,6 +331,30 @@ onMounted(() => {
   background: #fff;
   border-radius: 12px;
   padding: 20px;
+}
+
+.toolbar {
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.toolbar-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.status-filter {
+  width: 150px;
+}
+
+.keyword-input {
+  width: 240px;
 }
 
 .product-info {
