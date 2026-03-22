@@ -291,6 +291,7 @@ onMounted(() => {
   border: 1px solid #ece4cf;
   border-radius: 12px;
   background: #fff;
+  box-shadow: 0 6px 14px rgba(81, 64, 32, 0.05);
 }
 
 .section-header {
@@ -400,7 +401,7 @@ onMounted(() => {
 .price {
   font-size: 18px;
   font-weight: 700;
-  color: #f56c6c;
+  color: #f0673a;
 }
 
 .section-title {

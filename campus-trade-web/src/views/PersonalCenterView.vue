@@ -265,7 +265,8 @@ onMounted(() => {
 
 .user-card {
   border-radius: 12px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  border: 1px solid #f0e3be;
+  box-shadow: 0 8px 18px rgba(67, 53, 26, 0.08);
 }
 
 .card-header {
@@ -274,7 +275,7 @@ onMounted(() => {
   gap: 10px;
   font-size: 20px;
   font-weight: 600;
-  color: #303133;
+  color: #4a3915;
 }
 
 .user-info {
@@ -285,9 +286,10 @@ onMounted(() => {
   text-align: center;
   margin-bottom: 30px;
   padding: 20px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #fffef8 0%, #fff1c5 100%);
+  border: 1px solid #efdba1;
   border-radius: 8px;
-  color: #fff;
+  color: #3d3526;
 }
 
 .credit-score {
@@ -303,7 +305,7 @@ onMounted(() => {
 .score-label {
   font-size: 18px;
   margin-top: 10px;
-  opacity: 0.9;
+  color: #7b6541;
 }
 
 .score-tag-wrap {
@@ -321,11 +323,12 @@ onMounted(() => {
 
 .credit-log-card {
   margin-bottom: 30px;
+  border: 1px solid #f0e4c5;
 }
 
 .log-header {
   font-weight: 600;
-  color: #303133;
+  color: #4b3a16;
 }
 
 :deep(.el-descriptions__label) {
@@ -351,5 +354,16 @@ onMounted(() => {
 
 .action-buttons .el-button .el-icon {
   margin-right: 8px;
+}
+
+.action-buttons :deep(.el-button--primary) {
+  background: #ffd45a;
+  border-color: #ffd45a;
+  color: #3c3c3c;
+}
+
+.action-buttons :deep(.el-button--primary:hover) {
+  background: #ffca33;
+  border-color: #ffca33;
 }
 </style>

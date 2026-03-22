@@ -3,6 +3,7 @@
     <el-card class="hero-card" shadow="never">
       <h1>校园二手交易系统数据看板</h1>
       <p>用于毕业答辩展示的平台运营概览（演示级聚合统计，优先复用现有接口）。</p>
+      <span class="hero-badge">轻咸鱼风 · 统一视觉</span>
     </el-card>
 
     <el-row :gutter="16" class="stats-row">
@@ -214,8 +215,9 @@ onMounted(() => {
 .hero-card {
   margin-bottom: 16px;
   border-radius: 12px;
-  background: linear-gradient(135deg, #5b8ff9, #7a77ff);
-  color: #fff;
+  border: 1px solid #efdca8;
+  background: linear-gradient(135deg, #fffdf6 0%, #fff4cf 100%);
+  color: #3c3c3c;
 }
 
 .hero-card h1 {
@@ -225,7 +227,18 @@ onMounted(() => {
 
 .hero-card p {
   margin: 8px 0 0;
-  opacity: 0.9;
+  color: #6d5a30;
+}
+
+.hero-badge {
+  display: inline-block;
+  margin-top: 12px;
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  color: #7d5a06;
+  background: #ffefbe;
+  border: 1px solid #efd18a;
 }
 
 .stats-row {
@@ -235,6 +248,7 @@ onMounted(() => {
 .stat-card {
   margin-bottom: 16px;
   border-radius: 10px;
+  border: 1px solid #f2e7c9;
 }
 
 .stat-label {
@@ -246,7 +260,7 @@ onMounted(() => {
   margin-top: 8px;
   font-size: 32px;
   font-weight: 700;
-  color: #303133;
+  color: #f0673a;
 }
 
 .stat-tip {
@@ -257,17 +271,20 @@ onMounted(() => {
 
 .feature-card {
   border-radius: 12px;
+  border: 1px solid #f0e1b9;
 }
 
 .section-title {
   font-size: 18px;
   font-weight: 600;
+  color: #4a3a18;
 }
 
 .feature-item {
   margin-bottom: 8px;
   padding: 12px;
-  background: #f8faff;
+  background: #fffaf0;
+  border: 1px solid #f3e5c1;
   border-radius: 8px;
   height: 100%;
 }
