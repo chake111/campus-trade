@@ -1,301 +1,329 @@
 <template>
-  <div class="order-list">
-    <div class="header">
-      <h1>我的订单</h1>
-    </div>
+  <div class="product-detail-page" v-loading="loading">
+    <el-card class="detail-card" shadow="never">
+      <template #header>
+        <div class="page-header">
+          <div class="title-wrap">
+            <h2>商品详情</h2>
+            <p>查看商品信息并完成下单</p>
+          </div>
+          <el-button text @click="goBack">返回列表</el-button>
+        </div>
+      </template>
 
-    <div v-loading="loading" class="order-table">
-      <el-table :data="orders" border style="width: 100%">
-        <el-table-column prop="id" label="订单编号" width="100" />
+      <el-empty
+        v-if="!loading && !product"
+        description="商品不存在、已下架或暂时无法查看"
+      />
 
-        <el-table-column label="商品信息" width="300">
-          <template #default="{ row }">
-            <div class="product-info">
-              <div class="product-title">{{ row.product?.title || '商品已下架' }}</div>
-              <div class="product-price">¥{{ row.product?.price || 0 }}</div>
-            </div>
-          </template>
-        </el-table-column>
+      <div v-else-if="product" class="detail-content">
+        <div class="image-panel">
+          <el-image
+            v-if="product.image"
+            :src="product.image"
+            fit="cover"
+            class="product-image"
+            :preview-src-list="[product.image]"
+          />
+          <div v-else class="image-placeholder">暂无商品图片</div>
+        </div>
 
-        <el-table-column prop="status" label="订单状态" width="120">
-          <template #default="{ row }">
-            <el-tag :type="getStatusType(row.status)">
-              {{ getStatusText(row.status) }}
-            </el-tag>
-          </template>
-        </el-table-column>
+        <div class="info-panel">
+          <div class="name-row">
+            <h3>{{ product.title || product.name || '未命名商品' }}</h3>
+            <el-tag :type="statusTagType" effect="light">{{ statusText }}</el-tag>
+          </div>
 
-        <el-table-column prop="createTime" label="创建时间" width="180">
-          <template #default="{ row }">
-            {{ formatTime(row.createTime) }}
-          </template>
-        </el-table-column>
+          <div class="price-row">
+            <span class="label">价格</span>
+            <span class="price">¥{{ product.price ?? '--' }}</span>
+          </div>
 
-        <el-table-column label="操作" width="250" fixed="right">
-          <template #default="{ row }">
-            <!-- PENDING: 只能支付或取消 -->
-            <template v-if="row.status === 'PENDING'">
-              <el-button
-                type="primary"
-                size="small"
-                :loading="payingId === row.id"
-                @click="handlePay(row)"
-              >
-                去支付
-              </el-button>
-              <el-button
-                type="danger"
-                size="small"
-                :loading="cancellingId === row.id"
-                @click="handleCancel(row)"
-              >
-                取消订单
-              </el-button>
-            </template>
+          <el-descriptions :column="1" border class="meta-info">
+            <el-descriptions-item label="商品ID">{{ product.id || routeProductId }}</el-descriptions-item>
+            <el-descriptions-item label="卖家ID">{{ sellerIdDisplay }}</el-descriptions-item>
+            <el-descriptions-item label="商品状态">{{ statusText }}</el-descriptions-item>
+          </el-descriptions>
 
-            <!-- PAID: 只能确认收货 -->
-            <el-button
-              v-else-if="row.status === 'PAID'"
-              type="success"
-              size="small"
-              :loading="confirmingId === row.id"
-              @click="handleConfirm(row)"
-            >
-              确认收货
+          <div class="description-block">
+            <div class="block-title">商品描述</div>
+            <p>{{ product.description || '卖家暂无描述信息' }}</p>
+          </div>
+
+          <div class="actions">
+            <el-button type="primary" size="large" :loading="submitting" @click="handleCreateOrder">
+              立即下单
             </el-button>
-
-            <!-- CONFIRMED: 只能完成订单 -->
-            <el-button
-              v-else-if="row.status === 'CONFIRMED'"
-              type="warning"
-              size="small"
-              :loading="finishingId === row.id"
-              @click="handleFinish(row)"
-            >
-              完成订单
-            </el-button>
-
-            <!-- 其他状态不显示按钮 -->
-            <el-tag v-else :type="getStatusType(row.status)" size="small">
-              {{ getStatusText(row.status) }}
-            </el-tag>
-          </template>
-        </el-table-column>
-      </el-table>
-
-      <div v-if="!orders.length && !loading" class="empty-state">
-        <el-empty description="暂无订单" />
+            <el-button size="large" @click="handleContactSeller">联系卖家</el-button>
+          </div>
+        </div>
       </div>
-    </div>
+    </el-card>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { computed, onMounted, ref } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { getOrderList, payOrder, confirmOrder, finishOrder, cancelOrder } from '../api/order'
+import { getProductDetail } from '../api/product'
+import { createOrder } from '../api/order'
+import { getUserId } from '../utils/user'
+import { getToken } from '../utils/request'
 
-const orders = ref([])
+const route = useRoute()
+const router = useRouter()
+
 const loading = ref(false)
-const payingId = ref(null)
-const confirmingId = ref(null)
-const finishingId = ref(null)
-const cancellingId = ref(null)
+const submitting = ref(false)
+const product = ref(null)
 
-const fetchOrders = async () => {
+const routeProductId = computed(() => route.params.id)
+
+const sellerId = computed(() => {
+  if (!product.value) return null
+  return product.value.sellerId ?? product.value.userId ?? product.value.seller?.id ?? null
+})
+
+const sellerIdDisplay = computed(() => sellerId.value ?? '未知')
+
+const statusText = computed(() => {
+  const raw = product.value?.status
+  if (raw === null || raw === undefined || raw === '') return '在售'
+  return String(raw)
+})
+
+const statusTagType = computed(() => {
+  const status = String(product.value?.status || '').toUpperCase()
+  if (['ON_SALE', 'AVAILABLE', 'SELLING', '在售'].includes(status)) return 'success'
+  if (['SOLD', 'FINISHED', '已售出'].includes(status)) return 'info'
+  if (['OFF_SHELF', 'DISABLED', '已下架'].includes(status)) return 'warning'
+  return 'primary'
+})
+
+const normalizeData = (res) => {
+  if (!res) return null
+  if (res.data !== undefined) return res.data
+  return res
+}
+
+const fetchProductDetail = async () => {
+  const id = routeProductId.value
+  if (!id) {
+    ElMessage.error('缺少商品ID，无法查看详情')
+    product.value = null
+    return
+  }
+
   loading.value = true
   try {
-    const res = await getOrderList()
-    orders.value = res.data || []
+    const res = await getProductDetail(id)
+    const detail = normalizeData(res)
+    product.value = detail && typeof detail === 'object' ? detail : null
+
+    if (!product.value) {
+      ElMessage.warning('未找到该商品信息')
+    }
   } catch (error) {
-    ElMessage.error('加载订单列表失败')
+    product.value = null
+    const msg = error?.message || error?.response?.data?.message || '获取商品详情失败'
+    ElMessage.error(msg)
   } finally {
     loading.value = false
   }
 }
 
-const getStatusType = (status) => {
-  const types = {
-    'PENDING': 'warning',
-    'PAID': 'primary',
-    'CONFIRMED': 'success',
-    'FINISHED': 'success',
-    'CANCELLED': 'info'
-  }
-  return types[status] || 'info'
-}
-
-const getStatusText = (status) => {
-  const texts = {
-    'PENDING': '待支付',
-    'PAID': '待收货',
-    'CONFIRMED': '待完成',
-    'FINISHED': '已完成',
-    'CANCELLED': '已取消'
-  }
-  return texts[status] || status
-}
-
-const formatTime = (time) => {
-  if (!time) return ''
-  return time.replace('T', ' ')
-}
-
-const handlePay = async (order) => {
-  if (payingId.value) return
-  if (order.status !== 'PENDING') {
-    ElMessage.warning('订单状态异常，请刷新页面')
-    fetchOrders()
+const handleCreateOrder = async () => {
+  if (!product.value) {
+    ElMessage.warning('商品信息不存在，无法下单')
     return
   }
 
-  try {
-    payingId.value = order.id
-    await payOrder(order.id)
-    ElMessage.success('支付成功')
-    fetchOrders()
-  } catch (error) {
-    const msg = error.response?.data?.message || '支付失败'
-    ElMessage.error(msg)
-    fetchOrders()
-  } finally {
-    payingId.value = null
+  const token = getToken()
+  const buyerId = getUserId()
+  if (!token || !buyerId) {
+    ElMessage.warning('请先登录后再下单')
+    router.push('/login')
+    return
   }
-}
 
-const handleConfirm = async (order) => {
-  if (confirmingId.value) return
-  if (order.status !== 'PAID') {
-    ElMessage.warning('订单状态异常，请刷新页面')
-    fetchOrders()
+  if (!sellerId.value) {
+    ElMessage.error('卖家信息缺失，暂时无法下单')
     return
   }
 
   try {
     await ElMessageBox.confirm(
-      '确认已收到商品吗？确认后订单将无法取消',
-      '确认收货',
-      { type: 'warning' }
+      '确认立即下单该商品吗？提交后可在订单页继续支付和跟进状态。',
+      '下单确认',
+      { type: 'warning', confirmButtonText: '确认下单', cancelButtonText: '再看看' }
     )
-
-    confirmingId.value = order.id
-    await confirmOrder(order.id)
-    ElMessage.success('确认收货成功，信用分 +2')
-    fetchOrders()
-  } catch (error) {
-    if (error !== 'cancel') {
-      const msg = error.response?.data?.message || '确认失败'
-      ElMessage.error(msg)
-      fetchOrders()
-    }
-  } finally {
-    confirmingId.value = null
-  }
-}
-
-const handleFinish = async (order) => {
-  if (finishingId.value) return
-  if (order.status !== 'CONFIRMED') {
-    ElMessage.warning('订单状态异常，请刷新页面')
-    fetchOrders()
+  } catch {
     return
   }
 
+  submitting.value = true
   try {
-    finishingId.value = order.id
-    await finishOrder(order.id)
-    ElMessage.success('订单已完成')
-    fetchOrders()
+    const payload = {
+      productId: product.value.id ?? routeProductId.value,
+      buyerId,
+      sellerId: sellerId.value,
+    }
+    await createOrder(payload)
+    ElMessage.success('下单成功，正在跳转到订单页')
+    router.push('/orders')
   } catch (error) {
-    const msg = error.response?.data?.message || '操作失败'
+    const msg = error?.message || error?.response?.data?.message || error?.data?.message || '下单失败，请稍后重试'
     ElMessage.error(msg)
-    fetchOrders()
   } finally {
-    finishingId.value = null
+    submitting.value = false
   }
 }
 
-const handleCancel = async (order) => {
-  if (cancellingId.value) return
-  if (order.status !== 'PENDING') {
-    ElMessage.warning('订单状态异常，请刷新页面')
-    fetchOrders()
-    return
-  }
+const handleContactSeller = () => {
+  ElMessage.info('当前版本暂未接入聊天功能')
+}
 
-  try {
-    await ElMessageBox.confirm(
-      '确定要取消订单吗？取消后会影响您的信用记录',
-      '取消订单',
-      { type: 'warning' }
-    )
-
-    cancellingId.value = order.id
-    await cancelOrder(order.id, '')
-    ElMessage.success('订单已取消，信用分 -3')
-    fetchOrders()
-  } catch (error) {
-    if (error !== 'cancel') {
-      const msg = error.response?.data?.message || '取消失败'
-      ElMessage.error(msg)
-      fetchOrders()
-    }
-  } finally {
-    cancellingId.value = null
-  }
+const goBack = () => {
+  router.push('/products')
 }
 
 onMounted(() => {
-  fetchOrders()
+  fetchProductDetail()
 })
 </script>
 
 <style scoped>
-.order-list {
-  max-width: 1400px;
-  margin: 40px auto;
-  padding: 20px;
+.product-detail-page {
+  max-width: 1100px;
+  margin: 24px auto;
+  padding: 0 16px;
 }
 
-.header {
-  margin-bottom: 30px;
-}
-
-.header h1 {
-  font-size: 28px;
-  font-weight: 600;
-  color: #303133;
-  margin: 0;
-}
-
-.order-table {
-  background: #fff;
+.detail-card {
   border-radius: 12px;
-  padding: 20px;
 }
 
-.product-info {
+.page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.title-wrap h2 {
+  margin: 0;
+  font-size: 24px;
+  color: #303133;
+}
+
+.title-wrap p {
+  margin: 6px 0 0;
+  font-size: 14px;
+  color: #909399;
+}
+
+.detail-content {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+}
+
+.image-panel {
+  min-height: 360px;
+}
+
+.product-image {
+  width: 100%;
+  height: 100%;
+  min-height: 360px;
+  border-radius: 10px;
+  border: 1px solid #ebeef5;
+}
+
+.image-placeholder {
+  height: 360px;
+  border: 1px dashed #dcdfe6;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #909399;
+  background: #fafafa;
+}
+
+.info-panel {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 16px;
 }
 
-.product-title {
+.name-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.name-row h3 {
+  margin: 0;
+  font-size: 26px;
+  color: #303133;
+}
+
+.price-row {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  padding: 14px;
+  background: #f5f7fa;
+  border-radius: 8px;
+}
+
+.price-row .label {
   font-size: 14px;
+  color: #606266;
+}
+
+.price-row .price {
+  font-size: 34px;
+  color: #f56c6c;
+  font-weight: 700;
+}
+
+.meta-info {
+  margin-top: 4px;
+}
+
+.description-block {
+  padding: 16px;
+  border: 1px solid #ebeef5;
+  border-radius: 8px;
+  background: #fff;
+}
+
+.block-title {
+  font-size: 16px;
   font-weight: 600;
   color: #303133;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  margin-bottom: 8px;
 }
 
-.product-price {
-  font-size: 16px;
-  font-weight: 700;
-  color: #f56c6c;
+.description-block p {
+  margin: 0;
+  line-height: 1.7;
+  color: #606266;
+  white-space: pre-wrap;
 }
 
-.empty-state {
-  padding: 60px 0;
+.actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+@media (max-width: 900px) {
+  .detail-content {
+    grid-template-columns: 1fr;
+  }
 }
 </style>
