@@ -36,6 +36,7 @@ const activeMenu = computed(() => {
   if (path.startsWith('/product/create')) return '/product/create'
   if (path.startsWith('/orders')) return '/orders'
   if (path.startsWith('/profile')) return '/profile'
+  if (path.startsWith('/dashboard')) return '/dashboard'
   if (path.startsWith('/login')) return '/login'
   return '/products'
 })
@@ -65,6 +66,7 @@ function handleLogout() {
         class="nav-menu"
       >
         <el-menu-item index="/products">首页</el-menu-item>
+        <el-menu-item index="/dashboard">数据看板</el-menu-item>
 
         <template v-if="isLoggedIn">
           <el-menu-item index="/product/create">发布商品</el-menu-item>

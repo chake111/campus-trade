@@ -5,6 +5,7 @@ import ProductDetailView from '../views/ProductDetailView.vue'
 import ProductCreateView from '../views/ProductCreateView.vue'
 import OrderListView from '../views/OrderListView.vue'
 import PersonalCenterView from '../views/PersonalCenterView.vue'
+import DashboardView from '../views/DashboardView.vue'
 import { getToken } from '../utils/request'
 
 const router = createRouter({
@@ -43,6 +44,11 @@ const router = createRouter({
       name: 'profile',
       component: PersonalCenterView,
       meta: { requiresAuth: true },
+    },
+    {
+      path: '/dashboard',
+      name: 'dashboard',
+      component: DashboardView,
     },
     {
       path: '/',
