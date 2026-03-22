@@ -1,9 +1,9 @@
 <script setup>
-import { computed, ref, watch } from 'vue'
+import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { getToken, removeToken } from './utils/request'
-import { getUserInfo, removeUserInfo } from './utils/user'
+import { AUTH_CHANGED_EVENT, dispatchAuthChanged, getUserInfo, removeUserInfo } from './utils/user'
 
 const router = useRouter()
 const route = useRoute()
@@ -15,14 +15,6 @@ function syncAuthState() {
   token.value = getToken()
   userInfo.value = getUserInfo()
 }
-
-watch(
-  () => route.fullPath,
-  () => {
-    syncAuthState()
-  },
-  { immediate: true }
-)
 
 const isLoggedIn = computed(() => {
   const currentUser = userInfo.value
@@ -52,9 +44,20 @@ function goHome() {
 function handleLogout() {
   removeToken()
   removeUserInfo()
+  syncAuthState()
+  dispatchAuthChanged()
   ElMessage.success('已退出登录')
   router.push('/products')
 }
+
+onMounted(() => {
+  syncAuthState()
+  window.addEventListener(AUTH_CHANGED_EVENT, syncAuthState)
+})
+
+onUnmounted(() => {
+  window.removeEventListener(AUTH_CHANGED_EVENT, syncAuthState)
+})
 </script>
 
 <template>

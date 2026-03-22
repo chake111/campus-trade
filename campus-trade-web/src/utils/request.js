@@ -1,6 +1,7 @@
 import axios from 'axios'
 import { ElMessage } from 'element-plus'
 import router from '../router'
+import { dispatchAuthChanged, removeUserInfo } from './user'
 
 const request = axios.create({
   baseURL: 'http://localhost:8080',
@@ -20,6 +21,12 @@ export function getToken() {
 }
 export function removeToken() {
   localStorage.removeItem('token')
+}
+
+function clearAuthState() {
+  removeToken()
+  removeUserInfo()
+  dispatchAuthChanged()
 }
 
 // 简单请求方法封装，方便 API 调用以统一用法
@@ -83,7 +90,7 @@ request.interceptors.response.use(
 
         if (res.code === 401) {
           ElMessage.error(getStatusMessage(401, res.message))
-          removeToken()
+          clearAuthState()
           router.push('/login')
           return Promise.reject(res)
         }
@@ -105,7 +112,7 @@ request.interceptors.response.use(
 
       if (status === 401) {
         ElMessage.error(getStatusMessage(401, respData.message))
-        removeToken()
+        clearAuthState()
         router.push('/login')
         return Promise.reject(error.response)
       }
