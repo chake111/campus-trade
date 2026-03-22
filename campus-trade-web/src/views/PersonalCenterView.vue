@@ -15,19 +15,33 @@
 
       <div v-loading="loading" class="user-info">
         <div class="credit-score-section">
+          <el-alert
+            v-if="creditScoreState === 'forbidden'"
+            title="信用分没有访问权限"
+            type="warning"
+            :closable="false"
+            class="credit-alert"
+          />
+          <el-alert
+            v-else-if="creditScoreState === 'error'"
+            :title="creditScoreError || '信用分获取失败'"
+            type="error"
+            :closable="false"
+            class="credit-alert"
+          />
           <div class="credit-score">
-            <div class="score-value">{{ creditScore }}</div>
-            <div class="score-label">当前信用分</div>
+            <div class="score-value">{{ creditScoreDisplay }}</div>
+            <div class="score-label">信用接口实时信用分</div>
           </div>
           <el-progress
             :percentage="progressValue"
             :stroke-width="10"
-            :color="getCreditColor(creditScore)"
+            :color="getCreditColor(scoreForDisplay)"
             :show-text="false"
             class="credit-progress"
           />
           <div class="score-tag-wrap">
-            <el-tag :type="getCreditTagType(creditScore)" size="large">信用等级：{{ creditLevelText }}</el-tag>
+            <el-tag :type="getCreditTagType(scoreForDisplay)" size="large">信用等级：{{ creditLevelText }}</el-tag>
           </div>
         </div>
 
@@ -39,8 +53,8 @@
             <el-tag type="success">{{ userInfo.username || '-' }}</el-tag>
           </el-descriptions-item>
           <el-descriptions-item label="信用分">
-            <el-tag :type="getCreditTagType(creditScore)" size="large">
-              {{ creditScore }}
+            <el-tag :type="getCreditTagType(scoreForDisplay)" size="large">
+              {{ creditScoreDisplay }}
             </el-tag>
           </el-descriptions-item>
           <el-descriptions-item label="注册时间">
@@ -58,7 +72,28 @@
             <div class="log-header">信用变动明细</div>
           </template>
 
-          <el-table v-if="creditLogs.length" :data="creditLogs" border stripe style="width: 100%">
+          <el-alert
+            v-if="creditLogsState === 'forbidden'"
+            title="信用记录没有访问权限"
+            type="warning"
+            :closable="false"
+            class="credit-alert"
+          />
+          <el-alert
+            v-else-if="creditLogsState === 'error'"
+            :title="creditLogsError || '信用记录获取失败'"
+            type="error"
+            :closable="false"
+            class="credit-alert"
+          />
+
+          <el-table
+            v-if="creditLogsState === 'success' && creditLogs.length"
+            :data="creditLogs"
+            border
+            stripe
+            style="width: 100%"
+          >
             <el-table-column label="变动分值" width="140" align="center">
               <template #default="{ row }">
                 <el-tag :type="row.change > 0 ? 'success' : row.change < 0 ? 'danger' : 'info'">
@@ -74,7 +109,7 @@
             </el-table-column>
           </el-table>
 
-          <el-empty v-else description="暂无信用记录" />
+          <el-empty v-else-if="creditLogsState === 'success'" description="暂无信用记录" />
         </el-card>
 
         <div class="action-buttons">
@@ -103,8 +138,12 @@ import { removeToken } from '../utils/request'
 
 const router = useRouter()
 const loading = ref(false)
-const creditScore = ref(0)
+const creditScore = ref(null)
 const creditLogs = ref([])
+const creditScoreState = ref('idle')
+const creditLogsState = ref('idle')
+const creditScoreError = ref('')
+const creditLogsError = ref('')
 
 const userInfo = ref({
   id: null,
@@ -113,11 +152,14 @@ const userInfo = ref({
   status: 1
 })
 
-const progressValue = computed(() => Math.max(0, Math.min(Number(creditScore.value) || 0, 100)))
+const scoreForDisplay = computed(() => (creditScore.value == null ? 0 : Number(creditScore.value) || 0))
+const progressValue = computed(() => Math.max(0, Math.min(scoreForDisplay.value, 100)))
+const creditScoreDisplay = computed(() => (creditScore.value == null ? '-' : scoreForDisplay.value))
 
 const creditLevelText = computed(() => {
-  if (creditScore.value >= 80) return '优秀'
-  if (creditScore.value >= 60) return '良好'
+  if (creditScore.value == null) return '-'
+  if (scoreForDisplay.value >= 80) return '优秀'
+  if (scoreForDisplay.value >= 60) return '良好'
   return '待提升'
 })
 
@@ -174,19 +216,38 @@ const loadUserInfo = () => {
     createTime: localUserInfo.createTime || '',
     status: localUserInfo.status ?? 1
   }
-  if (localUserInfo.creditScore != null) {
-    creditScore.value = toNumber(localUserInfo.creditScore, 0)
-  }
 }
 
 const fetchCreditScore = async (userId) => {
+  creditScoreState.value = 'loading'
+  creditScoreError.value = ''
   const res = await getCreditScore({ userId })
   creditScore.value = normalizeCreditScore(res)
+  creditScoreState.value = 'success'
 }
 
 const fetchCreditLogs = async (userId) => {
+  creditLogsState.value = 'loading'
+  creditLogsError.value = ''
   const res = await getCreditLogs({ userId })
   creditLogs.value = normalizeCreditLogs(res)
+  creditLogsState.value = 'success'
+}
+
+const resolveCreditError = (error, fallback) => {
+  const status = error?.status || error?.response?.status
+  const message =
+    error?.data?.message ||
+    error?.response?.data?.message ||
+    error?.response?.data?.data?.message ||
+    error?.message ||
+    fallback
+
+  if (status === 403) {
+    return { state: 'forbidden', message: '没有访问权限' }
+  }
+
+  return { state: 'error', message }
 }
 
 const fetchCreditData = async () => {
@@ -201,23 +262,18 @@ const fetchCreditData = async () => {
   try {
     await fetchCreditScore(userId)
   } catch (error) {
-    const scoreMessage =
-      error?.response?.data?.message ||
-      error?.response?.data?.data?.message ||
-      error?.message ||
-      '获取信用分失败'
-    ElMessage.error(scoreMessage)
+    creditScore.value = null
+    const { state, message } = resolveCreditError(error, '获取信用分失败')
+    creditScoreState.value = state
+    creditScoreError.value = message
   }
 
   try {
     await fetchCreditLogs(userId)
   } catch (error) {
-    const logMessage =
-      error?.response?.data?.message ||
-      error?.response?.data?.data?.message ||
-      error?.message ||
-      '获取信用记录失败'
-    ElMessage.error(logMessage)
+    const { state, message } = resolveCreditError(error, '获取信用记录失败')
+    creditLogsState.value = state
+    creditLogsError.value = message
     creditLogs.value = []
   } finally {
     loading.value = false
@@ -314,6 +370,10 @@ onUnmounted(() => {
 
 .user-card :deep(.el-card__body) {
   padding: 24px;
+}
+
+.credit-alert {
+  margin-bottom: 12px;
 }
 
 .card-header {

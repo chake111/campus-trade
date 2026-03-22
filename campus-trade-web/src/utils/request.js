@@ -46,13 +46,20 @@ export function del(url, params) {
   return request.delete(url, { params })
 }
 
-// 请求拦截器：从 localStorage 读取 token，放入请求头 `token`
+const normalizeAuthorizationToken = (token) => {
+  if (!token) return ''
+  return /^Bearer\s+/i.test(token) ? token : `Bearer ${token}`
+}
+
+// 请求拦截器：从 localStorage 读取 token，放入请求头
 request.interceptors.request.use(
   (config) => {
     const token = getToken()
     if (token) {
       config.headers = config.headers || {}
-      config.headers['token'] = token
+      config.headers.Authorization = normalizeAuthorizationToken(token)
+      // 兼容仍读取自定义 token 头的后端
+      config.headers.token = token
     }
     return config
   },
