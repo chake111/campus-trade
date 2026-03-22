@@ -3,7 +3,13 @@
     <div class="header">
       <h1>校园二手交易</h1>
       <div class="controls">
-        <el-input v-model="keyword" placeholder="搜索商品..." clearable @keyup.enter="searchProducts" style="width: 300px">
+        <el-input
+          v-model="keyword"
+          class="search-input"
+          placeholder="搜索商品..."
+          clearable
+          @keyup.enter="searchProducts"
+        >
           <template #append>
             <el-button type="primary" @click="searchProducts">搜索</el-button>
           </template>
@@ -71,24 +77,26 @@
         <span>全部商品</span>
       </div>
 
-      <el-card
-        v-for="item in products"
-        :key="item.id"
-        class="product-card"
-        @click="viewDetail(item.id)"
-      >
-        <div class="image-container">
-          <img v-if="item.image" :src="item.image" alt="商品图片" />
-          <div v-else class="image-placeholder">暂无图片</div>
-        </div>
-        <div class="content">
-          <h3 class="title">{{ item.title }}</h3>
-          <p class="description">{{ item.description }}</p>
-          <div class="footer">
-            <span class="price">¥{{ item.price }}</span>
+      <div class="all-products-grid" v-if="products.length">
+        <el-card
+          v-for="item in products"
+          :key="item.id"
+          class="product-card"
+          @click="viewDetail(item.id)"
+        >
+          <div class="image-container">
+            <img v-if="item.image" :src="item.image" alt="商品图片" />
+            <div v-else class="image-placeholder">暂无图片</div>
           </div>
-        </div>
-      </el-card>
+          <div class="content">
+            <h3 class="title">{{ item.title }}</h3>
+            <p class="description">{{ item.description }}</p>
+            <div class="footer">
+              <span class="price">¥{{ item.price }}</span>
+            </div>
+          </div>
+        </el-card>
+      </div>
 
       <div v-if="!products.length && !loading" class="empty-state">
         <el-empty description="暂无商品" />
@@ -199,7 +207,7 @@ onMounted(() => {
 
 <style scoped>
 .product-list {
-  max-width: 1200px;
+  width: min(100%, 1440px);
   margin: 0 auto;
   padding: 20px;
 }
@@ -208,6 +216,8 @@ onMounted(() => {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  flex-wrap: wrap;
+  gap: 16px 20px;
   margin-bottom: 30px;
   padding: 20px;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -216,20 +226,31 @@ onMounted(() => {
 }
 
 .header h1 {
-  font-size: 28px;
+  font-size: clamp(24px, 2.2vw, 30px);
   margin: 0;
+  line-height: 1.2;
 }
 
 .controls {
   display: flex;
-  gap: 15px;
+  gap: 12px;
   align-items: center;
+  flex: 1 1 420px;
+  min-width: 280px;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+}
+
+.search-input {
+  flex: 1 1 320px;
+  min-width: 220px;
+  max-width: 480px;
 }
 
 .product-grid {
   display: flex;
   flex-direction: column;
-  gap: 30px;
+  gap: 24px;
 }
 
 .recommend-section {
@@ -356,6 +377,12 @@ onMounted(() => {
   border-radius: 8px;
 }
 
+
+.all-products-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 20px;
+}
 .product-card {
   cursor: pointer;
   transition: all 0.3s;
@@ -399,5 +426,32 @@ onMounted(() => {
 
 .empty-state {
   padding: 60px 0;
+}
+
+@media (max-width: 768px) {
+  .product-list {
+    padding: 12px;
+  }
+
+  .header {
+    padding: 16px;
+    margin-bottom: 20px;
+  }
+
+  .controls {
+    min-width: 100%;
+    justify-content: flex-start;
+  }
+
+  .search-input {
+    min-width: 100%;
+    max-width: 100%;
+  }
+
+  .all-products-grid,
+  .recommend-list {
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 14px;
+  }
 }
 </style>
