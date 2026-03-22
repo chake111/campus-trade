@@ -39,6 +39,7 @@
             type="primary"
             size="large"
             :loading="loading"
+            :disabled="loading"
             class="login-button"
             @click="handleLogin"
           >
@@ -57,8 +58,10 @@
 <script setup>
 import { ref, reactive } from 'vue'
 import { useRouter } from 'vue-router'
-import { login } from '../api/user'
 import { ElMessage } from 'element-plus'
+import { login } from '../api/user'
+import { setToken } from '../utils/request'
+import { setUserInfo } from '../utils/user'
 
 const router = useRouter()
 const formRef = ref(null)
@@ -78,31 +81,81 @@ const rules = {
   ]
 }
 
+function pickToken(payload) {
+  return payload?.token || payload?.accessToken || payload?.access_token || null
+}
+
+function normalizeUser(rawUser) {
+  if (!rawUser || typeof rawUser !== 'object' || Array.isArray(rawUser)) return null
+
+  const normalized = { ...rawUser }
+  if (normalized.id == null && normalized.userId != null) {
+    normalized.id = normalized.userId
+  }
+  if (normalized.id == null && normalized.uid != null) {
+    normalized.id = normalized.uid
+  }
+  return normalized
+}
+
+function pickUser(payload) {
+  if (!payload || typeof payload !== 'object' || Array.isArray(payload)) return null
+
+  const preferredKeys = ['user', 'userInfo', 'currentUser', 'profile', 'account']
+  for (const key of preferredKeys) {
+    const maybeUser = normalizeUser(payload[key])
+    if (maybeUser) return maybeUser
+  }
+
+  const maybeDirectUser = normalizeUser(payload)
+  if (maybeDirectUser && (maybeDirectUser.id != null || maybeDirectUser.username || maybeDirectUser.nickName)) {
+    return maybeDirectUser
+  }
+
+  return null
+}
+
 const handleLogin = async () => {
-  if (!formRef.value) return
+  if (!formRef.value || loading.value) return
 
-  await formRef.value.validate(async (valid) => {
-    if (valid) {
-      loading.value = true
-      try {
-        const res = await login(formData)
+  const valid = await formRef.value.validate().catch(() => false)
+  if (!valid) return
 
-        if (res.data && res.data.token) {
-          localStorage.setItem('token', res.data.token)
-          localStorage.setItem('userInfo', JSON.stringify(res.data))
-          ElMessage.success('登录成功')
-          router.push('/products')
-        } else {
-          ElMessage.error('登录失败')
-        }
-      } catch (error) {
-        console.error('登录失败:', error)
-        ElMessage.error(error.response?.data?.message || '登录失败，请检查网络连接')
-      } finally {
-        loading.value = false
-      }
+  loading.value = true
+  try {
+    const res = await login(formData)
+
+    const rootPayload = res && typeof res === 'object' ? res : {}
+    const dataPayload = rootPayload?.data && typeof rootPayload.data === 'object' ? rootPayload.data : null
+
+    const token = pickToken(dataPayload) || pickToken(rootPayload)
+    if (!token) {
+      ElMessage.error(rootPayload?.message || dataPayload?.message || '登录失败：未获取到 token')
+      return
     }
-  })
+
+    setToken(token)
+
+    const user = pickUser(dataPayload) || pickUser(rootPayload)
+    if (!user || user.id == null) {
+      ElMessage.warning('登录成功，但未获取到完整用户信息，请联系后端确认登录返回字段')
+      return
+    }
+
+    setUserInfo(user)
+    ElMessage.success(rootPayload?.message || '登录成功')
+    router.push('/')
+  } catch (error) {
+    console.error('登录失败:', error)
+    const message =
+      error?.data?.message ||
+      error?.response?.data?.message ||
+      error?.message ||
+      '登录失败，请稍后重试'
+    ElMessage.error(message)
+  } finally {
+    loading.value = false
+  }
 }
 </script>
 
