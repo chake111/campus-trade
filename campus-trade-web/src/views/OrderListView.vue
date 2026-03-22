@@ -312,50 +312,50 @@ onMounted(() => {
 
 <style scoped>
 .order-list {
-  max-width: 1400px;
-  margin: 40px auto;
-  padding: 20px;
+  max-width: 1520px;
+  margin: 10px auto 26px;
+  padding: 12px 8px 24px;
 }
 
 .header {
-  margin-bottom: 20px;
+  margin-bottom: 22px;
 }
 
 .page-hero {
-  padding: 16px 20px;
-  border-radius: 12px;
+  padding: 24px 28px;
+  border-radius: 16px;
   border: 1px solid #efdca8;
   background: linear-gradient(135deg, #fffef8 0%, #fff4cf 100%);
 }
 
 .header h1 {
-  font-size: 28px;
+  font-size: 34px;
   font-weight: 600;
   color: #3d3220;
   margin: 0;
 }
 
 .header p {
-  margin: 8px 0 0;
-  font-size: 14px;
+  margin: 10px 0 0;
+  font-size: 16px;
   color: #7a6740;
 }
 
 .order-table {
   background: #fff;
-  border-radius: 12px;
-  padding: 20px;
+  border-radius: 16px;
+  padding: 24px;
   border: 1px solid #f1e4c2;
 }
 
 .toolbar {
-  margin-bottom: 16px;
+  margin-bottom: 20px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
   flex-wrap: wrap;
-  padding: 10px 12px;
+  padding: 14px 16px;
   background: #fffaf0;
   border: 1px solid #f1e4c2;
   border-radius: 10px;
@@ -391,11 +391,20 @@ onMounted(() => {
 }
 
 .status-filter {
-  width: 150px;
+  width: 180px;
 }
 
 .keyword-input {
-  width: 240px;
+  width: 300px;
+}
+
+.order-table :deep(.el-table) {
+  font-size: 14px;
+}
+
+.order-table :deep(.el-table td.el-table__cell),
+.order-table :deep(.el-table th.el-table__cell) {
+  padding: 13px 0;
 }
 
 .order-table :deep(.el-table th.el-table__cell) {
@@ -449,5 +458,29 @@ onMounted(() => {
 
 .empty-state {
   padding: 60px 0;
+}
+
+@media (max-width: 992px) {
+  .order-list {
+    max-width: 100%;
+    padding: 4px 0 16px;
+  }
+
+  .page-hero {
+    padding: 18px 20px;
+  }
+
+  .header h1 {
+    font-size: 28px;
+  }
+
+  .order-table {
+    padding: 14px;
+  }
+
+  .keyword-input,
+  .status-filter {
+    width: 100%;
+  }
 }
 </style>

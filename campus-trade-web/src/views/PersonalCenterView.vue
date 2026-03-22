@@ -1,5 +1,10 @@
 <template>
   <div class="personal-center">
+    <div class="page-hero">
+      <h1>个人中心</h1>
+      <p>集中查看个人信息、信用分与信用记录，沉淀可信校园交易身份。</p>
+    </div>
+
     <el-card class="user-card">
       <template #header>
         <div class="card-header">
@@ -258,15 +263,43 @@ onMounted(() => {
 
 <style scoped>
 .personal-center {
-  max-width: 900px;
-  margin: 40px auto;
-  padding: 20px;
+  max-width: 1320px;
+  margin: 10px auto 26px;
+  padding: 12px 8px 24px;
+}
+
+.page-hero {
+  margin-bottom: 22px;
+  padding: 24px 28px;
+  border-radius: 16px;
+  border: 1px solid #efdca8;
+  background: linear-gradient(135deg, #fffef8 0%, #fff4cf 100%);
+}
+
+.page-hero h1 {
+  margin: 0;
+  font-size: 34px;
+  color: #3d3220;
+}
+
+.page-hero p {
+  margin: 10px 0 0;
+  font-size: 16px;
+  color: #7a6740;
 }
 
 .user-card {
-  border-radius: 12px;
+  border-radius: 16px;
   border: 1px solid #f0e3be;
-  box-shadow: 0 8px 18px rgba(67, 53, 26, 0.08);
+  box-shadow: 0 10px 24px rgba(67, 53, 26, 0.08);
+}
+
+.user-card :deep(.el-card__header) {
+  padding: 18px 24px;
+}
+
+.user-card :deep(.el-card__body) {
+  padding: 24px;
 }
 
 .card-header {
@@ -279,13 +312,13 @@ onMounted(() => {
 }
 
 .user-info {
-  padding: 20px 0;
+  padding: 4px 0;
 }
 
 .credit-score-section {
   text-align: center;
-  margin-bottom: 30px;
-  padding: 20px;
+  margin-bottom: 28px;
+  padding: 24px;
   background: linear-gradient(135deg, #fffef8 0%, #fff1c5 100%);
   border: 1px solid #efdba1;
   border-radius: 8px;
@@ -313,7 +346,7 @@ onMounted(() => {
 }
 
 .credit-progress {
-  max-width: 400px;
+  max-width: 520px;
   margin: 0 auto;
 }
 
@@ -324,6 +357,7 @@ onMounted(() => {
 .credit-log-card {
   margin-bottom: 30px;
   border: 1px solid #f0e4c5;
+  border-radius: 12px;
 }
 
 .log-header {
@@ -365,5 +399,29 @@ onMounted(() => {
 .action-buttons :deep(.el-button--primary:hover) {
   background: #ffca33;
   border-color: #ffca33;
+}
+
+@media (max-width: 992px) {
+  .personal-center {
+    max-width: 100%;
+    padding: 4px 0 16px;
+  }
+
+  .page-hero {
+    padding: 18px 20px;
+  }
+
+  .page-hero h1 {
+    font-size: 28px;
+  }
+
+  .user-card :deep(.el-card__header),
+  .user-card :deep(.el-card__body) {
+    padding: 16px;
+  }
+
+  .action-buttons {
+    flex-wrap: wrap;
+  }
 }
 </style>

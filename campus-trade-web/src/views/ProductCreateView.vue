@@ -148,41 +148,57 @@ const previewImage = () => {
 
 <style scoped>
 .product-create-container {
-  max-width: 800px;
-  margin: 20px auto;
-  padding: 20px;
+  max-width: 1280px;
+  margin: 8px auto 24px;
+  padding: 10px 8px 24px;
 }
 
 .page-hero {
-  margin-bottom: 16px;
-  padding: 16px 20px;
-  border-radius: 12px;
+  margin-bottom: 22px;
+  padding: 24px 28px;
+  border-radius: 16px;
   border: 1px solid #efdca8;
   background: linear-gradient(135deg, #fffef8 0%, #fff4cf 100%);
 }
 
 .page-hero h1 {
   margin: 0;
-  font-size: 26px;
+  font-size: 34px;
   color: #3c3c3c;
 }
 
 .page-hero p {
-  margin: 8px 0 0;
+  margin: 10px 0 0;
   color: #7a6740;
-  font-size: 14px;
+  font-size: 16px;
 }
 
 .box-card {
-  border-radius: 12px;
+  border-radius: 16px;
   border: 1px solid #f0e4c6;
-  box-shadow: 0 8px 18px rgba(65, 49, 23, 0.08);
+  box-shadow: 0 10px 24px rgba(65, 49, 23, 0.08);
+}
+
+.box-card :deep(.el-card__header) {
+  padding: 18px 24px;
+}
+
+.box-card :deep(.el-card__body) {
+  padding: 24px;
+}
+
+.box-card :deep(.el-form) {
+  max-width: 960px;
 }
 
 .card-header {
-  font-size: 20px;
+  font-size: 24px;
   font-weight: 600;
   color: #4c3b16;
+}
+
+.box-card :deep(.el-form-item) {
+  margin-bottom: 22px;
 }
 
 .box-card :deep(.el-button--primary) {
@@ -198,5 +214,25 @@ const previewImage = () => {
 
 .image-preview {
   margin-top: 10px;
+}
+
+@media (max-width: 992px) {
+  .product-create-container {
+    max-width: 100%;
+    padding: 4px 0 14px;
+  }
+
+  .page-hero {
+    padding: 18px 20px;
+  }
+
+  .page-hero h1 {
+    font-size: 28px;
+  }
+
+  .box-card :deep(.el-card__header),
+  .box-card :deep(.el-card__body) {
+    padding: 16px;
+  }
 }
 </style>
