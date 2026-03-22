@@ -3,7 +3,7 @@
     <div class="header">
       <h1>校园二手交易</h1>
       <div class="controls">
-        <el-input v-model="keyword" placeholder="搜索商品..." clearable @keyup.enter="searchProducts" style="width:300px">
+        <el-input v-model="keyword" placeholder="搜索商品..." clearable @keyup.enter="searchProducts" style="width: 300px">
           <template #append>
             <el-button type="primary" @click="searchProducts">搜索</el-button>
           </template>
@@ -17,33 +17,53 @@
         <template #header>
           <div class="section-header">
             <el-icon size="20" color="#e6a23c"><Star /></el-icon>
-            <span>智能推荐</span>
+            <span>为你推荐</span>
           </div>
+          <div class="recommend-subtitle">根据你的浏览 / 点赞 / 购买行为动态推荐</div>
         </template>
 
-        <div v-if="recommendProducts.length > 0" class="recommend-list">
-          <el-card
-            v-for="item in recommendProducts"
-            :key="item.id"
-            class="recommend-card"
-            @click="viewDetail(item.id)"
-          >
-            <div class="recommend-placeholder">推荐商品</div>
-            <div class="content">
-              <h3 class="title">{{ item.title }}</h3>
-              <p class="description">{{ item.description }}</p>
-              <div class="reason-box">
-                <el-icon size="14"><InfoFilled /></el-icon>
-                <span class="reason-text">{{ getRecommendReason(item.id) }}</span>
-              </div>
-              <div class="footer">
-                <span class="price">¥{{ item.price }}</span>
-              </div>
-            </div>
-          </el-card>
-        </div>
+        <el-empty v-if="!currentUserId" description="登录后查看个性化推荐" />
 
-        <el-empty v-else description="暂无推荐商品" />
+        <template v-else>
+          <div v-if="recommendLoading" class="recommend-loading">
+            <el-skeleton animated :rows="3" />
+          </div>
+
+          <el-alert
+            v-else-if="recommendError"
+            type="warning"
+            :closable="false"
+            title="推荐服务暂时不可用，先看看全部商品吧"
+            show-icon
+          />
+
+          <div v-else-if="recommendProducts.length > 0" class="recommend-list">
+            <el-card
+              v-for="item in recommendProducts"
+              :key="item.id"
+              class="recommend-card"
+              @click="viewDetail(item.id)"
+            >
+              <div class="image-container">
+                <img v-if="item.image" :src="item.image" alt="商品图片" />
+                <div v-else class="recommend-placeholder">推荐商品</div>
+              </div>
+              <div class="content">
+                <h3 class="title">{{ item.title }}</h3>
+                <p class="description">{{ item.description }}</p>
+                <div class="reason-box">
+                  <el-icon size="14"><InfoFilled /></el-icon>
+                  <span class="reason-text">{{ getRecommendReason(item.id) }}</span>
+                </div>
+                <div class="footer">
+                  <span class="price">¥{{ item.price }}</span>
+                </div>
+              </div>
+            </el-card>
+          </div>
+
+          <el-empty v-else description="暂无推荐商品" />
+        </template>
       </el-card>
 
       <div class="section-title">
@@ -81,7 +101,8 @@
 import { ref, reactive, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { getProductList } from '../api/product'
-import { getSmartRecommend, getRecommendExplain } from '../api/recommend'
+import { getRecommendProducts, getRecommendDetails } from '../api/recommend'
+import { getUserId } from '../utils/user'
 import { Star, ShoppingCart, InfoFilled } from '@element-plus/icons-vue'
 
 const router = useRouter()
@@ -90,35 +111,67 @@ const recommendProducts = ref([])
 const recommendExplainMap = reactive({})
 const keyword = ref('')
 const loading = ref(false)
+const recommendLoading = ref(false)
+const recommendError = ref(false)
+const currentUserId = ref(getUserId())
+
+const normalizeList = (res) => {
+  if (Array.isArray(res?.data)) return res.data
+  if (Array.isArray(res)) return res
+  return []
+}
+
+const normalizeProduct = (item) => ({
+  ...item,
+  id: item.id,
+  title: item.title ?? item.name ?? '未命名商品',
+  description: item.description ?? item.desc ?? '暂无描述',
+  price: item.price ?? 0,
+  image: item.image ?? item.imageUrl ?? item.cover ?? ''
+})
 
 const fetchProducts = async (params = {}) => {
   loading.value = true
   try {
     const res = await getProductList(params)
-    products.value = res.data || []
+    products.value = normalizeList(res).map(normalizeProduct)
   } finally {
     loading.value = false
   }
 }
 
 const fetchRecommendations = async () => {
+  currentUserId.value = getUserId()
+  recommendProducts.value = []
+  Object.keys(recommendExplainMap).forEach((key) => delete recommendExplainMap[key])
+  recommendError.value = false
+
+  if (!currentUserId.value) {
+    return
+  }
+
+  recommendLoading.value = true
   try {
-    const res = await getSmartRecommend(4)
-    recommendProducts.value = res.data || []
+    const res = await getRecommendProducts(currentUserId.value, 6)
+    recommendProducts.value = normalizeList(res).map(normalizeProduct)
 
     if (recommendProducts.value.length > 0) {
-      const productIds = recommendProducts.value.map(item => item.id).join(',')
+      const productIds = recommendProducts.value.map((item) => item.id).join(',')
       try {
-        const explainRes = await getRecommendExplain(productIds)
-        if (explainRes.data && typeof explainRes.data === 'object') {
-          Object.assign(recommendExplainMap, explainRes.data)
+        const explainRes = await getRecommendDetails(currentUserId.value, productIds)
+        const explainData = explainRes?.data ?? explainRes
+        if (explainData && typeof explainData === 'object' && !Array.isArray(explainData)) {
+          Object.assign(recommendExplainMap, explainData)
         }
       } catch (error) {
         console.error('获取推荐解释失败:', error)
       }
     }
   } catch (error) {
+    recommendError.value = true
     console.error('获取推荐商品失败:', error)
+  } finally {
+    recommendLoading.value = false
   }
 }
 
@@ -194,6 +247,16 @@ onMounted(() => {
   color: #e6a23c;
 }
 
+.recommend-subtitle {
+  margin-top: 8px;
+  font-size: 13px;
+  color: #909399;
+}
+
+.recommend-loading {
+  padding: 16px 8px;
+}
+
 .recommend-list {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
@@ -212,7 +275,8 @@ onMounted(() => {
 }
 
 .recommend-placeholder {
-  height: 120px;
+  width: 100%;
+  height: 100%;
   background: linear-gradient(135deg, #ffd89b 0%, #e6a23c 100%);
   display: flex;
   align-items: center;
@@ -220,7 +284,6 @@ onMounted(() => {
   color: #fff;
   font-size: 16px;
   font-weight: 600;
-  border-radius: 8px 8px 0 0;
 }
 
 .content {
