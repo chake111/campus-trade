@@ -63,6 +63,8 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { createProduct } from '@/api/product'
+import { getToken } from '@/utils/request'
+import { getUserId } from '@/utils/user'
 import { ElMessage, ElMessageBox } from 'element-plus'
 
 const router = useRouter()
@@ -81,8 +83,8 @@ const rules = {
     { required: true, message: '请输入商品名称', trigger: 'blur' }
   ],
   price: [
-    { required: true, message: '请输入商品价格', trigger: 'blur' },
-    { type: 'number', min: 0.01, message: '价格必须大于0', trigger: 'blur' }
+    { required: true, message: '请输入商品价格', trigger: 'change' },
+    { type: 'number', min: 0.01, message: '价格必须大于0', trigger: 'change' }
   ],
   description: [
     { required: true, message: '请输入商品描述', trigger: 'blur' }
@@ -90,17 +92,31 @@ const rules = {
 }
 
 const submitForm = async () => {
+  const token = getToken()
+  const userId = getUserId()
+  if (!token || !userId) {
+    ElMessage.warning('请先登录')
+    router.push('/login')
+    return
+  }
+
   try {
     await formRef.value.validate()
     loading.value = true
-    const response = await createProduct(formData.value)
-    if (response.data) {
-      ElMessage.success('商品发布成功')
-      router.push('/products')
+
+    const payload = {
+      ...formData.value,
+      userId,
+      sellerId: userId
     }
+
+    await createProduct(payload)
+    ElMessage.success('商品发布成功')
+    router.push('/')
   } catch (error) {
     console.error('发布失败:', error)
-    ElMessage.error('商品发布失败，请重试')
+    const backendMessage = error?.message || error?.data?.message || error?.response?.data?.message
+    ElMessage.error(backendMessage || '商品发布失败，请重试')
   } finally {
     loading.value = false
   }
