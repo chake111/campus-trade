@@ -17,7 +17,7 @@ export function getProductDetail(id) {
 
 export function createProduct(data) {
   return request({
-    url: '/product/create',
+    url: '/product/add',
     method: 'post',
     data
   })

@@ -1,24 +1,16 @@
 import request from '../utils/request'
 
-export function getSmartRecommend(limit = 10) {
+export function getRecommendProducts(userId, limit = 10) {
   return request({
-    url: '/api/recommend/smart/1',
+    url: `/api/recommend/smart/${userId}`,
     method: 'get',
     params: { limit }
   })
 }
 
-export function getPopularRecommend(limit = 10) {
+export function getRecommendDetails(userId, productIds) {
   return request({
-    url: '/api/recommend/popular',
-    method: 'get',
-    params: { limit }
-  })
-}
-
-export function getRecommendExplain(productIds) {
-  return request({
-    url: '/api/recommend/explain/1',
+    url: `/api/recommend/explain/${userId}`,
     method: 'get',
     params: { productIds }
   })
