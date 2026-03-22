@@ -1,13 +1,5 @@
 import request from '../utils/request'
 
-export function getOrderList(params = {}) {
-  return request({
-    url: '/order/list',
-    method: 'get',
-    params
-  })
-}
-
 export function createOrder(data) {
   return request({
     url: '/order/create',
@@ -16,31 +8,18 @@ export function createOrder(data) {
   })
 }
 
-export function payOrder(id) {
+export function getOrderList(userId, role) {
   return request({
-    url: `/order/${id}/pay`,
-    method: 'put'
+    url: '/order/list',
+    method: 'get',
+    params: { userId, role }
   })
 }
 
-export function confirmOrder(id) {
+export function updateOrder(orderId, newStatus) {
   return request({
-    url: `/order/${id}/confirm`,
-    method: 'put'
-  })
-}
-
-export function finishOrder(id) {
-  return request({
-    url: `/order/${id}/finish`,
-    method: 'put'
-  })
-}
-
-export function cancelOrder(id, reason = '') {
-  return request({
-    url: `/order/${id}/cancel`,
+    url: '/order/update',
     method: 'put',
-    data: { reason }
+    data: { orderId, newStatus }
   })
 }
