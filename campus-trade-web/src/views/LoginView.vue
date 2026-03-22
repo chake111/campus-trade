@@ -167,15 +167,16 @@ const handleLogin = async () => {
   justify-content: center;
   align-items: center;
   min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #fffdf4 0%, #fff7dd 100%);
 }
 
 .login-box {
   width: 420px;
   padding: 40px;
-  background: #fff;
+  background: #fffaf0;
   border-radius: 12px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  border: 1px solid #f5e6bf;
+  box-shadow: 0 16px 36px rgba(180, 150, 78, 0.12);
 }
 
 .login-header {
@@ -185,14 +186,14 @@ const handleLogin = async () => {
 
 .login-header h1 {
   font-size: 28px;
-  color: #303133;
+  color: #8a6a21;
   margin-bottom: 10px;
   font-weight: 600;
 }
 
 .login-header p {
   font-size: 16px;
-  color: #909399;
+  color: #b19459;
 }
 
 .login-form {
@@ -209,11 +210,11 @@ const handleLogin = async () => {
   text-align: center;
   margin-top: 20px;
   padding-top: 20px;
-  border-top: 1px solid #ebeef5;
+  border-top: 1px solid #f1e4c0;
 }
 
 .login-footer p {
-  color: #909399;
+  color: #aa8c4f;
   font-size: 14px;
 }
 
@@ -233,5 +234,13 @@ const handleLogin = async () => {
 
 :deep(.el-button--primary) {
   border-radius: 8px;
+  border-color: #ffd56d;
+  background: linear-gradient(135deg, #ffe49c 0%, #ffd875 100%);
+  color: #5a4208;
+}
+
+:deep(.el-button--primary:hover) {
+  border-color: #ffca33;
+  background: linear-gradient(135deg, #ffde8d 0%, #ffd15c 100%);
 }
 </style>
