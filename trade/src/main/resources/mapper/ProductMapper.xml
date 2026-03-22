@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.campus.trade.mapper.ProductMapper">
+
+    <resultMap id="ProductResultMap" type="com.campus.trade.entity.Product">
+        <id column="id" property="id"/>
+        <result column="title" property="title"/>
+        <result column="description" property="description"/>
+        <result column="price" property="price"/>
+        <result column="user_id" property="userId"/>
+        <result column="status" property="status"/>
+        <result column="create_time" property="createTime"/>
+    </resultMap>
+
+    <insert id="insert" parameterType="com.campus.trade.entity.Product" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO `product`(title, description, price, user_id, status, create_time)
+        VALUES(
+            #{title},
+            #{description},
+            IFNULL(#{price}, 0),
+            #{userId},
+            IFNULL(#{status}, 1),
+            IFNULL(#{createTime}, CURRENT_TIMESTAMP)
+        )
+    </insert>
+
+    <select id="selectAll" resultMap="ProductResultMap">
+        SELECT id, title, description, price, user_id, status, create_time
+        FROM `product`
+    </select>
+
+    <select id="selectByKeyword" resultMap="ProductResultMap">
+        SELECT id, title, description, price, user_id, status, create_time
+        FROM `product`
+        WHERE (title LIKE CONCAT('%', #{keyword}, '%') OR description LIKE CONCAT('%', #{keyword}, '%'))
+          AND status = 1
+    </select>
+
+    <select id="selectById" resultMap="ProductResultMap" parameterType="long">
+        SELECT id, title, description, price, user_id, status, create_time
+        FROM `product`
+        WHERE id = #{id}
+    </select>
+
+</mapper>
+

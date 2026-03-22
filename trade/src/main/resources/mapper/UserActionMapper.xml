@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.campus.trade.mapper.UserActionMapper">
+
+    <resultMap id="UserActionResultMap" type="com.campus.trade.entity.UserAction">
+        <id column="id" property="id"/>
+        <result column="user_id" property="userId"/>
+        <result column="product_id" property="productId"/>
+        <result column="action_type" property="actionType" 
+                typeHandler="org.apache.ibatis.type.EnumTypeHandler"/>
+        <result column="create_time" property="createTime"/>
+    </resultMap>
+
+    <!-- 插入用户行为记录 -->
+    <insert id="insert" parameterType="com.campus.trade.entity.UserAction" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO user_action(user_id, product_id, action_type, create_time)
+        VALUES(
+            #{userId},
+            #{productId},
+            #{actionType, typeHandler=org.apache.ibatis.type.EnumTypeHandler},
+            IFNULL(#{createTime}, CURRENT_TIMESTAMP)
+        )
+    </insert>
+
+    <!-- 根据用户 ID 查询行为列表 -->
+    <select id="selectByUserId" resultMap="UserActionResultMap" parameterType="long">
+        SELECT id, user_id, product_id, action_type, create_time
+        FROM user_action
+        WHERE user_id = #{userId}
+        ORDER BY create_time DESC
+    </select>
+
+    <!-- 查询所有用户行为 -->
+    <select id="selectAll" resultMap="UserActionResultMap">
+        SELECT id, user_id, product_id, action_type, create_time
+        FROM user_action
+        ORDER BY user_id, create_time DESC
+    </select>
+
+</mapper>

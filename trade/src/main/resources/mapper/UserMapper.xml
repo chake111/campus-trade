@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.campus.trade.mapper.UserMapper">
+
+    <resultMap id="UserResultMap" type="com.campus.trade.entity.User">
+        <id column="id" property="id"/>
+        <result column="username" property="username"/>
+        <result column="password" property="password"/>
+        <result column="credit_score" property="creditScore"/>
+        <result column="create_time" property="createTime"/>
+    </resultMap>
+
+    <select id="selectById" resultMap="UserResultMap" parameterType="long">
+        SELECT id, username, password, credit_score, create_time
+        FROM `user`
+        WHERE id = #{id}
+    </select>
+
+    <select id="selectByUsername" resultMap="UserResultMap">
+        SELECT id, username, password, credit_score, create_time
+        FROM `user`
+        WHERE username = #{username}
+    </select>
+
+    <insert id="insert" parameterType="com.campus.trade.entity.User" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO `user`(username, password, credit_score, create_time)
+        VALUES(
+            #{username},
+            #{password},
+            IFNULL(#{creditScore}, 100),
+            IFNULL(#{createTime}, CURRENT_TIMESTAMP)
+        )
+    </insert>
+
+    <update id="updateCreditScore" parameterType="map">
+        UPDATE `user`
+        SET credit_score = #{creditScore}
+        WHERE id = #{userId}
+    </update>
+</mapper>
