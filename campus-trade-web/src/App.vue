@@ -187,7 +187,10 @@ function handleLogout() {
 }
 
 .page-content {
-  padding: 18px;
+  width: min(100%, 1560px);
+  margin: 0 auto;
+  padding: 28px 28px 34px;
+  box-sizing: border-box;
 }
 
 @media (max-width: 980px) {
@@ -216,6 +219,11 @@ function handleLogout() {
 
   .username {
     display: none;
+  }
+
+  .page-content {
+    width: 100%;
+    padding: 18px 14px 22px;
   }
 }
 </style>
