@@ -95,23 +95,24 @@ body {
 }
 
 /* Global card and UI tweaks for modern e-commerce style */
-.card, .el-card {
+.app-shell .card,
+.app-shell .el-card {
   background: var(--card-bg);
-  border-radius: var(--card-radius) !important;
-  box-shadow: var(--card-shadow) !important;
+  border-radius: var(--card-radius);
+  box-shadow: var(--card-shadow);
   border: 0;
 }
 
-.el-button--primary {
-  background-color: var(--primary) !important;
-  border-color: var(--primary) !important;
-  color: #fff !important;
+.app-shell .el-button--primary {
+  background-color: var(--primary);
+  border-color: var(--primary);
+  color: #fff;
   box-shadow: 0 6px 14px rgba(59,130,246,0.12);
 }
 
-.el-button--primary:hover {
-  background-color: var(--primary-600) !important;
-  border-color: var(--primary-600) !important;
+.app-shell .el-button--primary:hover {
+  background-color: var(--primary-600);
+  border-color: var(--primary-600);
 }
 
 /* Card inner spacing consistent */
