@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
  * 信用记录控制器
  */
 @RestController
-@RequestMapping("/credit/log")
+@RequestMapping("/credit")
 public class CreditLogController {
 
     private final CreditLogService creditLogService;
@@ -29,7 +29,7 @@ public class CreditLogController {
      * @param size 每页数量
      * @return 信用记录列表
      */
-    @GetMapping
+    @GetMapping("/log")
     public ResponseEntity<List<CreditLog>> getCreditLogs(
             @RequestParam Long userId,
             @RequestParam(defaultValue = "0") Integer page,
