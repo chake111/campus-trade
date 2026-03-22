@@ -11,28 +11,31 @@
       <div v-loading="loading" class="user-info">
         <div class="credit-score-section">
           <div class="credit-score">
-            <div class="score-value">{{ userInfo.creditScore }}</div>
-            <div class="score-label">信用分</div>
+            <div class="score-value">{{ creditScore }}</div>
+            <div class="score-label">当前信用分</div>
           </div>
           <el-progress
-            :percentage="userInfo.creditScore"
+            :percentage="progressValue"
             :stroke-width="10"
-            :color="getCreditColor(userInfo.creditScore)"
+            :color="getCreditColor(creditScore)"
             :show-text="false"
             class="credit-progress"
           />
+          <div class="score-tag-wrap">
+            <el-tag :type="getCreditTagType(creditScore)" size="large">信用等级：{{ creditLevelText }}</el-tag>
+          </div>
         </div>
 
         <el-descriptions :column="1" border class="user-details">
           <el-descriptions-item label="用户编号">
-            {{ userInfo.id }}
+            {{ userInfo.id || '-' }}
           </el-descriptions-item>
           <el-descriptions-item label="用户名">
-            <el-tag type="success">{{ userInfo.username }}</el-tag>
+            <el-tag type="success">{{ userInfo.username || '-' }}</el-tag>
           </el-descriptions-item>
           <el-descriptions-item label="信用分">
-            <el-tag :type="getCreditTagType(userInfo.creditScore)" size="large">
-              {{ userInfo.creditScore }}
+            <el-tag :type="getCreditTagType(creditScore)" size="large">
+              {{ creditScore }}
             </el-tag>
           </el-descriptions-item>
           <el-descriptions-item label="注册时间">
@@ -44,6 +47,30 @@
             </el-tag>
           </el-descriptions-item>
         </el-descriptions>
+
+        <el-card shadow="never" class="credit-log-card">
+          <template #header>
+            <div class="log-header">信用变动明细</div>
+          </template>
+
+          <el-table v-if="creditLogs.length" :data="creditLogs" border stripe style="width: 100%">
+            <el-table-column label="变动分值" width="140" align="center">
+              <template #default="{ row }">
+                <el-tag :type="row.change > 0 ? 'success' : row.change < 0 ? 'danger' : 'info'">
+                  {{ formatChange(row.change) }}
+                </el-tag>
+              </template>
+            </el-table-column>
+            <el-table-column prop="reason" label="变动原因" min-width="220" show-overflow-tooltip />
+            <el-table-column prop="createTime" label="时间" min-width="180">
+              <template #default="{ row }">
+                {{ formatTime(row.createTime) }}
+              </template>
+            </el-table-column>
+          </el-table>
+
+          <el-empty v-else description="暂无信用变动记录" />
+        </el-card>
 
         <div class="action-buttons">
           <el-button type="primary" @click="goToProducts">
@@ -61,44 +88,143 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { computed, ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { User, HomeFilled, SwitchButton } from '@element-plus/icons-vue'
+import request from '../utils/request'
+import { getUserId, getUserInfo, removeUserInfo } from '../utils/user'
+import { removeToken } from '../utils/request'
 
 const router = useRouter()
 const loading = ref(false)
+const creditScore = ref(0)
+const creditLogs = ref([])
 
 const userInfo = ref({
   id: null,
   username: '',
-  creditScore: 0,
   createTime: '',
   status: 1
 })
 
-const loadUserInfo = () => {
-  const storedUserInfo = localStorage.getItem('userInfo')
-  if (storedUserInfo) {
-    try {
-      const parsed = JSON.parse(storedUserInfo)
-      userInfo.value = {
-        id: parsed.id,
-        username: parsed.username,
-        creditScore: parsed.creditScore || 0,
-        createTime: parsed.createTime || '',
-        status: parsed.status || 1
-      }
-    } catch (error) {
-      console.error('解析用户信息失败:', error)
-      ElMessage.error('用户信息解析失败')
+const progressValue = computed(() => Math.max(0, Math.min(Number(creditScore.value) || 0, 100)))
+
+const creditLevelText = computed(() => {
+  if (creditScore.value >= 80) return '优秀'
+  if (creditScore.value >= 60) return '良好'
+  return '待提升'
+})
+
+const getApiData = (res) => (res && typeof res === 'object' && 'data' in res ? res.data : res)
+
+const toNumber = (value, defaultValue = 0) => {
+  const n = Number(value)
+  return Number.isFinite(n) ? n : defaultValue
+}
+
+const normalizeCreditScore = (payload) => {
+  const data = getApiData(payload)
+  if (typeof data === 'number') return data
+  if (typeof payload === 'number') return payload
+  return (
+    toNumber(data?.creditScore, NaN) ||
+    toNumber(data?.score, NaN) ||
+    toNumber(data?.credit, NaN) ||
+    toNumber(data?.value, NaN) ||
+    0
+  )
+}
+
+const normalizeCreditLogs = (payload) => {
+  const data = getApiData(payload)
+  const rawList =
+    (Array.isArray(data) && data) ||
+    (Array.isArray(data?.records) && data.records) ||
+    (Array.isArray(data?.list) && data.list) ||
+    (Array.isArray(data?.data) && data.data) ||
+    []
+
+  return rawList.map((item) => {
+    const change =
+      toNumber(item?.scoreChange, NaN) ||
+      toNumber(item?.changeValue, NaN) ||
+      toNumber(item?.credit, NaN) ||
+      0
+
+    return {
+      change,
+      reason: item?.reason || item?.description || '未提供原因',
+      createTime: item?.createTime || item?.time || ''
     }
+  })
+}
+
+const loadUserInfo = () => {
+  const localUserInfo = getUserInfo()
+  if (!localUserInfo) return
+  userInfo.value = {
+    id: localUserInfo.id ?? null,
+    username: localUserInfo.username || '',
+    createTime: localUserInfo.createTime || '',
+    status: localUserInfo.status ?? 1
+  }
+  if (localUserInfo.creditScore != null) {
+    creditScore.value = toNumber(localUserInfo.creditScore, 0)
+  }
+}
+
+const fetchCreditScore = async (userId) => {
+  const res = await request({
+    url: '/credit/score',
+    method: 'get',
+    params: { userId }
+  })
+  creditScore.value = normalizeCreditScore(res)
+}
+
+const fetchCreditLogs = async (userId) => {
+  const res = await request({
+    url: '/credit/log',
+    method: 'get',
+    params: { userId }
+  })
+  creditLogs.value = normalizeCreditLogs(res)
+}
+
+const fetchCreditData = async () => {
+  const userId = getUserId()
+  if (!userId) {
+    ElMessage.warning('请先登录')
+    router.push('/login')
+    return
+  }
+
+  loading.value = true
+  try {
+    await Promise.all([fetchCreditScore(userId), fetchCreditLogs(userId)])
+  } catch (error) {
+    const message =
+      error?.response?.data?.message ||
+      error?.response?.data?.data?.message ||
+      error?.message ||
+      '加载信用信息失败'
+    ElMessage.error(message)
+    creditLogs.value = []
+  } finally {
+    loading.value = false
   }
 }
 
 const formatTime = (time) => {
-  if (!time) return ''
+  if (!time) return '-'
+  if (typeof time !== 'string') return String(time)
   return time.replace('T', ' ')
+}
+
+const formatChange = (change) => {
+  if (change > 0) return `+${change}`
+  return String(change)
 }
 
 const getCreditColor = (score) => {
@@ -118,20 +244,21 @@ const goToProducts = () => {
 }
 
 const handleLogout = () => {
-  localStorage.removeItem('token')
-  localStorage.removeItem('userInfo')
+  removeToken()
+  removeUserInfo()
   ElMessage.success('已退出登录')
   router.push('/login')
 }
 
 onMounted(() => {
   loadUserInfo()
+  fetchCreditData()
 })
 </script>
 
 <style scoped>
 .personal-center {
-  max-width: 800px;
+  max-width: 900px;
   margin: 40px auto;
   padding: 20px;
 }
@@ -179,13 +306,26 @@ onMounted(() => {
   opacity: 0.9;
 }
 
+.score-tag-wrap {
+  margin-top: 16px;
+}
+
 .credit-progress {
   max-width: 400px;
   margin: 0 auto;
 }
 
 .user-details {
+  margin-bottom: 20px;
+}
+
+.credit-log-card {
   margin-bottom: 30px;
+}
+
+.log-header {
+  font-weight: 600;
+  color: #303133;
 }
 
 :deep(.el-descriptions__label) {
