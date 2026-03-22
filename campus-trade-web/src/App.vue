@@ -81,7 +81,7 @@ function handleLogout() {
 
       <div class="user-actions">
         <template v-if="isLoggedIn">
-          <span class="username">你好，{{ displayName }}</span>
+          <span class="username" :title="displayName">你好，{{ displayName }}</span>
           <el-button link type="danger" @click="handleLogout">退出登录</el-button>
         </template>
       </div>
@@ -103,8 +103,12 @@ function handleLogout() {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  height: 64px;
-  padding: 0 24px;
+  flex-wrap: wrap;
+  column-gap: 16px;
+  row-gap: 8px;
+  min-height: 64px;
+  height: auto;
+  padding: 10px 24px;
   background: #fff;
   border-bottom: 1px solid #ebeef5;
 }
@@ -118,44 +122,53 @@ function handleLogout() {
 }
 
 .nav-menu {
-  flex: 1;
-  margin: 0 24px;
+  flex: 1 1 520px;
+  margin: 0 8px;
   border-bottom: none;
-  min-width: 0;
+  min-width: 280px;
 }
 
 .user-actions {
-  min-width: 160px;
+  flex: 0 0 auto;
+  min-width: 120px;
   display: flex;
   justify-content: flex-end;
   align-items: center;
   gap: 8px;
+  white-space: nowrap;
 }
 
 .username {
+  max-width: 180px;
   color: #606266;
   font-size: 14px;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .page-content {
   padding: 20px;
 }
 
-@media (max-width: 900px) {
+@media (max-width: 980px) {
   .top-nav {
-    padding: 0 12px;
+    padding: 8px 12px;
   }
 
   .brand {
-    font-size: 15px;
+    font-size: 16px;
   }
 
   .nav-menu {
-    margin: 0 8px;
+    order: 3;
+    flex: 1 1 100%;
+    min-width: 0;
+    margin: 0;
   }
 
   .user-actions {
-    min-width: 90px;
+    margin-left: auto;
+    min-width: 0;
   }
 
   .username {
