@@ -29,6 +29,8 @@ public class WebMvcConfig implements WebMvcConfigurer {
     @Autowired
     private JwtInterceptor jwtInterceptor;
 
+    @Autowired
+    private JwtAuthenticationFilter jwtAuthenticationFilter;
 
 
     @Bean
@@ -42,11 +44,15 @@ public class WebMvcConfig implements WebMvcConfigurer {
                 .requestMatchers("/product/**").permitAll()
                 .requestMatchers("/order/**").permitAll()
                 .requestMatchers("/api/recommend/**").permitAll()
+                .requestMatchers("/credit/**").authenticated()
                 .requestMatchers("/api/**").authenticated()
+                .anyRequest().permitAll()
             )
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 
             .headers(headers -> headers.frameOptions(frameOptions -> frameOptions.disable()));
+
+        http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
         
         return http.build();
     }
