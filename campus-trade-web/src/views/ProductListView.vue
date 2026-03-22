@@ -73,8 +73,11 @@
       </el-card>
 
       <div class="section-title">
-        <el-icon size="20"><ShoppingCart /></el-icon>
+        <span class="section-icon">
+          <el-icon size="18"><ShoppingCart /></el-icon>
+        </span>
         <span>全部商品</span>
+        <span class="section-tip">新鲜上架</span>
       </div>
 
       <div class="all-products-grid" v-if="products.length">
@@ -403,15 +406,38 @@ onMounted(() => {
 .section-title {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   font-size: 18px;
   font-weight: 600;
-  color: #303133;
+  color: #5c430e;
   margin-top: 16px;
-  padding: 12px 14px;
-  background: #fff;
-  border: 1px solid #ececec;
+  padding: 12px 16px;
+  background: linear-gradient(135deg, #fffdf7 0%, #fff7df 100%);
+  border: 1px solid #f2e2ba;
+  border-radius: 12px;
+  box-shadow: 0 4px 10px rgba(103, 81, 40, 0.05);
+}
+
+.section-icon {
+  width: 26px;
+  height: 26px;
   border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #ffe49c 0%, #ffd875 100%);
+  color: #8a6200;
+}
+
+.section-tip {
+  margin-left: auto;
+  padding: 2px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 500;
+  color: #8a6d2f;
+  background: #fff5d7;
+  border: 1px solid #f4ddb1;
 }
 
 .all-products-grid {
@@ -423,22 +449,25 @@ onMounted(() => {
 .product-card {
   cursor: pointer;
   transition: transform 0.24s ease, box-shadow 0.24s ease;
-  border-radius: 12px;
-  border: 1px solid #efefef;
+  border-radius: 14px;
+  border: 1px solid #f1e9d6;
+  box-shadow: 0 6px 16px rgba(67, 49, 16, 0.06);
 }
 
 .product-card:hover {
   transform: translateY(-3px);
-  box-shadow: 0 10px 20px rgba(31, 35, 41, 0.1);
+  border-color: #efd08b;
+  box-shadow: 0 12px 22px rgba(82, 63, 27, 0.13);
 }
 
 .image-container {
   width: 100%;
   height: 176px;
   overflow: hidden;
-  border-radius: 8px;
-  margin-bottom: 10px;
-  background: #f6f7f8;
+  border-radius: 10px;
+  margin-bottom: 12px;
+  background: #faf4e7;
+  border: 1px solid #f4e9d1;
 }
 
 .image-container img {
@@ -458,9 +487,30 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #f4f5f7 0%, #eceef1 100%);
-  color: #9a9ea6;
+  background: linear-gradient(135deg, #fdf7e8 0%, #f7edd7 100%);
+  color: #ae9162;
   font-size: 14px;
+  font-weight: 500;
+}
+
+.all-products-grid .content {
+  padding: 2px 2px 4px;
+}
+
+.all-products-grid .title {
+  color: #3d3526;
+  margin-bottom: 6px;
+  line-height: 1.45;
+}
+
+.all-products-grid .description {
+  color: #8c8476;
+  margin-bottom: 12px;
+  line-height: 1.5;
+}
+
+.all-products-grid .price {
+  color: #ef5f4e;
 }
 
 .empty-state {
