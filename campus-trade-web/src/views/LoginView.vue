@@ -60,7 +60,7 @@ import { ref, reactive } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { login } from '../api/user'
-import { setToken } from '../utils/request'
+import { removeToken, setToken } from '../utils/request'
 import { setUserInfo } from '../utils/user'
 
 const router = useRouter()
@@ -138,7 +138,8 @@ const handleLogin = async () => {
 
     const user = pickUser(dataPayload) || pickUser(rootPayload)
     if (!user || user.id == null) {
-      ElMessage.warning('登录成功，但未获取到完整用户信息，请联系后端确认登录返回字段')
+      removeToken()
+      ElMessage.error('登录返回缺少用户信息，请联系后端确认登录返回字段')
       return
     }
 

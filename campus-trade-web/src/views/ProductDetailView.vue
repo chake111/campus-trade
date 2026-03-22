@@ -166,7 +166,7 @@ const handleCreateOrder = async () => {
   try {
     const payload = {
       productId: product.value.id ?? routeProductId.value,
-      buyerId,
+      userId: buyerId,
       sellerId: sellerId.value,
     }
     await createOrder(payload)
