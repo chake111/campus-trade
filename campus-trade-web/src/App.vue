@@ -1,83 +1,163 @@
 <script setup>
-import { RouterLink, RouterView } from 'vue-router'
+import { computed, ref, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import { ElMessage } from 'element-plus'
+import { getToken, removeToken } from './utils/request'
+import { getUserInfo, removeUserInfo } from './utils/user'
+
+const router = useRouter()
+const route = useRoute()
+
+const token = ref(getToken())
+const userInfo = ref(getUserInfo())
+
+function syncAuthState() {
+  token.value = getToken()
+  userInfo.value = getUserInfo()
+}
+
+watch(
+  () => route.fullPath,
+  () => {
+    syncAuthState()
+  },
+  { immediate: true }
+)
+
+const isLoggedIn = computed(() => Boolean(token.value && userInfo.value))
+
+const displayName = computed(() => {
+  if (!userInfo.value) return '同学'
+  return userInfo.value.username || userInfo.value.nickname || userInfo.value.name || `用户${userInfo.value.id || ''}`
+})
+
+const activeMenu = computed(() => {
+  const path = route.path
+  if (path.startsWith('/product/create')) return '/product/create'
+  if (path.startsWith('/orders')) return '/orders'
+  if (path.startsWith('/profile')) return '/profile'
+  if (path.startsWith('/login')) return '/login'
+  return '/products'
+})
+
+function goHome() {
+  router.push('/products')
+}
+
+function handleLogout() {
+  removeToken()
+  removeUserInfo()
+  ElMessage.success('已退出登录')
+  router.push('/products')
+}
 </script>
 
 <template>
-  <header>
-    <div class="wrapper">
-      <h1>Campus Trade</h1>
-      <nav>
-        <RouterLink to="/products">商品</RouterLink>
-        <RouterLink to="/orders">订单</RouterLink>
-        <RouterLink to="/profile">个人</RouterLink>
-        <RouterLink to="/login">登录</RouterLink>
-      </nav>
-    </div>
-  </header>
+  <el-container class="app-shell">
+    <el-header class="top-nav">
+      <div class="brand" @click="goHome">校园二手交易系统</div>
 
-  <RouterView />
+      <el-menu
+        :default-active="activeMenu"
+        mode="horizontal"
+        :ellipsis="false"
+        router
+        class="nav-menu"
+      >
+        <el-menu-item index="/products">首页</el-menu-item>
+
+        <template v-if="isLoggedIn">
+          <el-menu-item index="/product/create">发布商品</el-menu-item>
+          <el-menu-item index="/orders">我的订单</el-menu-item>
+          <el-menu-item index="/profile">个人中心</el-menu-item>
+        </template>
+
+        <template v-else>
+          <el-menu-item index="/login">登录</el-menu-item>
+        </template>
+      </el-menu>
+
+      <div class="user-actions">
+        <template v-if="isLoggedIn">
+          <span class="username">你好，{{ displayName }}</span>
+          <el-button link type="danger" @click="handleLogout">退出登录</el-button>
+        </template>
+      </div>
+    </el-header>
+
+    <el-main class="page-content">
+      <router-view />
+    </el-main>
+  </el-container>
 </template>
 
 <style scoped>
-header {
-  line-height: 1.5;
-  max-height: 100vh;
+.app-shell {
+  min-height: 100vh;
+  background: #f5f7fa;
 }
 
-.logo {
-  display: block;
-  margin: 0 auto 2rem;
+.top-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 64px;
+  padding: 0 24px;
+  background: #fff;
+  border-bottom: 1px solid #ebeef5;
 }
 
-nav {
-  width: 100%;
-  font-size: 12px;
-  text-align: center;
-  margin-top: 2rem;
+.brand {
+  flex-shrink: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #303133;
+  cursor: pointer;
 }
 
-nav a.router-link-exact-active {
-  color: var(--color-text);
+.nav-menu {
+  flex: 1;
+  margin: 0 24px;
+  border-bottom: none;
+  min-width: 0;
 }
 
-nav a.router-link-exact-active:hover {
-  background-color: transparent;
+.user-actions {
+  min-width: 160px;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 8px;
 }
 
-nav a {
-  display: inline-block;
-  padding: 0 1rem;
-  border-left: 1px solid var(--color-border);
+.username {
+  color: #606266;
+  font-size: 14px;
 }
 
-nav a:first-of-type {
-  border: 0;
+.page-content {
+  padding: 20px;
 }
 
-@media (min-width: 1024px) {
-  header {
-    display: flex;
-    place-items: center;
-    padding-right: calc(var(--section-gap) / 2);
+@media (max-width: 900px) {
+  .top-nav {
+    padding: 0 12px;
   }
 
-  .logo {
-    margin: 0 2rem 0 0;
+  .brand {
+    font-size: 15px;
   }
 
-  header .wrapper {
-    display: flex;
-    place-items: flex-start;
-    flex-wrap: wrap;
+  .nav-menu {
+    margin: 0 8px;
   }
 
-  nav {
-    text-align: left;
-    margin-left: -1rem;
-    font-size: 1rem;
+  .user-actions {
+    min-width: 90px;
+  }
 
-    padding: 1rem 0;
-    margin-top: 1rem;
+  .username {
+    display: none;
   }
 }
 </style>
