@@ -61,7 +61,7 @@ import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { login } from '../api/user'
 import { removeToken, setToken } from '../utils/request'
-import { setUserInfo } from '../utils/user'
+import { dispatchAuthChanged, setUserInfo } from '../utils/user'
 
 const router = useRouter()
 const formRef = ref(null)
@@ -144,6 +144,7 @@ const handleLogin = async () => {
     }
 
     setUserInfo(user)
+    dispatchAuthChanged()
     ElMessage.success(rootPayload?.message || '登录成功')
     router.push('/')
   } catch (error) {

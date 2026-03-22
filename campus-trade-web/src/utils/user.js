@@ -1,4 +1,9 @@
 const USER_INFO_KEY = 'userInfo'
+export const AUTH_CHANGED_EVENT = 'auth-changed'
+
+export function dispatchAuthChanged() {
+  window.dispatchEvent(new Event(AUTH_CHANGED_EVENT))
+}
 
 export function setUserInfo(user) {
   localStorage.setItem(USER_INFO_KEY, JSON.stringify(user || {}))

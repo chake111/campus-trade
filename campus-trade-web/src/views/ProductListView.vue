@@ -14,7 +14,8 @@
             <el-button type="warning" @click="searchProducts">搜索</el-button>
           </template>
         </el-input>
-        <el-button class="publish-btn" @click="createProduct">发布商品</el-button>
+        <el-button v-if="isLoggedIn" class="publish-btn" @click="createProduct">发布商品</el-button>
+        <el-button v-else class="publish-btn" @click="goLogin">登录后发布</el-button>
       </div>
     </div>
 
@@ -109,11 +110,12 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { getProductList } from '../api/product'
 import { getRecommendProducts, getRecommendDetails } from '../api/recommend'
-import { getUserId } from '../utils/user'
+import { getToken } from '../utils/request'
+import { AUTH_CHANGED_EVENT, getUserId } from '../utils/user'
 import { Star, ShoppingCart, InfoFilled } from '@element-plus/icons-vue'
 
 const router = useRouter()
@@ -125,6 +127,7 @@ const loading = ref(false)
 const recommendLoading = ref(false)
 const recommendError = ref(false)
 const currentUserId = ref(getUserId())
+const isLoggedIn = ref(Boolean(getToken() && currentUserId.value))
 
 const normalizeList = (res) => {
   if (Array.isArray(res?.data)) return res.data
@@ -153,6 +156,7 @@ const fetchProducts = async (params = {}) => {
 
 const fetchRecommendations = async () => {
   currentUserId.value = getUserId()
+  isLoggedIn.value = Boolean(getToken() && currentUserId.value)
   recommendProducts.value = []
   Object.keys(recommendExplainMap).forEach((key) => delete recommendExplainMap[key])
   recommendError.value = false
@@ -202,9 +206,24 @@ const createProduct = () => {
   router.push('/product/create')
 }
 
+const goLogin = () => {
+  router.push('/login')
+}
+
+const syncAuthState = () => {
+  currentUserId.value = getUserId()
+  isLoggedIn.value = Boolean(getToken() && currentUserId.value)
+  fetchRecommendations()
+}
+
 onMounted(() => {
   fetchProducts()
   fetchRecommendations()
+  window.addEventListener(AUTH_CHANGED_EVENT, syncAuthState)
+})
+
+onUnmounted(() => {
+  window.removeEventListener(AUTH_CHANGED_EVENT, syncAuthState)
 })
 </script>
 

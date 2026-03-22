@@ -93,12 +93,12 @@
 </template>
 
 <script setup>
-import { computed, ref, onMounted } from 'vue'
+import { computed, ref, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { User, HomeFilled, SwitchButton } from '@element-plus/icons-vue'
-import request from '../utils/request'
-import { getUserId, getUserInfo, removeUserInfo } from '../utils/user'
+import { getCreditLogs, getCreditScore } from '../api/credit'
+import { AUTH_CHANGED_EVENT, dispatchAuthChanged, getUserId, getUserInfo, removeUserInfo } from '../utils/user'
 import { removeToken } from '../utils/request'
 
 const router = useRouter()
@@ -169,7 +169,7 @@ const loadUserInfo = () => {
   const localUserInfo = getUserInfo()
   if (!localUserInfo) return
   userInfo.value = {
-    id: localUserInfo.id ?? null,
+    id: localUserInfo.id ?? localUserInfo.userId ?? null,
     username: localUserInfo.username || '',
     createTime: localUserInfo.createTime || '',
     status: localUserInfo.status ?? 1
@@ -180,25 +180,17 @@ const loadUserInfo = () => {
 }
 
 const fetchCreditScore = async (userId) => {
-  const res = await request({
-    url: '/credit/score',
-    method: 'get',
-    params: { userId }
-  })
+  const res = await getCreditScore({ userId })
   creditScore.value = normalizeCreditScore(res)
 }
 
 const fetchCreditLogs = async (userId) => {
-  const res = await request({
-    url: '/credit/log',
-    method: 'get',
-    params: { userId }
-  })
+  const res = await getCreditLogs({ userId })
   creditLogs.value = normalizeCreditLogs(res)
 }
 
 const fetchCreditData = async () => {
-  const userId = getUserId()
+  const userId = getUserId() ?? userInfo.value.id
   if (!userId) {
     ElMessage.warning('请先登录')
     router.push('/login')
@@ -207,14 +199,25 @@ const fetchCreditData = async () => {
 
   loading.value = true
   try {
-    await Promise.all([fetchCreditScore(userId), fetchCreditLogs(userId)])
+    await fetchCreditScore(userId)
   } catch (error) {
-    const message =
+    const scoreMessage =
+      error?.response?.data?.message ||
+      error?.response?.data?.data?.message ||
+      error?.message ||
+      '获取信用分失败'
+    ElMessage.error(scoreMessage)
+  }
+
+  try {
+    await fetchCreditLogs(userId)
+  } catch (error) {
+    const logMessage =
       error?.response?.data?.message ||
       error?.response?.data?.data?.message ||
       error?.message ||
       '获取信用记录失败'
-    ElMessage.error(message)
+    ElMessage.error(logMessage)
     creditLogs.value = []
   } finally {
     loading.value = false
@@ -251,13 +254,24 @@ const goToProducts = () => {
 const handleLogout = () => {
   removeToken()
   removeUserInfo()
+  dispatchAuthChanged()
   ElMessage.success('已退出登录')
   router.push('/login')
+}
+
+const syncAuthState = () => {
+  loadUserInfo()
+  fetchCreditData()
 }
 
 onMounted(() => {
   loadUserInfo()
   fetchCreditData()
+  window.addEventListener(AUTH_CHANGED_EVENT, syncAuthState)
+})
+
+onUnmounted(() => {
+  window.removeEventListener(AUTH_CHANGED_EVENT, syncAuthState)
 })
 </script>
 
