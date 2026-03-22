@@ -69,7 +69,7 @@
             </el-table-column>
           </el-table>
 
-          <el-empty v-else description="暂无信用变动记录" />
+          <el-empty v-else description="暂无信用记录" />
         </el-card>
 
         <div class="action-buttons">
@@ -208,7 +208,7 @@ const fetchCreditData = async () => {
       error?.response?.data?.message ||
       error?.response?.data?.data?.message ||
       error?.message ||
-      '加载信用信息失败'
+      '获取信用记录失败'
     ElMessage.error(message)
     creditLogs.value = []
   } finally {

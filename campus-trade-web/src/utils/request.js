@@ -52,6 +52,17 @@ request.interceptors.request.use(
   (error) => Promise.reject(error)
 )
 
+const STATUS_MESSAGE_MAP = {
+  401: '登录已过期，请重新登录',
+  403: '没有访问权限',
+  404: '请求资源不存在',
+  500: '服务器内部错误',
+}
+
+const getStatusMessage = (status, fallbackMessage = '服务异常') => {
+  return STATUS_MESSAGE_MAP[status] || fallbackMessage
+}
+
 // 响应拦截器：兼容多种响应格式
 request.interceptors.response.use(
   (response) => {
@@ -69,7 +80,15 @@ request.interceptors.response.use(
         if (res.code === 200) {
           return res
         }
-        ElMessage.error(res.message || '服务异常')
+
+        if (res.code === 401) {
+          ElMessage.error(getStatusMessage(401, res.message))
+          removeToken()
+          router.push('/login')
+          return Promise.reject(res)
+        }
+
+        ElMessage.error(getStatusMessage(res.code, res.message || '服务异常'))
         return Promise.reject(res)
       }
       // 没有 code 字段，说明是直接返回的对象，包装后返回
@@ -83,16 +102,20 @@ request.interceptors.response.use(
     if (error.response) {
       const status = error.response.status
       const respData = error.response.data || {}
+
       if (status === 401) {
-        ElMessage.error('登录已过期，请重新登录')
+        ElMessage.error(getStatusMessage(401, respData.message))
         removeToken()
         router.push('/login')
         return Promise.reject(error.response)
       }
-      ElMessage.error(respData.message || '服务异常')
+
+      const message = getStatusMessage(status, respData.message || '服务异常')
+      ElMessage.error(message)
       return Promise.reject(error.response)
     }
-    ElMessage.error('网络连接失败')
+
+    ElMessage.error('网络异常，请检查后端服务是否启动')
     return Promise.reject(error)
   }
 )

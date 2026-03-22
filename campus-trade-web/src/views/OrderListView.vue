@@ -139,7 +139,7 @@
       </el-table>
 
       <div v-if="!filteredOrders.length && !loading" class="empty-state">
-        <el-empty description="暂无符合条件的订单" />
+        <el-empty description="暂无订单" />
       </div>
     </div>
   </div>
@@ -220,7 +220,7 @@ const fetchOrders = async () => {
       error?.response?.data?.message ||
       error?.response?.data?.data?.message ||
       error?.message ||
-      '加载订单列表失败'
+      '获取订单列表失败'
     ElMessage.error(message)
     orders.value = []
   } finally {

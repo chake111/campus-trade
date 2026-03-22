@@ -13,7 +13,7 @@
 
       <el-empty
         v-if="!loading && !product"
-        description="商品不存在、已下架或暂时无法查看"
+        description="商品不存在或已下架"
       />
 
       <div v-else-if="product" class="detail-content">
@@ -126,7 +126,7 @@ const fetchProductDetail = async () => {
     }
   } catch (error) {
     product.value = null
-    const msg = error?.message || error?.response?.data?.message || '获取商品详情失败'
+    const msg = error?.response?.data?.message || error?.message || '获取商品详情失败'
     ElMessage.error(msg)
   } finally {
     loading.value = false
