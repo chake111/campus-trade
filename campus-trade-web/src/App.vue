@@ -24,7 +24,11 @@ watch(
   { immediate: true }
 )
 
-const isLoggedIn = computed(() => Boolean(token.value && userInfo.value))
+const isLoggedIn = computed(() => {
+  const currentUser = userInfo.value
+  const userId = currentUser?.id ?? currentUser?.userId
+  return Boolean(token.value && currentUser && userId)
+})
 
 const displayName = computed(() => {
   if (!userInfo.value) return '同学'
