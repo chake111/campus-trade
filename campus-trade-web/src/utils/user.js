@@ -22,7 +22,7 @@ export function getUserInfo() {
 
 export function getUserId() {
   const user = getUserInfo()
-  return user?.id ?? null
+  return user?.id ?? user?.userId ?? user?.uid ?? null
 }
 
 export function removeUserInfo() {
