@@ -1,5 +1,10 @@
 <template>
   <div class="product-create-container" v-loading="loading">
+    <div class="page-hero">
+      <h1>发布商品</h1>
+      <p>让闲置流转起来，用更轻松的方式完成校园交易。</p>
+    </div>
+
     <el-card class="box-card">
       <template #header>
         <div class="card-header">
@@ -148,15 +153,47 @@ const previewImage = () => {
   padding: 20px;
 }
 
+.page-hero {
+  margin-bottom: 16px;
+  padding: 16px 20px;
+  border-radius: 12px;
+  border: 1px solid #efdca8;
+  background: linear-gradient(135deg, #fffef8 0%, #fff4cf 100%);
+}
+
+.page-hero h1 {
+  margin: 0;
+  font-size: 26px;
+  color: #3c3c3c;
+}
+
+.page-hero p {
+  margin: 8px 0 0;
+  color: #7a6740;
+  font-size: 14px;
+}
+
 .box-card {
   border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  border: 1px solid #f0e4c6;
+  box-shadow: 0 8px 18px rgba(65, 49, 23, 0.08);
 }
 
 .card-header {
   font-size: 20px;
   font-weight: 600;
-  color: #303133;
+  color: #4c3b16;
+}
+
+.box-card :deep(.el-button--primary) {
+  background: #ffd45a;
+  border-color: #ffd45a;
+  color: #3c3c3c;
+}
+
+.box-card :deep(.el-button--primary:hover) {
+  background: #ffca33;
+  border-color: #ffca33;
 }
 
 .image-preview {

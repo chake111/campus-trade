@@ -1,7 +1,8 @@
 <template>
   <div class="order-list">
-    <div class="header">
+    <div class="header page-hero">
       <h1>我的订单</h1>
+      <p>统一查看买入与卖出订单，状态清晰、流程可追踪。</p>
     </div>
 
     <div class="order-table" v-loading="loading">
@@ -320,17 +321,31 @@ onMounted(() => {
   margin-bottom: 20px;
 }
 
+.page-hero {
+  padding: 16px 20px;
+  border-radius: 12px;
+  border: 1px solid #efdca8;
+  background: linear-gradient(135deg, #fffef8 0%, #fff4cf 100%);
+}
+
 .header h1 {
   font-size: 28px;
   font-weight: 600;
-  color: #303133;
+  color: #3d3220;
   margin: 0;
+}
+
+.header p {
+  margin: 8px 0 0;
+  font-size: 14px;
+  color: #7a6740;
 }
 
 .order-table {
   background: #fff;
   border-radius: 12px;
   padding: 20px;
+  border: 1px solid #f1e4c2;
 }
 
 .toolbar {
@@ -340,6 +355,32 @@ onMounted(() => {
   justify-content: space-between;
   gap: 12px;
   flex-wrap: wrap;
+  padding: 10px 12px;
+  background: #fffaf0;
+  border: 1px solid #f1e4c2;
+  border-radius: 10px;
+}
+
+.toolbar :deep(.el-radio-button__inner) {
+  border-color: #ecd594;
+  color: #6c571f;
+}
+
+.toolbar :deep(.el-radio-button__original-radio:checked + .el-radio-button__inner) {
+  background: #ffd45a;
+  border-color: #ffd45a;
+  color: #3c3c3c;
+  box-shadow: -1px 0 0 0 #ffd45a;
+}
+
+.toolbar :deep(.el-button--primary.is-plain) {
+  color: #6b500d;
+  border-color: #efcf7a;
+  background: #fff8e4;
+}
+
+.toolbar :deep(.el-button--primary.is-plain:hover) {
+  background: #ffefbe;
 }
 
 .toolbar-right {
@@ -355,6 +396,11 @@ onMounted(() => {
 
 .keyword-input {
   width: 240px;
+}
+
+.order-table :deep(.el-table th.el-table__cell) {
+  background: #fff8e8;
+  color: #5c4517;
 }
 
 .product-info {
