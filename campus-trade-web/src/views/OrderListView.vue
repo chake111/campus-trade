@@ -11,8 +11,10 @@
         <el-table-column label="商品信息" width="300">
           <template #default="{ row }">
             <div class="product-info">
-              <div class="product-title">{{ row.product?.title || '商品已下架' }}</div>
-              <div class="product-price">¥{{ row.product?.price || 0 }}</div>
+              <div class="product-title">
+                {{ row.product?.title || row.productTitle || `商品ID: ${row.productId || '-'} ` }}
+              </div>
+              <div class="product-price">¥{{ row.product?.price ?? row.productPrice ?? 0 }}</div>
             </div>
           </template>
         </el-table-column>
@@ -25,9 +27,18 @@
           </template>
         </el-table-column>
 
+        <el-table-column label="买家/卖家" width="220">
+          <template #default="{ row }">
+            <div class="user-info">
+              <div>买家：{{ row.buyerName || row.buyerId || '-' }}</div>
+              <div>卖家：{{ row.sellerName || row.sellerId || '-' }}</div>
+            </div>
+          </template>
+        </el-table-column>
+
         <el-table-column prop="createTime" label="创建时间" width="180">
           <template #default="{ row }">
-            {{ formatTime(row.createTime) }}
+            {{ formatTime(row.createTime || row.createdAt) }}
           </template>
         </el-table-column>
 
@@ -35,34 +46,57 @@
           <template #default="{ row }">
             <el-steps :active="getStepActive(row.status)" finish-status="success" align-center>
               <el-step title="待支付" />
-              <el-step title="待收货" />
+              <el-step title="已支付" />
+              <el-step title="已确认" />
               <el-step title="已完成" />
             </el-steps>
           </template>
         </el-table-column>
 
-        <el-table-column label="操作" width="200" fixed="right">
+        <el-table-column label="操作" width="260" fixed="right">
           <template #default="{ row }">
             <div class="actions">
               <el-button
                 v-if="row.status === 'PENDING'"
-                type="success"
+                type="primary"
                 size="small"
-                :loading="confirmingId === row.id"
-                @click="handleConfirm(row)"
+                :loading="isActionLoading(row.id, 'PAID')"
+                :disabled="isAnyActionLoading(row.id)"
+                @click="handleStatusUpdate(row, 'PAID', '支付')"
               >
-                确认收货
+                支付
               </el-button>
               <el-button
                 v-if="row.status === 'PENDING'"
                 type="danger"
                 size="small"
-                :loading="cancellingId === row.id"
-                @click="handleCancel(row)"
+                :loading="isActionLoading(row.id, 'CANCELLED')"
+                :disabled="isAnyActionLoading(row.id)"
+                @click="handleStatusUpdate(row, 'CANCELLED', '取消')"
               >
-                取消订单
+                取消
               </el-button>
-              <el-tag v-if="row.status === 'CONFIRMED'" type="success" size="small">
+              <el-button
+                v-if="row.status === 'PAID'"
+                type="success"
+                size="small"
+                :loading="isActionLoading(row.id, 'CONFIRMED')"
+                :disabled="isAnyActionLoading(row.id)"
+                @click="handleStatusUpdate(row, 'CONFIRMED', '确认')"
+              >
+                确认
+              </el-button>
+              <el-button
+                v-if="row.status === 'CONFIRMED'"
+                type="warning"
+                size="small"
+                :loading="isActionLoading(row.id, 'FINISHED')"
+                :disabled="isAnyActionLoading(row.id)"
+                @click="handleStatusUpdate(row, 'FINISHED', '完成')"
+              >
+                完成
+              </el-button>
+              <el-tag v-if="row.status === 'FINISHED'" type="success" size="small">
                 已完成
               </el-tag>
               <el-tag v-if="row.status === 'CANCELLED'" type="info" size="small">
@@ -82,23 +116,59 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { getOrderList, confirmOrder, cancelOrder } from '../api/order'
+import { getOrderList, updateOrder } from '../api/order'
+import { getUserId } from '../utils/user'
 
 const router = useRouter()
+const route = useRoute()
 const orders = ref([])
 const loading = ref(false)
-const confirmingId = ref(null)
-const cancellingId = ref(null)
+const actionLoading = ref({ id: null, status: '' })
+
+const getApiData = (res) => (res && typeof res === 'object' && 'data' in res ? res.data : res)
+
+const extractOrderList = (res) => {
+  const data = getApiData(res)
+  if (Array.isArray(data)) return data
+  if (Array.isArray(data?.records)) return data.records
+  if (Array.isArray(data?.list)) return data.list
+  if (Array.isArray(data?.data)) return data.data
+  return []
+}
+
+const resolveMessage = (res, fallback) => {
+  const data = getApiData(res)
+  return data?.message || res?.message || fallback
+}
+
+const getCurrentRole = () => {
+  const role = route.query?.role
+  return typeof role === 'string' && role.trim() ? role.trim() : undefined
+}
 
 const fetchOrders = async () => {
+  const userId = getUserId()
+  if (!userId) {
+    ElMessage.warning('请先登录')
+    router.push('/login')
+    return
+  }
+
   loading.value = true
   try {
-    const res = await getOrderList()
-    orders.value = res.data || []
+    const role = getCurrentRole()
+    const res = await getOrderList(userId, role)
+    orders.value = extractOrderList(res)
   } catch (error) {
-    ElMessage.error('加载订单列表失败')
+    const message =
+      error?.response?.data?.message ||
+      error?.response?.data?.data?.message ||
+      error?.message ||
+      '加载订单列表失败'
+    ElMessage.error(message)
+    orders.value = []
   } finally {
     loading.value = false
   }
@@ -106,81 +176,73 @@ const fetchOrders = async () => {
 
 const getStatusType = (status) => {
   const types = {
-    'PENDING': 'warning',
-    'PAID': 'primary',
-    'CONFIRMED': 'success',
-    'FINISHED': 'success',
-    'CANCELLED': 'info'
+    PENDING: 'warning',
+    PAID: 'primary',
+    CONFIRMED: 'success',
+    FINISHED: 'success',
+    CANCELLED: 'info'
   }
   return types[status] || 'info'
 }
 
 const getStatusText = (status) => {
   const texts = {
-    'PENDING': '待支付',
-    'PAID': '待收货',
-    'CONFIRMED': '已完成',
-    'FINISHED': '已完成',
-    'CANCELLED': '已取消'
+    PENDING: '待支付',
+    PAID: '已支付',
+    CONFIRMED: '已确认',
+    FINISHED: '已完成',
+    CANCELLED: '已取消'
   }
   return texts[status] || status
 }
 
 const getStepActive = (status) => {
   const steps = {
-    'PENDING': 1,
-    'PAID': 2,
-    'CONFIRMED': 3,
-    'FINISHED': 3,
-    'CANCELLED': 0
+    PENDING: 1,
+    PAID: 2,
+    CONFIRMED: 3,
+    FINISHED: 4,
+    CANCELLED: 0
   }
   return steps[status] || 0
 }
 
 const formatTime = (time) => {
-  if (!time) return ''
+  if (!time) return '-'
+  if (typeof time !== 'string') return String(time)
   return time.replace('T', ' ')
 }
 
-const handleConfirm = async (order) => {
-  try {
-    await ElMessageBox.confirm(
-      '确认已收到商品吗？确认后订单将无法取消',
-      '确认收货',
-      { type: 'warning' }
-    )
-
-    confirmingId.value = order.id
-    await confirmOrder(order.id)
-    ElMessage.success('确认收货成功，信用分 +2')
-    fetchOrders()
-  } catch (error) {
-    if (error !== 'cancel') {
-      ElMessage.error('确认失败')
-    }
-  } finally {
-    confirmingId.value = null
-  }
+const isActionLoading = (orderId, targetStatus) => {
+  return actionLoading.value.id === orderId && actionLoading.value.status === targetStatus
 }
 
-const handleCancel = async (order) => {
+const isAnyActionLoading = (orderId) => actionLoading.value.id === orderId
+
+const handleStatusUpdate = async (order, newStatus, actionText) => {
   try {
     await ElMessageBox.confirm(
-      '确定要取消订单吗？取消后会影响您的信用记录',
-      '取消订单',
+      `确定要执行“${actionText}”操作吗？`,
+      `订单${actionText}确认`,
       { type: 'warning' }
     )
 
-    cancellingId.value = order.id
-    await cancelOrder(order.id, '')
-    ElMessage.success('订单已取消，信用分 -3')
-    fetchOrders()
+    actionLoading.value = { id: order.id, status: newStatus }
+    const res = await updateOrder(order.id, newStatus)
+    ElMessage.success(resolveMessage(res, `${actionText}成功`))
+    await fetchOrders()
   } catch (error) {
-    if (error !== 'cancel') {
-      ElMessage.error('取消失败')
+    if (error === 'cancel' || error?.name === 'Cancel') {
+      return
     }
+    const message =
+      error?.response?.data?.message ||
+      error?.response?.data?.data?.message ||
+      error?.message ||
+      `${actionText}失败`
+    ElMessage.error(message)
   } finally {
-    cancellingId.value = null
+    actionLoading.value = { id: null, status: '' }
   }
 }
 
@@ -234,10 +296,19 @@ onMounted(() => {
   color: #f56c6c;
 }
 
+.user-info {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 13px;
+  color: #606266;
+}
+
 .actions {
   display: flex;
   gap: 8px;
   align-items: center;
+  flex-wrap: wrap;
 }
 
 :deep(.el-steps) {
