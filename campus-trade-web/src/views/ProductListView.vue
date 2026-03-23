@@ -16,8 +16,8 @@
         <template v-if="!currentUserId">
           <div v-if="fallbackRecommendProducts.length > 0" class="recommend-list">
             <article
-              v-for="item in fallbackRecommendProducts"
-              :key="`fallback-${getCardKey(item)}`"
+              v-for="(item, index) in fallbackRecommendProducts"
+              :key="`fallback-${getCardKey(item)}-${index}`"
               class="recommend-item"
               @click="viewDetail(item)"
             >
