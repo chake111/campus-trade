@@ -88,11 +88,12 @@ onUnmounted(() => {
         </template>
       </el-menu>
 
-      <div class="user-actions">
-        <template v-if="isLoggedIn">
-          <span class="username" :title="displayName">你好，{{ displayName }}</span>
-          <el-button link type="danger" @click="handleLogout">退出登录</el-button>
-        </template>
+      <div v-if="isLoggedIn" class="user-actions">
+        <span class="username" :title="displayName">你好，{{ displayName }}</span>
+        <el-button link type="danger" @click="handleLogout">退出登录</el-button>
+      </div>
+      <div v-else class="user-actions user-actions--guest">
+        <el-button link type="primary" @click="router.push('/login')">登录</el-button>
       </div>
     </el-header>
 
@@ -193,6 +194,16 @@ onUnmounted(() => {
 
 .user-actions :deep(.el-button.is-link:hover) {
   color: #b53c1d;
+}
+
+.user-actions--guest {
+  padding: 0;
+  border: none;
+  background: transparent;
+}
+
+.user-actions--guest :deep(.el-button.is-link) {
+  color: var(--theme-text-primary);
 }
 
 .page-content {
