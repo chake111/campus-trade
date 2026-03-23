@@ -14,8 +14,8 @@
             <el-button type="warning" @click="searchProducts">搜索</el-button>
           </template>
         </el-input>
-        <el-button v-if="isLoggedIn" class="publish-btn" @click="createProduct">发布商品</el-button>
-        <el-button v-else class="publish-btn" @click="goLogin">登录后发布</el-button>
+        <el-button v-if="isLoggedIn" class="publish-btn" @click="createProduct">发布闲置</el-button>
+        <el-button v-else class="publish-btn" @click="goLogin">登录后发布闲置</el-button>
       </div>
     </div>
 
@@ -289,15 +289,25 @@ onUnmounted(() => {
 }
 
 .publish-btn {
-  color: #8a5f00;
-  background: #fff;
-  border: 1px solid #f0ce75;
+  min-width: 112px;
+  color: #5e3b00;
+  background: linear-gradient(135deg, #ffe59d 0%, #ffd167 100%);
+  border: 1px solid #f2bf4c;
+  font-weight: 700;
+  box-shadow: 0 6px 14px rgba(242, 180, 57, 0.26);
 }
 
 .publish-btn:hover {
-  color: #6f4a00;
-  border-color: #e5bd55;
-  background: #fff8e3;
+  color: #4b2f00;
+  border-color: #e0a92f;
+  background: linear-gradient(135deg, #ffdc81 0%, #ffc94d 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 8px 16px rgba(226, 166, 45, 0.3);
+}
+
+.publish-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 4px 10px rgba(226, 166, 45, 0.24);
 }
 
 .product-grid {
