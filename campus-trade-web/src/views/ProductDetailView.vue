@@ -19,11 +19,11 @@
       <div v-else-if="product" class="detail-content">
         <div class="image-panel">
           <el-image
-            v-if="product.image"
-            :src="product.image"
+            v-if="product.displayImage"
+            :src="product.displayImage"
             fit="cover"
             class="product-image"
-            :preview-src-list="[product.image]"
+            :preview-src-list="[product.displayImage]"
           />
           <div v-else class="image-placeholder">暂无商品图片</div>
         </div>
@@ -70,6 +70,7 @@ import { getProductDetail } from '../api/product'
 import { createOrder } from '../api/order'
 import { getUserId } from '../utils/user'
 import { getToken } from '../utils/request'
+import { normalizeProductResponseDetail } from '../utils/productNormalizer'
 
 const route = useRoute()
 const router = useRouter()
@@ -101,12 +102,6 @@ const statusTagType = computed(() => {
   return 'primary'
 })
 
-const normalizeData = (res) => {
-  if (!res) return null
-  if (res.data !== undefined) return res.data
-  return res
-}
-
 const fetchProductDetail = async () => {
   const id = routeProductId.value
   if (!id) {
@@ -118,8 +113,7 @@ const fetchProductDetail = async () => {
   loading.value = true
   try {
     const res = await getProductDetail(id)
-    const detail = normalizeData(res)
-    product.value = detail && typeof detail === 'object' ? detail : null
+    product.value = normalizeProductResponseDetail(res)
 
     if (!product.value) {
       ElMessage.warning('未找到该商品信息')
