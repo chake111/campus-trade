@@ -50,7 +50,7 @@
         </template>
       </div>
       <div class="flow-note">
-        说明：该区域展示当前账号可见订单在各状态的分布，用于证明系统订单流程已完整接入。
+        说明：该区域展示平台级订单在各状态的分布，用于证明系统订单流程已完整接入。
       </div>
     </el-card>
 
@@ -85,18 +85,14 @@
 <script setup>
 import { computed, onMounted, ref } from 'vue'
 import request from '../utils/request'
-import { getProductList } from '../api/product'
-import { getOrderList } from '../api/order'
-import { getUserId } from '../utils/user'
 
 const loading = ref(false)
 const errorTips = ref([])
 
-const productOnSaleTotal = ref('--')
-const buyOrderTotal = ref('--')
-const sellOrderTotal = ref('--')
+const userTotal = ref('--')
+const productTotal = ref('--')
+const orderTotal = ref('--')
 const finishedOrderTotal = ref('--')
-const creditScore = ref('--')
 
 const orderStatusCount = ref({
   PENDING: '--',
@@ -106,8 +102,6 @@ const orderStatusCount = ref({
   CANCELLED: '--'
 })
 
-const currentUserId = ref(getUserId())
-
 const displayCount = (value) => {
   if (value === '--') return '--'
   return `${value}`
@@ -115,34 +109,28 @@ const displayCount = (value) => {
 
 const statCards = computed(() => [
   {
-    label: '在售商品数',
-    value: displayCount(productOnSaleTotal.value),
-    tag: '商品侧',
-    tip: '基于商品列表聚合“在售/可售”状态'
+    label: '平台注册用户数',
+    value: displayCount(userTotal.value),
+    tag: '用户侧',
+    tip: '展示平台级用户规模'
   },
   {
-    label: '买入订单数',
-    value: displayCount(buyOrderTotal.value),
+    label: '平台商品总数',
+    value: displayCount(productTotal.value),
     tag: '交易侧',
-    tip: currentUserId.value ? '统计当前账号作为买方的订单' : '登录后展示当前账号订单统计'
+    tip: '展示平台级商品总览'
   },
   {
-    label: '卖出订单数',
-    value: displayCount(sellOrderTotal.value),
+    label: '平台订单总数',
+    value: displayCount(orderTotal.value),
     tag: '交易侧',
-    tip: currentUserId.value ? '统计当前账号作为卖方的订单' : '登录后展示当前账号订单统计'
+    tip: '展示平台级订单总览'
   },
   {
     label: '已完成订单数',
     value: displayCount(finishedOrderTotal.value),
     tag: '履约侧',
-    tip: currentUserId.value ? '用于证明交易闭环可达“完成”状态' : '登录后可展示'
-  },
-  {
-    label: '当前信用分',
-    value: displayCount(creditScore.value),
-    tag: '信用侧',
-    tip: currentUserId.value ? '信用接口实时读取，展示信用机制已接入' : '登录后可展示'
+    tip: '用于证明交易闭环可达“完成”状态'
   }
 ])
 
@@ -154,51 +142,6 @@ const orderFlowCards = computed(() => [
   { status: 'CANCELLED', label: '已取消', value: displayCount(orderStatusCount.value.CANCELLED), tip: '异常/放弃订单终止' }
 ])
 
-const getApiData = (res) => (res && typeof res === 'object' && 'data' in res ? res.data : res)
-
-const extractList = (res) => {
-  const data = getApiData(res)
-  if (Array.isArray(data)) return data
-  if (Array.isArray(data?.records)) return data.records
-  if (Array.isArray(data?.list)) return data.list
-  if (Array.isArray(data?.data)) return data.data
-  return []
-}
-
-const normalizeCreditScore = (payload) => {
-  const data = getApiData(payload)
-  if (typeof data === 'number') return data
-  const candidate = data?.creditScore ?? data?.score ?? data?.credit ?? data?.value
-
-  const n = Number(candidate)
-  return Number.isFinite(n) ? n : '--'
-}
-
-const isOnSaleProduct = (item) => {
-  const status = String(item?.status || '').toUpperCase()
-  return ['ON_SALE', 'AVAILABLE', 'SELLING', '上架中', '在售'].includes(status)
-}
-
-const fetchProductStats = async () => {
-  try {
-    const list = extractList(await getProductList())
-    const onSaleCount = list.filter((item) => isOnSaleProduct(item)).length
-    productOnSaleTotal.value = onSaleCount || list.length
-  } catch (error) {
-    productOnSaleTotal.value = '--'
-    errorTips.value.push('在售商品统计失败（已降级）')
-  }
-}
-
-const deduplicateOrders = (orders) => {
-  const map = new Map()
-  orders.forEach((item) => {
-    const key = item?.id ?? `${item?.orderId ?? ''}-${item?.createTime ?? ''}`
-    if (!map.has(key)) map.set(key, item)
-  })
-  return Array.from(map.values())
-}
-
 const initOrderStatusCount = () => ({
   PENDING: '--',
   PAID: '--',
@@ -207,70 +150,35 @@ const initOrderStatusCount = () => ({
   CANCELLED: '--'
 })
 
-const fetchOrderStats = async () => {
-  if (!currentUserId.value) {
-    buyOrderTotal.value = '--'
-    sellOrderTotal.value = '--'
-    finishedOrderTotal.value = '--'
-    orderStatusCount.value = initOrderStatusCount()
-    return
-  }
-
-  try {
-    const [buyerRes, sellerRes] = await Promise.all([
-      getOrderList(currentUserId.value, 'buyer'),
-      getOrderList(currentUserId.value, 'seller')
-    ])
-
-    const buyerOrders = extractList(buyerRes)
-    const sellerOrders = extractList(sellerRes)
-    const merged = deduplicateOrders([...buyerOrders, ...sellerOrders])
-
-    buyOrderTotal.value = buyerOrders.length
-    sellOrderTotal.value = sellerOrders.length
-    finishedOrderTotal.value = merged.filter((item) => item?.status === 'FINISHED').length
-
-    orderStatusCount.value = {
-      PENDING: merged.filter((item) => item?.status === 'PENDING').length,
-      PAID: merged.filter((item) => item?.status === 'PAID').length,
-      CONFIRMED: merged.filter((item) => item?.status === 'CONFIRMED').length,
-      FINISHED: merged.filter((item) => item?.status === 'FINISHED').length,
-      CANCELLED: merged.filter((item) => item?.status === 'CANCELLED').length
-    }
-  } catch (error) {
-    buyOrderTotal.value = '--'
-    sellOrderTotal.value = '--'
-    finishedOrderTotal.value = '--'
-    orderStatusCount.value = initOrderStatusCount()
-    errorTips.value.push('订单统计失败（请确认 /order/list 接口可用）')
-  }
-}
-
-const fetchCreditScore = async () => {
-  if (!currentUserId.value) {
-    creditScore.value = '--'
-    return
-  }
-
+const fetchDashboardSummary = async () => {
   try {
     const res = await request({
-      url: '/credit/score',
+      url: '/api/admin/dashboard/summary',
       method: 'get',
-      params: { userId: currentUserId.value }
     })
-    creditScore.value = normalizeCreditScore(res)
+    const data = res?.data || {}
+    userTotal.value = data.userTotal ?? '--'
+    productTotal.value = data.productTotal ?? '--'
+    orderTotal.value = data.orderTotal ?? '--'
+    finishedOrderTotal.value = data.finishedOrderTotal ?? '--'
+    orderStatusCount.value = {
+      ...initOrderStatusCount(),
+      ...(data.orderStatusCount || {}),
+    }
   } catch (error) {
-    creditScore.value = '--'
-    errorTips.value.push('信用分获取失败（请确认 /credit/score 接口可用）')
+    userTotal.value = '--'
+    productTotal.value = '--'
+    orderTotal.value = '--'
+    finishedOrderTotal.value = '--'
+    orderStatusCount.value = initOrderStatusCount()
+    errorTips.value.push('平台级统计获取失败（请确认管理员权限与接口可用）')
   }
 }
 
 const initDashboard = async () => {
   loading.value = true
   errorTips.value = []
-  currentUserId.value = getUserId()
-
-  await Promise.allSettled([fetchProductStats(), fetchOrderStats(), fetchCreditScore()])
+  await fetchDashboardSummary()
 
   loading.value = false
 }

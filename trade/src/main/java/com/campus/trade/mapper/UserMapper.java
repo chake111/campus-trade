@@ -11,6 +11,8 @@ public interface UserMapper {
 
     int insert(User user);
 
+    long countAll();
+
     /**
      * 更新用户信用分
      * @param userId 用户 ID
@@ -19,4 +21,3 @@ public interface UserMapper {
      */
     int updateCreditScore(@Param("userId") Long userId, @Param("creditScore") Integer creditScore);
 }
-

@@ -13,8 +13,11 @@ public class User {
     private Long id;
     private String username;
     private String password;
+    /**
+     * 系统权限角色：USER / ADMIN
+     */
+    private String role;
     private Integer creditScore;
     private LocalDateTime createTime;
     private Integer status;
 }
-

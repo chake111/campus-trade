@@ -3,7 +3,7 @@ import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { getToken, removeToken } from './utils/request'
-import { AUTH_CHANGED_EVENT, dispatchAuthChanged, getUserInfo, removeUserInfo } from './utils/user'
+import { AUTH_CHANGED_EVENT, dispatchAuthChanged, getUserInfo, isAdmin, removeUserInfo } from './utils/user'
 
 const router = useRouter()
 const route = useRoute()
@@ -18,14 +18,16 @@ function syncAuthState() {
 
 const isLoggedIn = computed(() => {
   const currentUser = userInfo.value
-  const userId = currentUser?.id ?? currentUser?.userId
+  const userId = currentUser?.id
   return Boolean(token.value && currentUser && userId)
 })
 
 const displayName = computed(() => {
   if (!userInfo.value) return '同学'
-  return userInfo.value.username || userInfo.value.nickname || userInfo.value.name || `用户${userInfo.value.id || ''}`
+  return userInfo.value.username || `用户${userInfo.value.id || ''}`
 })
+
+const canAccessDashboard = computed(() => isAdmin(userInfo.value))
 
 const activeMenu = computed(() => {
   const path = route.path
@@ -73,7 +75,7 @@ onUnmounted(() => {
         class="nav-menu"
       >
         <el-menu-item index="/products">首页</el-menu-item>
-        <el-menu-item index="/dashboard">数据看板</el-menu-item>
+        <el-menu-item v-if="canAccessDashboard" index="/dashboard">数据看板</el-menu-item>
 
         <template v-if="isLoggedIn">
           <el-menu-item index="/product/create">发布商品</el-menu-item>

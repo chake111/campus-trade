@@ -40,4 +40,9 @@ public interface OrderMapper {
      * @return 订单列表
      */
     java.util.List<Order> selectByUserId(@Param("userId") Long userId);
+
+    /**
+     * 根据卖家 ID 查询订单（通过商品归属）
+     */
+    java.util.List<Order> selectBySellerId(@Param("sellerId") Long sellerId);
 }

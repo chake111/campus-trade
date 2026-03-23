@@ -1,10 +1,13 @@
 package com.campus.trade.controller;
 
 import com.campus.trade.entity.Product;
+import com.campus.trade.entity.SystemRole;
 import com.campus.trade.service.ProductService;
+import com.campus.trade.util.SecurityUtil;
 import com.campus.trade.util.Result;
 import java.util.List;
 
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -17,8 +20,17 @@ public class ProductController {
     }
 
     @PostMapping("/product/add")
-    public Result<Product> add(@RequestBody Product product) {
+    public Result<Product> add(@RequestBody Product product, Authentication authentication) {
         try {
+            Long currentUserId = SecurityUtil.currentUserId(authentication);
+            SystemRole currentRole = SecurityUtil.currentRole(authentication);
+            if (product.getUserId() == null) {
+                product.setUserId(currentUserId);
+            }
+            if (currentRole != SystemRole.ADMIN && !product.getUserId().equals(currentUserId)) {
+                return Result.error(403, "没有访问权限");
+            }
+
             int rows = productService.publish(product);
             if (rows <= 0) {
                 return Result.error("发布商品失败");
@@ -65,4 +77,3 @@ public class ProductController {
         return Result.error(e.getMessage());
     }
 }
-

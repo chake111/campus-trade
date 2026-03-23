@@ -1,9 +1,12 @@
 package com.campus.trade.controller;
 
 import com.campus.trade.entity.CreditLog;
+import com.campus.trade.entity.SystemRole;
 import com.campus.trade.service.CreditLogService;
+import com.campus.trade.util.SecurityUtil;
 import java.util.List;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -33,7 +36,13 @@ public class CreditLogController {
     public ResponseEntity<List<CreditLog>> getCreditLogs(
             @RequestParam Long userId,
             @RequestParam(defaultValue = "0") Integer page,
-            @RequestParam(defaultValue = "10") Integer size) {
+            @RequestParam(defaultValue = "10") Integer size,
+            Authentication authentication) {
+        Long currentUserId = SecurityUtil.currentUserId(authentication);
+        SystemRole currentRole = SecurityUtil.currentRole(authentication);
+        if (currentRole != SystemRole.ADMIN && !userId.equals(currentUserId)) {
+            return ResponseEntity.status(403).build();
+        }
         
         List<CreditLog> logs = creditLogService.getByUserId(userId, page, size);
         return ResponseEntity.ok(logs);
@@ -45,7 +54,12 @@ public class CreditLogController {
      * @return 信用分值
      */
     @GetMapping("/score")
-    public ResponseEntity<Integer> getCurrentCreditScore(@RequestParam Long userId) {
+    public ResponseEntity<Integer> getCurrentCreditScore(@RequestParam Long userId, Authentication authentication) {
+        Long currentUserId = SecurityUtil.currentUserId(authentication);
+        SystemRole currentRole = SecurityUtil.currentRole(authentication);
+        if (currentRole != SystemRole.ADMIN && !userId.equals(currentUserId)) {
+            return ResponseEntity.status(403).build();
+        }
         Integer score = creditLogService.getCurrentScore(userId);
         return ResponseEntity.ok(score);
     }

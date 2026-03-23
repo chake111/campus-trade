@@ -34,13 +34,20 @@ public class JwtUtil {
      * @param userId 用户ID
      * @return 生成的Token
      */
-    public String generateToken(Long userId) {
+    public String generateToken(Long userId, String role) {
         return Jwts.builder()
                 .setSubject(userId.toString())
+                .claim("role", role)
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + expirationTime))
                 .signWith(secretKey, SignatureAlgorithm.HS256)
                 .compact();
+    }
+
+    public String getRoleFromToken(String token) {
+        Claims claims = getClaimsFromToken(token);
+        Object role = claims.get("role");
+        return role == null ? null : String.valueOf(role);
     }
 
     /**

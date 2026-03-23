@@ -7,13 +7,14 @@ import ProductCreateView from '../views/ProductCreateView.vue'
 import OrderListView from '../views/OrderListView.vue'
 import PersonalCenterView from '../views/PersonalCenterView.vue'
 import DashboardView from '../views/DashboardView.vue'
+import ForbiddenView from '../views/ForbiddenView.vue'
 import { getToken } from '../utils/request'
-import { getUserInfo } from '../utils/user'
+import { getUserInfo, hasRole, ROLE_ADMIN } from '../utils/user'
 
 const isAuthenticated = () => {
   const token = getToken()
   const userInfo = getUserInfo()
-  const userId = userInfo?.id ?? userInfo?.userId
+  const userId = userInfo?.id
   return Boolean(token && userInfo && userId)
 }
 
@@ -63,6 +64,12 @@ const router = createRouter({
       path: '/dashboard',
       name: 'dashboard',
       component: DashboardView,
+      meta: { requiresAuth: true, roles: [ROLE_ADMIN] },
+    },
+    {
+      path: '/403',
+      name: 'forbidden',
+      component: ForbiddenView,
     },
     {
       path: '/',
@@ -77,5 +84,12 @@ export default router
 router.beforeEach((to) => {
   if (to.meta && to.meta.requiresAuth && !isAuthenticated()) {
     return { name: 'login', query: { redirect: to.fullPath } }
+  }
+
+  if (to.meta && Array.isArray(to.meta.roles) && to.meta.roles.length) {
+    const userInfo = getUserInfo()
+    if (!hasRole(userInfo, to.meta.roles)) {
+      return { name: 'forbidden', query: { from: to.fullPath } }
+    }
   }
 })

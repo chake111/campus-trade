@@ -2,8 +2,10 @@ package com.campus.trade.controller;
 
 import com.campus.trade.entity.Order;
 import com.campus.trade.entity.OrderStatus;
+import com.campus.trade.entity.SystemRole;
 import com.campus.trade.exception.OrderStatusTransitionException;
 import com.campus.trade.service.OrderService;
+import com.campus.trade.util.SecurityUtil;
 import com.campus.trade.util.Result;
 import java.util.Map;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -12,6 +14,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.core.Authentication;
 
 /**
  * 订单控制器
@@ -33,15 +36,32 @@ public class OrderController {
      * @return 订单列表
      */
     @GetMapping("/order/list")
-    public Result<java.util.List<Order>> listOrders(@RequestParam(required = false) Long userId) {
+    public Result<java.util.List<Order>> listOrders(
+            @RequestParam(required = false) Long userId,
+            @RequestParam(required = false, defaultValue = "buyer") String role,
+            Authentication authentication) {
         try {
+            Long currentUserId = SecurityUtil.currentUserId(authentication);
+            SystemRole currentRole = SecurityUtil.currentRole(authentication);
             java.util.List<Order> orders;
-            if (userId != null) {
-                // 如果提供了 userId，则查询该用户的订单
-                orders = orderService.getOrdersByUserId(userId);
-            } else {
-                // 否则查询所有订单
+
+            if (currentRole == SystemRole.ADMIN && userId == null) {
                 orders = orderService.getAllOrders();
+                return Result.success(orders);
+            }
+
+            Long targetUserId = userId;
+            if (currentRole != SystemRole.ADMIN) {
+                targetUserId = currentUserId;
+            }
+            if (targetUserId == null) {
+                return Result.error("用户身份无效");
+            }
+
+            if ("seller".equalsIgnoreCase(role)) {
+                orders = orderService.getOrdersBySellerId(targetUserId);
+            } else {
+                orders = orderService.getOrdersByUserId(targetUserId);
             }
             return Result.success(orders);
         } catch (Exception e) {
@@ -57,11 +77,16 @@ public class OrderController {
      * @return 创建的订单信息
      */
     @PostMapping("/order/create")
-    public Result<Map<String, Object>> createOrder(@RequestBody CreateOrderRequest request) {
+    public Result<Map<String, Object>> createOrder(@RequestBody CreateOrderRequest request, Authentication authentication) {
         try {
             // 参数校验
             if (request == null || request.getUserId() == null || request.getProductId() == null) {
                 return Result.error("userId 和 productId 不能为空");
+            }
+            Long currentUserId = SecurityUtil.currentUserId(authentication);
+            SystemRole currentRole = SecurityUtil.currentRole(authentication);
+            if (currentRole != SystemRole.ADMIN && !request.getUserId().equals(currentUserId)) {
+                return Result.error(403, "没有访问权限");
             }
 
             // 构建订单对象
@@ -99,11 +124,21 @@ public class OrderController {
      * @return 更新结果
      */
     @PostMapping("/order/update")
-    public Result<Map<String, Object>> updateOrder(@RequestBody UpdateOrderRequest request) {
+    public Result<Map<String, Object>> updateOrder(@RequestBody UpdateOrderRequest request, Authentication authentication) {
         try {
             // 参数校验
             if (request == null || request.getOrderId() == null || request.getStatus() == null) {
                 return Result.error("orderId 和 status 不能为空");
+            }
+
+            Long currentUserId = SecurityUtil.currentUserId(authentication);
+            SystemRole currentRole = SecurityUtil.currentRole(authentication);
+            Order existing = orderService.getOrderById(request.getOrderId());
+            if (existing == null) {
+                return Result.error("订单不存在");
+            }
+            if (currentRole != SystemRole.ADMIN && !existing.getUserId().equals(currentUserId)) {
+                return Result.error(403, "没有访问权限");
             }
 
             // 更新订单状态
