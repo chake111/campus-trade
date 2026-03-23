@@ -2,8 +2,7 @@
   <div class="login-container">
     <div class="login-box">
       <div class="login-header">
-        <h1>校园二手交易系统</h1>
-        <p>欢迎登录</p>
+        <CampusLogo :size="58" :title="'校园二手交易系统'" subtitle="欢迎登录" />
       </div>
 
       <el-form
@@ -67,6 +66,7 @@ import { ElMessage } from 'element-plus'
 import { login } from '../api/user'
 import { removeToken, setToken } from '../utils/request'
 import { dispatchAuthChanged, normalizeUserInfo, setUserInfo } from '../utils/user'
+import CampusLogo from '../components/CampusLogo.vue'
 
 const router = useRouter()
 const formRef = ref(null)
@@ -180,16 +180,17 @@ const handleLogin = async () => {
   margin-bottom: 40px;
 }
 
-.login-header h1 {
-  font-size: 28px;
-  color: #8a6a21;
-  margin-bottom: 10px;
-  font-weight: 600;
+.login-header :deep(.campus-logo) {
+  justify-content: center;
 }
 
-.login-header p {
-  font-size: 16px;
-  color: #b19459;
+.login-header :deep(.campus-logo__title) {
+  font-size: 26px;
+}
+
+.login-header :deep(.campus-logo__subtitle) {
+  font-size: 14px;
+  letter-spacing: 0.4px;
 }
 
 .login-form {
