@@ -361,17 +361,24 @@ onMounted(() => {
   border-radius: 10px;
 }
 
+.toolbar :deep(.el-radio-group) {
+  --el-radio-button-checked-bg-color: var(--theme-primary);
+  --el-radio-button-checked-text-color: var(--theme-text-primary);
+  --el-radio-button-checked-border-color: var(--theme-primary);
+}
+
 .toolbar :deep(.el-radio-button__inner) {
   border-color: var(--theme-border);
   color: var(--theme-text-secondary);
   background-color: var(--theme-card-bg);
 }
 
+.toolbar :deep(.el-radio-button.is-active .el-radio-button__inner),
 .toolbar :deep(.el-radio-button__original-radio:checked + .el-radio-button__inner) {
-  background: var(--el-color-primary);
-  border-color: var(--el-color-primary);
+  background: var(--theme-primary);
+  border-color: var(--theme-primary);
   color: var(--theme-text-primary);
-  box-shadow: -1px 0 0 0 var(--el-color-primary);
+  box-shadow: -1px 0 0 0 var(--theme-primary);
 }
 
 .toolbar :deep(.el-button--primary.is-plain) {
