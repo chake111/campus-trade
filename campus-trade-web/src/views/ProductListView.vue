@@ -342,7 +342,7 @@ onUnmounted(() => {
 .product-list {
   width: min(100%, 1440px);
   margin: 0 auto;
-  padding: 16px 20px 20px;
+  padding: 16px 20px 26px;
 }
 
 .trade-hero {
@@ -350,7 +350,7 @@ onUnmounted(() => {
   grid-template-columns: 1.15fr 1fr;
   gap: 16px;
   align-items: center;
-  margin-bottom: 22px;
+  margin-bottom: 30px;
   padding: 20px 22px;
   border-radius: 18px;
   border: 1px solid #efddad;
@@ -483,7 +483,7 @@ onUnmounted(() => {
 .product-grid {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 20px;
 }
 
 .recommend-section {
@@ -491,6 +491,16 @@ onUnmounted(() => {
   border-radius: 14px;
   background: linear-gradient(180deg, #fffefb 0%, #fff9ed 100%);
   box-shadow: 0 10px 24px rgba(81, 64, 32, 0.07);
+}
+
+.recommend-section :deep(.el-card__header) {
+  padding-top: 20px;
+  padding-bottom: 16px;
+}
+
+.recommend-section :deep(.el-card__body) {
+  padding-top: 16px;
+  padding-bottom: 20px;
 }
 
 .recommend-head {
@@ -545,8 +555,8 @@ onUnmounted(() => {
 
 .recommend-list {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(206px, 1fr));
-  gap: 12px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
 }
 
 .recommend-card {
@@ -710,8 +720,8 @@ onUnmounted(() => {
 
 .all-products-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(206px, 1fr));
-  gap: 12px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
 }
 
 .product-card {
@@ -813,6 +823,12 @@ onUnmounted(() => {
   .search-input {
     max-width: 100%;
   }
+
+  .all-products-grid,
+  .recommend-list {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+  }
 }
 
 @media (max-width: 768px) {
@@ -823,7 +839,7 @@ onUnmounted(() => {
   .trade-hero {
     padding: 16px;
     gap: 12px;
-    margin-bottom: 16px;
+    margin-bottom: 20px;
   }
 
   .hero-meta {
