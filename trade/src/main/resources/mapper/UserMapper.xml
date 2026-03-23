@@ -8,31 +8,39 @@
         <id column="id" property="id"/>
         <result column="username" property="username"/>
         <result column="password" property="password"/>
+        <result column="role" property="role"/>
         <result column="credit_score" property="creditScore"/>
         <result column="create_time" property="createTime"/>
+        <result column="status" property="status"/>
     </resultMap>
 
     <select id="selectById" resultMap="UserResultMap" parameterType="long">
-        SELECT id, username, password, credit_score, create_time
+        SELECT id, username, password, role, credit_score, create_time, status
         FROM `user`
         WHERE id = #{id}
     </select>
 
     <select id="selectByUsername" resultMap="UserResultMap">
-        SELECT id, username, password, credit_score, create_time
+        SELECT id, username, password, role, credit_score, create_time, status
         FROM `user`
         WHERE username = #{username}
     </select>
 
     <insert id="insert" parameterType="com.campus.trade.entity.User" useGeneratedKeys="true" keyProperty="id">
-        INSERT INTO `user`(username, password, credit_score, create_time)
+        INSERT INTO `user`(username, password, role, credit_score, create_time, status)
         VALUES(
             #{username},
             #{password},
+            IFNULL(#{role}, 'USER'),
             IFNULL(#{creditScore}, 100),
-            IFNULL(#{createTime}, CURRENT_TIMESTAMP)
+            IFNULL(#{createTime}, CURRENT_TIMESTAMP),
+            IFNULL(#{status}, 1)
         )
     </insert>
+
+    <select id="countAll" resultType="long">
+        SELECT COUNT(1) FROM `user`
+    </select>
 
     <update id="updateCreditScore" parameterType="map">
         UPDATE `user`

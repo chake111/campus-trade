@@ -66,7 +66,7 @@ import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { login } from '../api/user'
 import { removeToken, setToken } from '../utils/request'
-import { dispatchAuthChanged, setUserInfo } from '../utils/user'
+import { dispatchAuthChanged, normalizeUserInfo, setUserInfo } from '../utils/user'
 
 const router = useRouter()
 const formRef = ref(null)
@@ -90,30 +90,17 @@ function pickToken(payload) {
   return payload?.token || payload?.accessToken || payload?.access_token || null
 }
 
-function normalizeUser(rawUser) {
-  if (!rawUser || typeof rawUser !== 'object' || Array.isArray(rawUser)) return null
-
-  const normalized = { ...rawUser }
-  if (normalized.id == null && normalized.userId != null) {
-    normalized.id = normalized.userId
-  }
-  if (normalized.id == null && normalized.uid != null) {
-    normalized.id = normalized.uid
-  }
-  return normalized
-}
-
 function pickUser(payload) {
   if (!payload || typeof payload !== 'object' || Array.isArray(payload)) return null
 
   const preferredKeys = ['user', 'userInfo', 'currentUser', 'profile', 'account']
   for (const key of preferredKeys) {
-    const maybeUser = normalizeUser(payload[key])
+    const maybeUser = normalizeUserInfo(payload[key])
     if (maybeUser) return maybeUser
   }
 
-  const maybeDirectUser = normalizeUser(payload)
-  if (maybeDirectUser && (maybeDirectUser.id != null || maybeDirectUser.username || maybeDirectUser.nickName)) {
+  const maybeDirectUser = normalizeUserInfo(payload)
+  if (maybeDirectUser && (maybeDirectUser.id != null || maybeDirectUser.username)) {
     return maybeDirectUser
   }
 

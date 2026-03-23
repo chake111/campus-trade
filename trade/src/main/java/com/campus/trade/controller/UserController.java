@@ -1,6 +1,7 @@
 package com.campus.trade.controller;
 
 import com.campus.trade.entity.User;
+import com.campus.trade.entity.SystemRole;
 import com.campus.trade.service.UserService;
 import com.campus.trade.util.JwtUtil;
 import com.campus.trade.util.Result;
@@ -57,15 +58,21 @@ public class UserController {
         }
 
         // 生成 JWT Token
-        String token = jwtUtil.generateToken(user.getId());
+        String role = SystemRole.from(user.getRole()).name();
+        String token = jwtUtil.generateToken(user.getId(), role);
         
         // 返回用户信息和 Token（使用 HashMap 允许 null 值）
         Map<String, Object> responseData = new HashMap<>();
-        responseData.put("id", user.getId());
-        responseData.put("username", user.getUsername());
-        responseData.put("creditScore", user.getCreditScore());
-        responseData.put("createTime", user.getCreateTime());
-        responseData.put("status", user.getStatus());
+        Map<String, Object> userInfo = new HashMap<>();
+        userInfo.put("id", user.getId());
+        userInfo.put("username", user.getUsername());
+        userInfo.put("role", role);
+        userInfo.put("creditScore", user.getCreditScore());
+        userInfo.put("createTime", user.getCreateTime());
+        userInfo.put("status", user.getStatus());
+
+        responseData.putAll(userInfo);
+        responseData.put("userInfo", userInfo);
         responseData.put("token", token);
         return Result.success(responseData);
     }
@@ -91,4 +98,3 @@ public class UserController {
         }
     }
 }
-

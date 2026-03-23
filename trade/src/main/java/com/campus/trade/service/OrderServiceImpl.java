@@ -94,4 +94,12 @@ public class OrderServiceImpl implements OrderService {
         }
         return orderMapper.selectByUserId(userId);
     }
+
+    @Override
+    public java.util.List<Order> getOrdersBySellerId(Long sellerId) {
+        if (sellerId == null) {
+            throw new IllegalArgumentException("卖家 ID 不能为空");
+        }
+        return orderMapper.selectBySellerId(sellerId);
+    }
 }

@@ -43,4 +43,9 @@ public interface OrderService {
      * @return 订单列表
      */
     java.util.List<Order> getOrdersByUserId(Long userId);
+
+    /**
+     * 根据卖家 ID 查询订单（用户卖出的商品产生的订单）
+     */
+    java.util.List<Order> getOrdersBySellerId(Long sellerId);
 }

@@ -40,9 +40,11 @@ public class WebMvcConfig implements WebMvcConfigurer {
             .authorizeHttpRequests(authz -> authz
                 .requestMatchers(HttpMethod.OPTIONS).permitAll()  // 允许所有 OPTIONS 请求
                 .requestMatchers("/api/users/login", "/api/users/register", "/user/login", "/user/register").permitAll()
-                .requestMatchers("/product/**").permitAll()
-                .requestMatchers("/order/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/product/list", "/product/*").permitAll()
                 .requestMatchers("/api/recommend/**").permitAll()
+                .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                .requestMatchers("/product/add").authenticated()
+                .requestMatchers("/order/**").authenticated()
                 .requestMatchers("/credit/**").authenticated()
                 .requestMatchers("/api/**").authenticated()
                 .anyRequest().permitAll()

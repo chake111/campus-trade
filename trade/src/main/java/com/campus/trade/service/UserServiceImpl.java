@@ -1,6 +1,7 @@
 package com.campus.trade.service;
 
 import com.campus.trade.entity.User;
+import com.campus.trade.entity.SystemRole;
 import com.campus.trade.mapper.UserMapper;
 import org.springframework.stereotype.Service;
 
@@ -35,6 +36,11 @@ public class UserServiceImpl implements UserService {
             return false;
         }
 
+        user.setRole(SystemRole.from(user.getRole()).name());
+        if (user.getStatus() == null) {
+            user.setStatus(1);
+        }
+
         return userMapper.insert(user) > 0;
     }
 
@@ -57,4 +63,3 @@ public class UserServiceImpl implements UserService {
         return user;
     }
 }
-
