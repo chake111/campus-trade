@@ -39,24 +39,7 @@ function handleAuthExpired(message) {
 
 function isAuthFailure(status, payload = {}) {
   const code = Number(payload?.code)
-  const rawMessage = payload?.message || payload?.msg || payload?.error || ''
-  const message = String(rawMessage).toLowerCase()
-
-  const hasAuthKeyword =
-    message.includes('token') ||
-    message.includes('登录') ||
-    message.includes('认证') ||
-    message.includes('unauthorized') ||
-    message.includes('forbidden') ||
-    message.includes('expired') ||
-    message.includes('invalid') ||
-    message.includes('未登录') ||
-    message.includes('请先登录')
-
   if (status === 401 || code === 401) return true
-
-  // 某些后端会把“认证失效”包装成 403，这里根据 code/message 再判定
-  if ((status === 403 || code === 403) && hasAuthKeyword) return true
 
   return false
 }
