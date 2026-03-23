@@ -33,3 +33,8 @@ logging:
     org:
       springframework:
         security: DEBUG
+
+jwt:
+  # 建议在生产环境通过环境变量覆盖该值
+  secret: "campus-trade-default-secret-key-change-in-production-2026"
+  expiration-ms: 86400000

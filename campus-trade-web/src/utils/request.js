@@ -29,6 +29,38 @@ function clearAuthState() {
   dispatchAuthChanged()
 }
 
+function handleAuthExpired(message) {
+  ElMessage.error(message || '登录已过期，请重新登录')
+  clearAuthState()
+  if (router.currentRoute.value.path !== '/login') {
+    router.push('/login')
+  }
+}
+
+function isAuthFailure(status, payload = {}) {
+  const code = Number(payload?.code)
+  const rawMessage = payload?.message || payload?.msg || payload?.error || ''
+  const message = String(rawMessage).toLowerCase()
+
+  const hasAuthKeyword =
+    message.includes('token') ||
+    message.includes('登录') ||
+    message.includes('认证') ||
+    message.includes('unauthorized') ||
+    message.includes('forbidden') ||
+    message.includes('expired') ||
+    message.includes('invalid') ||
+    message.includes('未登录') ||
+    message.includes('请先登录')
+
+  if (status === 401 || code === 401) return true
+
+  // 某些后端会把“认证失效”包装成 403，这里根据 code/message 再判定
+  if ((status === 403 || code === 403) && hasAuthKeyword) return true
+
+  return false
+}
+
 // 简单请求方法封装，方便 API 调用以统一用法
 export function get(url, params) {
   return request.get(url, { params })
@@ -95,10 +127,8 @@ request.interceptors.response.use(
           return res
         }
 
-        if (res.code === 401) {
-          ElMessage.error(getStatusMessage(401, res.message))
-          clearAuthState()
-          router.push('/login')
+        if (isAuthFailure(response.status, res)) {
+          handleAuthExpired(getStatusMessage(401, res.message))
           return Promise.reject(res)
         }
 
@@ -117,10 +147,8 @@ request.interceptors.response.use(
       const status = error.response.status
       const respData = error.response.data || {}
 
-      if (status === 401) {
-        ElMessage.error(getStatusMessage(401, respData.message))
-        clearAuthState()
-        router.push('/login')
+      if (isAuthFailure(status, respData)) {
+        handleAuthExpired(getStatusMessage(401, respData.message))
         return Promise.reject(error.response)
       }
 
