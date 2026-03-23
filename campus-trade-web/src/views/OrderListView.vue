@@ -89,7 +89,7 @@
           <template #default="{ row }">
             <div class="actions">
               <el-button
-                v-if="row.status === 'PENDING'"
+                v-if="canBuyerOperate(row) && row.status === 'PENDING'"
                 type="primary"
                 size="small"
                 :loading="isActionLoading(row.id, 'PAID')"
@@ -99,7 +99,7 @@
                 支付
               </el-button>
               <el-button
-                v-if="row.status === 'PENDING'"
+                v-if="canBuyerOperate(row) && row.status === 'PENDING'"
                 type="danger"
                 size="small"
                 :loading="isActionLoading(row.id, 'CANCELLED')"
@@ -109,7 +109,7 @@
                 取消
               </el-button>
               <el-button
-                v-if="row.status === 'PAID'"
+                v-if="canBuyerOperate(row) && row.status === 'PAID'"
                 type="success"
                 size="small"
                 :loading="isActionLoading(row.id, 'CONFIRMED')"
@@ -119,7 +119,7 @@
                 确认
               </el-button>
               <el-button
-                v-if="row.status === 'CONFIRMED'"
+                v-if="canBuyerOperate(row) && row.status === 'CONFIRMED'"
                 type="warning"
                 size="small"
                 :loading="isActionLoading(row.id, 'FINISHED')"
@@ -274,6 +274,16 @@ const formatTime = (time) => {
 
 const isActionLoading = (orderId, targetStatus) => {
   return actionLoading.value.id === orderId && actionLoading.value.status === targetStatus
+}
+
+
+const canBuyerOperate = (order) => {
+  const currentUserId = Number(getUserId())
+  const buyerId = Number(order?.userId)
+  if (!currentUserId || !buyerId) return false
+
+  // 与后端 /order/update 保持一致：仅买家(或管理员)可更新订单状态
+  return activeRole.value === 'buyer' && buyerId === currentUserId
 }
 
 const isAnyActionLoading = (orderId) => actionLoading.value.id === orderId
