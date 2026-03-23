@@ -103,7 +103,7 @@ onUnmounted(() => {
 <style scoped>
 .app-shell {
   min-height: 100vh;
-  background: #f7f7f8;
+  background: var(--theme-page-bg);
 }
 
 .top-nav {
@@ -116,24 +116,24 @@ onUnmounted(() => {
   min-height: 56px;
   height: auto;
   padding: 8px 20px;
-  background: linear-gradient(180deg, #fff9e8 0%, #fffdf5 100%);
-  border-bottom: 1px solid #efdca7;
+  background: linear-gradient(180deg, #fff9e8 0%, var(--theme-page-bg) 100%);
+  border-bottom: 1px solid var(--theme-border);
 }
 
 .brand {
   flex-shrink: 0;
   font-size: 17px;
   font-weight: 700;
-  color: #3c3c3c;
+  color: var(--theme-text-primary);
   cursor: pointer;
 }
 
 .nav-menu {
   --el-menu-bg-color: transparent;
-  --el-menu-text-color: #595959;
-  --el-menu-hover-text-color: #3c3c3c;
-  --el-menu-hover-bg-color: #ffefba;
-  --el-menu-active-color: #3c3c3c;
+  --el-menu-text-color: var(--theme-text-secondary);
+  --el-menu-hover-text-color: var(--theme-text-primary);
+  --el-menu-hover-bg-color: var(--theme-primary-soft-1);
+  --el-menu-active-color: var(--theme-text-primary);
   --el-menu-item-height: 46px;
   --el-menu-horizontal-height: 46px;
   flex: 1 1 520px;
@@ -152,8 +152,8 @@ onUnmounted(() => {
 }
 
 .nav-menu :deep(.el-menu-item.is-active) {
-  background: #ffe080;
-  color: #43320f;
+  background: var(--theme-primary-soft-1);
+  color: var(--theme-text-primary);
   font-weight: 600;
 }
 
@@ -170,14 +170,14 @@ onUnmounted(() => {
   gap: 6px;
   padding: 4px 10px;
   border-radius: 999px;
-  background: #fff2c8;
-  border: 1px solid #ebcb6f;
+  background: var(--theme-primary-soft-2);
+  border: 1px solid var(--theme-primary-soft-1);
   white-space: nowrap;
 }
 
 .username {
   max-width: 160px;
-  color: #5a4116;
+  color: var(--theme-text-secondary);
   font-size: 13px;
   overflow: hidden;
   text-overflow: ellipsis;

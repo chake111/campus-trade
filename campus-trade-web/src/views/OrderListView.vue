@@ -324,28 +324,28 @@ onMounted(() => {
 .page-hero {
   padding: 24px 28px;
   border-radius: 16px;
-  border: 1px solid #efdca8;
-  background: linear-gradient(135deg, #fffef8 0%, #fff4cf 100%);
+  border: 1px solid var(--theme-border);
+  background: linear-gradient(135deg, #fffef8 0%, var(--theme-primary-soft-2) 100%);
 }
 
 .header h1 {
   font-size: 34px;
   font-weight: 600;
-  color: #3d3220;
+  color: var(--theme-text-primary);
   margin: 0;
 }
 
 .header p {
   margin: 10px 0 0;
   font-size: 16px;
-  color: #7a6740;
+  color: var(--theme-text-secondary);
 }
 
 .order-table {
-  background: #fff;
+  background: var(--theme-card-bg);
   border-radius: 16px;
   padding: 24px;
-  border: 1px solid #f1e4c2;
+  border: 1px solid var(--el-border-color-light);
 }
 
 .toolbar {
@@ -356,31 +356,34 @@ onMounted(() => {
   gap: 12px;
   flex-wrap: wrap;
   padding: 14px 16px;
-  background: #fffaf0;
-  border: 1px solid #f1e4c2;
+  background: var(--theme-bg-soft);
+  border: 1px solid var(--el-border-color-light);
   border-radius: 10px;
 }
 
 .toolbar :deep(.el-radio-button__inner) {
-  border-color: #ecd594;
-  color: #6c571f;
+  border-color: var(--theme-border);
+  color: var(--theme-text-secondary);
+  background-color: var(--theme-card-bg);
 }
 
 .toolbar :deep(.el-radio-button__original-radio:checked + .el-radio-button__inner) {
-  background: #ffd45a;
-  border-color: #ffd45a;
-  color: #3c3c3c;
-  box-shadow: -1px 0 0 0 #ffd45a;
+  background: var(--el-color-primary);
+  border-color: var(--el-color-primary);
+  color: var(--theme-text-primary);
+  box-shadow: -1px 0 0 0 var(--el-color-primary);
 }
 
 .toolbar :deep(.el-button--primary.is-plain) {
-  color: #6b500d;
-  border-color: #efcf7a;
-  background: #fff8e4;
+  color: var(--theme-text-secondary);
+  border-color: var(--el-color-primary-light-5);
+  background: var(--theme-primary-soft-3);
 }
 
 .toolbar :deep(.el-button--primary.is-plain:hover) {
-  background: #ffefbe;
+  color: var(--theme-text-primary);
+  border-color: var(--el-color-primary-light-3);
+  background: var(--theme-primary-soft-1);
 }
 
 .toolbar-right {
@@ -408,8 +411,8 @@ onMounted(() => {
 }
 
 .order-table :deep(.el-table th.el-table__cell) {
-  background: #fff8e8;
-  color: #5c4517;
+  background: var(--theme-bg-soft);
+  color: var(--theme-text-secondary);
 }
 
 .product-info {

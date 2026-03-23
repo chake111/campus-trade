@@ -1,62 +1,68 @@
-/* color palette from <https://github.com/vuejs/theme> */
+/* Global theme tokens (warm, soft xianyu-like palette) */
 :root {
-  --vt-c-white: #ffffff;
-  --vt-c-white-soft: #f8f8f8;
-  --vt-c-white-mute: #f2f2f2;
+  --theme-primary: #e2b84f;
+  --theme-primary-hover: #d2a53a;
+  --theme-primary-soft-1: #f6e6ba;
+  --theme-primary-soft-2: #f9efd4;
+  --theme-primary-soft-3: #fcf7e9;
+  --theme-bg-soft: #fff8e8;
+  --theme-page-bg: #fffdf5;
+  --theme-card-bg: #ffffff;
+  --theme-text-primary: #3d3220;
+  --theme-text-secondary: #7a6740;
+  --theme-border: #ecd8ae;
+  --theme-success: #67c23a;
+  --theme-warning: #e6a23c;
+  --theme-danger: #f56c6c;
 
-  --vt-c-black: #181818;
-  --vt-c-black-soft: #222222;
-  --vt-c-black-mute: #282828;
+  /* App semantic aliases */
+  --color-background: var(--theme-page-bg);
+  --color-background-soft: var(--theme-bg-soft);
+  --color-background-mute: var(--theme-primary-soft-3);
+  --color-border: var(--theme-border);
+  --color-border-hover: var(--theme-primary);
+  --color-heading: var(--theme-text-primary);
+  --color-text: var(--theme-text-primary);
 
-  --vt-c-indigo: #2c3e50;
-
-  --vt-c-divider-light-1: rgba(60, 60, 60, 0.29);
-  --vt-c-divider-light-2: rgba(60, 60, 60, 0.12);
-  --vt-c-divider-dark-1: rgba(84, 84, 84, 0.65);
-  --vt-c-divider-dark-2: rgba(84, 84, 84, 0.48);
-
-  --vt-c-text-light-1: var(--vt-c-indigo);
-  --vt-c-text-light-2: rgba(60, 60, 60, 0.66);
-  --vt-c-text-dark-1: var(--vt-c-white);
-  --vt-c-text-dark-2: rgba(235, 235, 235, 0.64);
-}
-
-/* semantic color variables for this project */
-:root {
-  --color-background: var(--vt-c-white);
-  --color-background-soft: var(--vt-c-white-soft);
-  --color-background-mute: var(--vt-c-white-mute);
-
-  /* new palette for e-commerce modern look */
-  --primary: #3b82f6; /* blue-500 */
-  --primary-600: #2563eb;
-  --accent: #06b6d4; /* cyan-500 */
-  --muted: #6b7280; /* gray-500 */
-  --card-bg: #ffffff;
+  --primary: var(--theme-primary);
+  --primary-600: var(--theme-primary-hover);
+  --accent: #f0c764;
+  --muted: var(--theme-text-secondary);
+  --card-bg: var(--theme-card-bg);
   --card-radius: 12px;
-  --card-shadow: 0 8px 20px rgba(35, 50, 80, 0.08);
+  --card-shadow: 0 8px 20px rgba(60, 50, 30, 0.08);
 
-  --color-border: var(--vt-c-divider-light-2);
-  --color-border-hover: var(--vt-c-divider-light-1);
+  /* Element Plus theme mapping */
+  --el-color-primary: var(--theme-primary);
+  --el-color-primary-dark-2: #c7992c;
+  --el-color-primary-light-3: #edd086;
+  --el-color-primary-light-5: #f3ddb0;
+  --el-color-primary-light-7: #f8ebd2;
+  --el-color-primary-light-8: #faf1df;
+  --el-color-primary-light-9: #fdf8ea;
 
-  --color-heading: var(--vt-c-text-light-1);
-  --color-text: var(--vt-c-text-light-1);
+  --el-text-color-primary: var(--theme-text-primary);
+  --el-text-color-regular: #5f5138;
+  --el-text-color-secondary: var(--theme-text-secondary);
+  --el-text-color-placeholder: #ae9d78;
+
+  --el-border-color: var(--theme-border);
+  --el-border-color-light: #f2e6c8;
+  --el-border-color-lighter: #f8f0dd;
+  --el-border-color-extra-light: #fbf6ea;
+
+  --el-bg-color: var(--theme-card-bg);
+  --el-bg-color-page: var(--theme-page-bg);
+  --el-bg-color-overlay: #ffffff;
+  --el-fill-color-light: var(--theme-bg-soft);
+  --el-fill-color-lighter: var(--theme-primary-soft-3);
+  --el-fill-color-blank: #ffffff;
+
+  --el-color-success: var(--theme-success);
+  --el-color-warning: var(--theme-warning);
+  --el-color-danger: var(--theme-danger);
 
   --section-gap: 160px;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --color-background: var(--vt-c-black);
-    --color-background-soft: var(--vt-c-black-soft);
-    --color-background-mute: var(--vt-c-black-mute);
-
-    --color-border: var(--vt-c-divider-dark-2);
-    --color-border-hover: var(--vt-c-divider-dark-1);
-
-    --color-heading: var(--vt-c-text-dark-1);
-    --color-text: var(--vt-c-text-dark-2);
-  }
 }
 
 *,
@@ -70,7 +76,7 @@
 body {
   min-height: 100vh;
   color: var(--color-text);
-  background: linear-gradient(180deg, #f7fafc 0%, var(--color-background) 60%);
+  background: linear-gradient(180deg, #fff7e5 0%, var(--color-background) 62%);
   transition:
     color 0.5s,
     background-color 0.5s;
@@ -107,7 +113,7 @@ body {
   background-color: var(--primary);
   border-color: var(--primary);
   color: #fff;
-  box-shadow: 0 6px 14px rgba(59,130,246,0.12);
+  box-shadow: 0 6px 14px rgba(226, 184, 79, 0.28);
 }
 
 .app-shell .el-button--primary:hover {
@@ -122,7 +128,7 @@ body {
 
 /* Product image container to look neat */
 .img-wrap {
-  background: linear-gradient(180deg, rgba(0,0,0,0.02), rgba(0,0,0,0.01));
+  background: linear-gradient(180deg, rgba(226, 184, 79, 0.08), rgba(226, 184, 79, 0.03));
   display:flex; align-items:center; justify-content:center;
   border-radius: calc(var(--card-radius) - 4px);
   overflow: hidden;
@@ -131,4 +137,3 @@ body {
 /* Small helpers */
 .muted { color: var(--muted) }
 .price { color: #ef4444; font-weight:700 }
-
