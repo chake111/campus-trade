@@ -1,5 +1,6 @@
 /* Global theme tokens (warm, soft xianyu-like palette) */
 :root {
+  /* Canonical tokens: use --theme-* across pages/components */
   --theme-primary: #e2b84f;
   --theme-primary-hover: #d2a53a;
   --theme-primary-soft-1: #f6e6ba;
@@ -14,6 +15,19 @@
   --theme-success: #67c23a;
   --theme-warning: #e6a23c;
   --theme-danger: #f56c6c;
+
+  /* Compatibility aliases for legacy planning docs (non-canonical) */
+  --app-primary: var(--theme-primary);
+  --app-primary-hover: var(--theme-primary-hover);
+  --app-primary-soft-1: var(--theme-primary-soft-1);
+  --app-primary-soft-2: var(--theme-primary-soft-2);
+  --app-primary-soft-3: var(--theme-primary-soft-3);
+  --app-bg-soft: var(--theme-bg-soft);
+  --app-page-bg: var(--theme-page-bg);
+  --app-card-bg: var(--theme-card-bg);
+  --app-text-primary: var(--theme-text-primary);
+  --app-text-secondary: var(--theme-text-secondary);
+  --app-border: var(--theme-border);
 
   /* App semantic aliases */
   --color-background: var(--theme-page-bg);
