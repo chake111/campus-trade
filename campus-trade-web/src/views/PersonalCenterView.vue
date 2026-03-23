@@ -134,7 +134,7 @@ import { ElMessage } from 'element-plus'
 import { User, HomeFilled, SwitchButton } from '@element-plus/icons-vue'
 import { getCreditLogs, getCreditScore } from '../api/credit'
 import { AUTH_CHANGED_EVENT, dispatchAuthChanged, getUserId, getUserInfo, removeUserInfo } from '../utils/user'
-import { removeToken } from '../utils/request'
+import { getToken, removeToken } from '../utils/request'
 
 const router = useRouter()
 const loading = ref(false)
@@ -236,23 +236,24 @@ const fetchCreditLogs = async (userId) => {
 
 const resolveCreditError = (error, fallback) => {
   const status = error?.status || error?.response?.status
+  const data = error?.data || error?.response?.data || {}
   const message =
-    error?.data?.message ||
-    error?.response?.data?.message ||
-    error?.response?.data?.data?.message ||
+    data?.message ||
+    data?.data?.message ||
     error?.message ||
     fallback
 
   if (status === 403) {
-    return { state: 'forbidden', message: '没有访问权限' }
+    return { state: 'forbidden', message: '当前账号没有信用模块访问权限' }
   }
 
   return { state: 'error', message }
 }
 
 const fetchCreditData = async () => {
+  const token = getToken()
   const userId = getUserId() ?? userInfo.value.id
-  if (!userId) {
+  if (!token || !userId) {
     ElMessage.warning('请先登录')
     router.push('/login')
     return

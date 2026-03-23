@@ -1,22 +1,33 @@
 package com.campus.trade.util;
 
 import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
+import javax.annotation.PostConstruct;
 import javax.crypto.SecretKey;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import java.security.Key;
+import java.nio.charset.StandardCharsets;
 import java.util.Date;
 
 @Component
 public class JwtUtil {
 
-    // 使用更安全的密钥生成方式
-    private static final SecretKey SECRET_KEY = Keys.secretKeyFor(SignatureAlgorithm.HS256);
-    private static final long EXPIRATION_TIME = 86400000; // 24小时
+    @Value("${jwt.secret:campus-trade-default-secret-key-change-in-production-2026}")
+    private String secret;
+
+    @Value("${jwt.expiration-ms:86400000}")
+    private long expirationTime;
+
+    private SecretKey secretKey;
+
+    @PostConstruct
+    public void init() {
+        byte[] keyBytes = secret.getBytes(StandardCharsets.UTF_8);
+        this.secretKey = Keys.hmacShaKeyFor(keyBytes);
+    }
 
     /**
      * 生成 JWT Token
@@ -27,8 +38,8 @@ public class JwtUtil {
         return Jwts.builder()
                 .setSubject(userId.toString())
                 .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME))
-                .signWith(SECRET_KEY)
+                .setExpiration(new Date(System.currentTimeMillis() + expirationTime))
+                .signWith(secretKey, SignatureAlgorithm.HS256)
                 .compact();
     }
 
@@ -54,17 +65,6 @@ public class JwtUtil {
         } catch (Exception e) {
             return false;
         }
-    }
-
-    /**
-     * 验证 Token 是否有效且与用户信息匹配
-     * @param token Token字符串
-     * @param userDetails 用户详细信息
-     * @return 是否有效
-     */
-    public boolean validateToken(String token, org.springframework.security.core.userdetails.UserDetails userDetails) {
-        final String username = getUsernameFromToken(token);
-        return (username.equals(userDetails.getUsername()) && !isTokenExpired(token));
     }
 
     /**
@@ -104,7 +104,7 @@ public class JwtUtil {
      */
     private Claims getClaimsFromToken(String token) {
         return Jwts.parser()
-                .verifyWith(SECRET_KEY)
+                .verifyWith(secretKey)
                 .build()
                 .parseSignedClaims(token)
                 .getPayload();
