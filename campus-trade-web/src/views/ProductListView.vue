@@ -59,7 +59,35 @@
           </div>
         </template>
 
-        <el-empty v-if="!currentUserId" description="登录后查看个性化推荐" />
+        <template v-if="!currentUserId">
+          <div v-if="fallbackRecommendProducts.length > 0" class="recommend-list">
+            <el-card
+              v-for="item in fallbackRecommendProducts"
+              :key="`fallback-${getCardKey(item)}`"
+              class="recommend-card"
+              @click="viewDetail(item)"
+            >
+              <div class="image-container">
+                <img v-if="item.image" :src="item.image" alt="商品图片" />
+                <div v-else class="recommend-placeholder">精选推荐</div>
+                <span class="corner-tag">推荐</span>
+              </div>
+              <div class="content">
+                <h3 class="title">{{ item.title }}</h3>
+                <p class="description">{{ item.description }}</p>
+                <div class="reason-box">
+                  <el-icon size="14"><InfoFilled /></el-icon>
+                  <span class="reason-text">登录后可查看个性化推荐</span>
+                </div>
+                <div class="footer">
+                  <span class="price">¥{{ item.price }}</span>
+                  <span class="quality-pill">{{ getQualityTag(item) }}</span>
+                </div>
+              </div>
+            </el-card>
+          </div>
+          <el-empty v-else description="登录后查看个性化推荐，当前暂无可展示商品" />
+        </template>
 
         <template v-else>
           <div v-if="recommendLoading" class="recommend-loading">
@@ -188,6 +216,8 @@ const onSaleCount = computed(() => {
     return !SOLD_STATUS.includes(status)
   }).length
 })
+
+const fallbackRecommendProducts = computed(() => products.value.slice(0, 6))
 
 const normalizeList = (res) => {
   if (Array.isArray(res?.data)) return res.data

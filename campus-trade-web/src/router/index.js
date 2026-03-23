@@ -67,6 +67,10 @@ const router = createRouter({
       meta: { requiresAuth: true, roles: [ROLE_ADMIN] },
     },
     {
+      path: '/products/dashboard',
+      redirect: '/dashboard',
+    },
+    {
       path: '/403',
       name: 'forbidden',
       component: ForbiddenView,
