@@ -77,9 +77,9 @@
           <div v-else-if="recommendProducts.length > 0" class="recommend-list">
             <el-card
               v-for="item in recommendProducts"
-              :key="item.id"
+              :key="getCardKey(item)"
               class="recommend-card"
-              @click="viewDetail(item.id)"
+              @click="viewDetail(item)"
             >
               <div class="image-container">
                 <img v-if="item.image" :src="item.image" alt="商品图片" />
@@ -91,7 +91,7 @@
                 <p class="description">{{ item.description }}</p>
                 <div class="reason-box">
                   <el-icon size="14"><InfoFilled /></el-icon>
-                  <span class="reason-text">{{ getRecommendReason(item.id) }}</span>
+                  <span class="reason-text">{{ getRecommendReason(item) }}</span>
                 </div>
                 <div class="footer">
                   <span class="price">¥{{ item.price }}</span>
@@ -112,13 +112,18 @@
         <span class="section-title-text">全部商品</span>
         <span class="section-tip">持续上新</span>
       </div>
+      <div class="stream-hint">
+        <span>在售 {{ onSaleCount }} 件</span>
+        <span>·</span>
+        <span>{{ keyword ? `“${keyword}”搜索结果 ${products.length} 件` : `当前可浏览 ${products.length} 件` }}</span>
+      </div>
 
       <div v-if="products.length" class="all-products-grid">
         <el-card
           v-for="item in products"
-          :key="item.id"
+          :key="getCardKey(item)"
           class="product-card"
-          @click="viewDetail(item.id)"
+          @click="viewDetail(item)"
         >
           <div class="image-container">
             <img v-if="item.image" :src="item.image" alt="商品图片" />
@@ -147,7 +152,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted, onUnmounted } from 'vue'
+import { ref, reactive, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { getProductList } from '../api/product'
 import { getRecommendProducts, getRecommendDetails } from '../api/recommend'
@@ -165,6 +170,24 @@ const recommendLoading = ref(false)
 const recommendError = ref(false)
 const currentUserId = ref(getUserId())
 const isLoggedIn = ref(Boolean(getToken() && currentUserId.value))
+const SOLD_STATUS = ['SOLD', 'FINISHED', '已售出', 'OFF_SHELF', 'DISABLED', '已下架']
+
+const getProductId = (item) => {
+  if (!item || typeof item !== 'object') return null
+  return item.id ?? item.productId ?? item.goodsId ?? item.product_id ?? null
+}
+
+const getCardKey = (item) => {
+  const id = getProductId(item)
+  return id ?? `${item?.title || 'product'}-${item?.price || '0'}-${item?.image || 'noimg'}`
+}
+
+const onSaleCount = computed(() => {
+  return products.value.filter((item) => {
+    const status = String(item?.status ?? '').toUpperCase()
+    return !SOLD_STATUS.includes(status)
+  }).length
+})
 
 const normalizeList = (res) => {
   if (Array.isArray(res?.data)) return res.data
@@ -174,7 +197,7 @@ const normalizeList = (res) => {
 
 const normalizeProduct = (item) => ({
   ...item,
-  id: item.id,
+  id: getProductId(item),
   title: item.title ?? item.name ?? '未命名商品',
   description: item.description ?? item.desc ?? '暂无描述',
   price: item.price ?? 0,
@@ -208,15 +231,17 @@ const fetchRecommendations = async () => {
     recommendProducts.value = normalizeList(res).map(normalizeProduct)
 
     if (recommendProducts.value.length > 0) {
-      const productIds = recommendProducts.value.map((item) => item.id).join(',')
-      try {
-        const explainRes = await getRecommendDetails(currentUserId.value, productIds)
-        const explainData = explainRes?.data ?? explainRes
-        if (explainData && typeof explainData === 'object' && !Array.isArray(explainData)) {
-          Object.assign(recommendExplainMap, explainData)
+      const productIds = recommendProducts.value.map((item) => getProductId(item)).filter(Boolean).join(',')
+      if (productIds) {
+        try {
+          const explainRes = await getRecommendDetails(currentUserId.value, productIds)
+          const explainData = explainRes?.data ?? explainRes
+          if (explainData && typeof explainData === 'object' && !Array.isArray(explainData)) {
+            Object.assign(recommendExplainMap, explainData)
+          }
+        } catch (error) {
+          console.error('获取推荐解释失败:', error)
         }
-      } catch (error) {
-        console.error('获取推荐解释失败:', error)
       }
     }
   } catch (error) {
@@ -227,8 +252,25 @@ const fetchRecommendations = async () => {
   }
 }
 
-const getRecommendReason = (productId) => {
-  return recommendExplainMap[productId] || '根据你的历史行为为你推荐'
+const getRecommendReason = (item) => {
+  const productId = getProductId(item)
+  if (!productId) return '根据你的历史行为为你推荐'
+  return recommendExplainMap[productId] || recommendExplainMap[String(productId)] || '根据你的历史行为为你推荐'
+}
+
+const getQualityTag = (item) => {
+  const text = `${item.title || ''} ${item.description || ''}`
+  if (/全新|未拆|未使用/.test(text)) return '近全新'
+  if (/95新|九五新|9成新/.test(text)) return '9成新'
+  if (/8成新|七成新|旧/.test(text)) return '实用型'
+  return '成色良好'
+}
+
+const getSellingPoint = (item) => {
+  const num = Number(item.price)
+  if (!Number.isNaN(num) && num <= 50) return '学生友好价'
+  if (!Number.isNaN(num) && num <= 300) return '性价比不错'
+  return '可小刀详聊'
 }
 
 const getQualityTag = (item) => {
@@ -250,8 +292,10 @@ const searchProducts = () => {
   fetchProducts({ keyword: keyword.value })
 }
 
-const viewDetail = (id) => {
-  router.push(`/product/${id}`)
+const viewDetail = (item) => {
+  const id = getProductId(item)
+  if (!id) return
+  router.push({ name: 'product-detail', params: { id } })
 }
 
 const createProduct = () => {
@@ -637,6 +681,16 @@ onUnmounted(() => {
   border: 1px solid #f4ddb1;
 }
 
+.stream-hint {
+  margin-top: -4px;
+  padding: 2px 4px 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: #8d7650;
+}
+
 .all-products-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(206px, 1fr));
@@ -766,6 +820,12 @@ onUnmounted(() => {
   .recommend-list {
     grid-template-columns: repeat(auto-fill, minmax(168px, 1fr));
     gap: 10px;
+  }
+
+  .stream-hint {
+    padding: 0 2px;
+    font-size: 11px;
+    gap: 6px;
   }
 
   .image-container {
