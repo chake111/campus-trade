@@ -1,9 +1,9 @@
 package com.campus.trade.controller;
 
 import com.campus.trade.entity.Order;
+import com.campus.trade.mapper.ProductMapper;
 import com.campus.trade.mapper.UserMapper;
 import com.campus.trade.service.OrderService;
-import com.campus.trade.service.ProductService;
 import com.campus.trade.util.Result;
 import java.util.HashMap;
 import java.util.List;
@@ -16,12 +16,12 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/admin/dashboard")
 public class AdminDashboardController {
 
-    private final ProductService productService;
+    private final ProductMapper productMapper;
     private final OrderService orderService;
     private final UserMapper userMapper;
 
-    public AdminDashboardController(ProductService productService, OrderService orderService, UserMapper userMapper) {
-        this.productService = productService;
+    public AdminDashboardController(ProductMapper productMapper, OrderService orderService, UserMapper userMapper) {
+        this.productMapper = productMapper;
         this.orderService = orderService;
         this.userMapper = userMapper;
     }
@@ -40,7 +40,7 @@ public class AdminDashboardController {
 
         Map<String, Object> data = new HashMap<>();
         data.put("userTotal", userMapper.countAll());
-        data.put("productTotal", productService.getList().size());
+        data.put("productTotal", productMapper.countAll());
         data.put("orderTotal", orders.size());
         data.put("finishedOrderTotal", finished);
         data.put("orderStatusCount", statusCount);
