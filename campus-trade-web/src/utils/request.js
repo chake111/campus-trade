@@ -3,8 +3,10 @@ import { ElMessage } from 'element-plus'
 import router from '../router'
 import { dispatchAuthChanged, removeUserInfo } from './user'
 
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080'
+
 const request = axios.create({
-  baseURL: 'http://localhost:8080',
+  baseURL: API_BASE_URL,
   timeout: 5000,
   headers: {
     'Content-Type': 'application/json;charset=utf-8',
@@ -92,38 +94,35 @@ const getStatusMessage = (status, fallbackMessage = '服务异常') => {
   return STATUS_MESSAGE_MAP[status] || fallbackMessage
 }
 
-// 响应拦截器：兼容多种响应格式
+const wrapSuccessResponse = (payload, status = 200) => {
+  if (payload && typeof payload === 'object' && !Array.isArray(payload) && 'code' in payload) {
+    return payload
+  }
+
+  return {
+    code: status,
+    message: 'success',
+    data: payload,
+  }
+}
+
+// 响应拦截器：统一成功返回结构为 { code, message, data }
 request.interceptors.response.use(
   (response) => {
     const res = response.data
+    const wrapped = wrapSuccessResponse(res, response.status)
 
-    // 情况 1：如果是数组，直接返回（兼容直接返回数组的接口）
-    if (Array.isArray(res)) {
-      return { data: res, code: 200, message: 'success' }
+    if (wrapped.code === 200) {
+      return wrapped
     }
 
-    // 情况 2：如果是普通对象，检查是否有 code 字段
-    if (res && typeof res === 'object') {
-      // 有 code 字段，说明是标准格式 { code, message, data }
-      if ('code' in res) {
-        if (res.code === 200) {
-          return res
-        }
-
-        if (isAuthFailure(response.status, res)) {
-          handleAuthExpired(getStatusMessage(401, res.message))
-          return Promise.reject(res)
-        }
-
-        ElMessage.error(getStatusMessage(res.code, res.message || '服务异常'))
-        return Promise.reject(res)
-      }
-      // 没有 code 字段，说明是直接返回的对象，包装后返回
-      return { data: res, code: 200, message: 'success' }
+    if (isAuthFailure(response.status, wrapped)) {
+      handleAuthExpired(getStatusMessage(401, wrapped.message))
+      return Promise.reject(wrapped)
     }
 
-    // 情况 3：其他类型，直接返回完整响应
-    return response
+    ElMessage.error(getStatusMessage(wrapped.code, wrapped.message || '服务异常'))
+    return Promise.reject(wrapped)
   },
   (error) => {
     if (error.response) {

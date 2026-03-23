@@ -4,7 +4,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { House, Plus, Search, Tickets, UserFilled, User, DataAnalysis } from '@element-plus/icons-vue'
 import { getToken, removeToken } from './utils/request'
-import { AUTH_CHANGED_EVENT, dispatchAuthChanged, getUserInfo, isAdmin, removeUserInfo } from './utils/user'
+import { AUTH_CHANGED_EVENT, dispatchAuthChanged, getUserInfo, hasValidAuthState, isAdmin, removeUserInfo } from './utils/user'
 import CampusLogo from './components/CampusLogo.vue'
 
 const router = useRouter()
@@ -18,11 +18,7 @@ function syncAuthState() {
   userInfo.value = getUserInfo()
 }
 
-const isLoggedIn = computed(() => {
-  const currentUser = userInfo.value
-  const userId = currentUser?.id
-  return Boolean(token.value && currentUser && userId)
-})
+const isLoggedIn = computed(() => hasValidAuthState(token.value, userInfo.value))
 
 const displayName = computed(() => {
   if (!userInfo.value) return '同学'
