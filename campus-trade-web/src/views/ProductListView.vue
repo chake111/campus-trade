@@ -1,12 +1,16 @@
 <template>
   <div class="product-list">
     <div class="header">
-      <h1>校园二手交易</h1>
+      <div class="hero-copy">
+        <p class="hero-badge">CAMPUS MARKET</p>
+        <h1>校园二手交易</h1>
+        <p class="hero-subtitle">发现校内好物，轻松发布闲置</p>
+      </div>
       <div class="controls">
         <el-input
           v-model="keyword"
           class="search-input"
-          placeholder="搜索商品..."
+          placeholder="搜索教材、数码、日用..."
           clearable
           @keyup.enter="searchProducts"
         >
@@ -17,14 +21,21 @@
         <el-button v-if="isLoggedIn" class="publish-btn" @click="createProduct">发布闲置</el-button>
         <el-button v-else class="publish-btn" @click="goLogin">登录后发布闲置</el-button>
       </div>
+      <div class="hero-meta">
+        <span class="meta-item">当前在售 {{ products.length }} 件</span>
+        <span class="meta-item">精选推荐 {{ recommendProducts.length }} 件</span>
+      </div>
     </div>
 
     <div v-loading="loading" class="product-grid">
       <el-card class="recommend-section">
         <template #header>
-          <div class="section-header">
-            <el-icon size="20" color="#d99a00"><Star /></el-icon>
-            <span>为你推荐</span>
+          <div class="recommend-head">
+            <div class="section-header">
+              <el-icon size="20" color="#d99a00"><Star /></el-icon>
+              <span>为你推荐</span>
+            </div>
+            <span class="recommend-tag">精选推荐</span>
           </div>
           <div class="recommend-subtitle">根据你的浏览 / 点赞 / 购买行为动态推荐</div>
         </template>
@@ -231,55 +242,106 @@ onUnmounted(() => {
 .product-list {
   width: min(100%, 1440px);
   margin: 0 auto;
-  padding: 18px;
+  padding: 20px;
 }
 
 .header {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-end;
   flex-wrap: wrap;
-  gap: 14px 16px;
-  margin-bottom: 24px;
-  padding: 18px 20px;
-  background: linear-gradient(135deg, #fffdf4 0%, #fff7dd 100%);
-  border: 1px solid #f4e3b3;
-  border-radius: 12px;
+  gap: 14px 20px;
+  margin-bottom: 28px;
+  padding: 22px 24px 18px;
+  background: linear-gradient(125deg, #fffdf4 0%, #fff8e3 48%, #fff5d8 100%);
+  border: 1px solid #efddad;
+  border-radius: 16px;
   color: #3c3c3c;
+  box-shadow: 0 14px 28px rgba(117, 91, 45, 0.08);
+}
+
+.hero-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.hero-badge {
+  margin: 0;
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  color: #a68343;
+  font-weight: 700;
 }
 
 .header h1 {
-  font-size: clamp(24px, 2.2vw, 30px);
+  font-size: clamp(27px, 2.6vw, 34px);
   margin: 0;
   line-height: 1.2;
-  color: #3c3c3c;
+  color: #31260f;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.6);
+}
+
+.hero-subtitle {
+  margin: 2px 0 0;
+  font-size: 14px;
+  color: #7b6540;
+}
+
+.hero-meta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.meta-item {
+  font-size: 12px;
+  color: #7d6844;
+  padding: 5px 10px;
+  border-radius: 999px;
+  background: rgba(255, 251, 238, 0.82);
+  border: 1px solid #f0dfb3;
 }
 
 .controls {
   display: flex;
-  gap: 10px;
+  gap: 12px;
   align-items: center;
   flex: 1 1 500px;
   min-width: 320px;
-  justify-content: flex-end;
+  justify-content: center;
   flex-wrap: wrap;
 }
 
 .search-input {
   flex: 1 1 360px;
   min-width: 240px;
-  max-width: 480px;
+  max-width: 500px;
+}
+
+.search-input :deep(.el-input__wrapper) {
+  box-shadow: 0 0 0 1px #efd8a3 inset;
+  border-radius: 10px 0 0 10px;
+  min-height: 42px;
+}
+
+.search-input :deep(.el-input__inner::placeholder) {
+  color: #b09a73;
 }
 
 .controls .el-button {
-  min-width: 92px;
+  min-width: 108px;
+  min-height: 42px;
+  border-radius: 10px;
 }
 
 .controls :deep(.el-input-group__append .el-button) {
   min-width: 72px;
-  background: #ffd45a;
-  border-color: #ffd45a;
-  color: #3c3c3c;
+  border-radius: 0 10px 10px 0;
+  background: #ffd768;
+  border-color: #ffd768;
+  color: #4a390f;
   font-weight: 600;
 }
 
@@ -289,7 +351,7 @@ onUnmounted(() => {
 }
 
 .publish-btn {
-  min-width: 112px;
+  min-width: 126px;
   color: #5e3b00;
   background: linear-gradient(135deg, #ffe59d 0%, #ffd167 100%);
   border: 1px solid #f2bf4c;
@@ -313,14 +375,20 @@ onUnmounted(() => {
 .product-grid {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 22px;
 }
 
 .recommend-section {
-  border: 1px solid #ece4cf;
-  border-radius: 12px;
-  background: #fff;
-  box-shadow: 0 6px 14px rgba(81, 64, 32, 0.05);
+  border: 1px solid #eadfc5;
+  border-radius: 14px;
+  background: linear-gradient(180deg, #fffefb 0%, #fffaf0 100%);
+  box-shadow: 0 10px 24px rgba(81, 64, 32, 0.07);
+}
+
+.recommend-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .section-header {
@@ -332,13 +400,23 @@ onUnmounted(() => {
   color: #3c3c3c;
 }
 
+.recommend-tag {
+  font-size: 12px;
+  font-weight: 600;
+  color: #89611f;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: #fff2cc;
+  border: 1px solid #f2dd9b;
+}
+
 .recommend-subtitle {
   display: inline-block;
-  margin-top: 8px;
-  padding: 4px 10px;
+  margin-top: 10px;
+  padding: 5px 12px;
   font-size: 12px;
-  color: #8a6d2f;
-  background: #fff6da;
+  color: #7f6638;
+  background: #fff6dc;
   border-radius: 999px;
 }
 
@@ -349,19 +427,21 @@ onUnmounted(() => {
 .recommend-list {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-  gap: 14px;
+  gap: 16px;
 }
 
 .recommend-card {
   cursor: pointer;
   transition: transform 0.24s ease, box-shadow 0.24s ease;
-  border-radius: 8px;
-  border: 1px solid #f0f0f0;
+  border-radius: 12px;
+  border: 1px solid #efeadb;
+  background: #fffdf8;
 }
 
 .recommend-card:hover {
   transform: translateY(-3px);
-  box-shadow: 0 8px 18px rgba(82, 74, 57, 0.12);
+  box-shadow: 0 12px 22px rgba(82, 74, 57, 0.12);
+  border-color: #ecd392;
 }
 
 .recommend-placeholder {
@@ -377,13 +457,13 @@ onUnmounted(() => {
 }
 
 .content {
-  padding: 6px 0 2px;
+  padding: 6px 2px 2px;
 }
 
 .title {
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 600;
-  color: #303133;
+  color: #302718;
   margin: 0 0 8px 0;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -394,7 +474,7 @@ onUnmounted(() => {
 
 .description {
   font-size: 13px;
-  color: #909399;
+  color: #948d80;
   margin: 0 0 10px 0;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -428,9 +508,10 @@ onUnmounted(() => {
 }
 
 .price {
-  font-size: 18px;
+  font-size: 21px;
   font-weight: 700;
-  color: #f0673a;
+  color: #eb5d3e;
+  letter-spacing: 0.01em;
 }
 
 .section-title {
@@ -440,8 +521,8 @@ onUnmounted(() => {
   font-size: 18px;
   font-weight: 600;
   color: #5c430e;
-  margin-top: 16px;
-  padding: 12px 16px;
+  margin-top: 12px;
+  padding: 13px 16px;
   background: linear-gradient(135deg, #fffdf7 0%, #fff7df 100%);
   border: 1px solid #f2e2ba;
   border-radius: 12px;
@@ -473,15 +554,16 @@ onUnmounted(() => {
 .all-products-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-  gap: 16px;
+  gap: 18px;
 }
 
 .product-card {
   cursor: pointer;
   transition: transform 0.24s ease, box-shadow 0.24s ease;
-  border-radius: 14px;
+  border-radius: 16px;
   border: 1px solid #f1e9d6;
   box-shadow: 0 6px 16px rgba(67, 49, 16, 0.06);
+  background: linear-gradient(180deg, #ffffff 0%, #fffcf5 100%);
 }
 
 .product-card:hover {
@@ -492,9 +574,9 @@ onUnmounted(() => {
 
 .image-container {
   width: 100%;
-  height: 176px;
+  height: 186px;
   overflow: hidden;
-  border-radius: 10px;
+  border-radius: 12px;
   margin-bottom: 12px;
   background: #faf4e7;
   border: 1px solid #f4e9d1;
@@ -524,12 +606,12 @@ onUnmounted(() => {
 }
 
 .all-products-grid .content {
-  padding: 2px 2px 4px;
+  padding: 2px 4px 4px;
 }
 
 .all-products-grid .title {
   color: #3d3526;
-  margin-bottom: 6px;
+  margin-bottom: 8px;
   line-height: 1.45;
 }
 
@@ -555,12 +637,17 @@ onUnmounted(() => {
   .header {
     padding: 16px;
     margin-bottom: 20px;
+    align-items: flex-start;
   }
 
   .controls {
     min-width: 100%;
-    justify-content: flex-start;
+    justify-content: stretch;
     gap: 8px;
+  }
+
+  .hero-meta {
+    width: 100%;
   }
 
   .search-input {
