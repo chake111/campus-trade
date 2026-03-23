@@ -5,6 +5,7 @@ import { ElMessage } from 'element-plus'
 import { House, Plus, Search, Tickets, UserFilled, User, DataAnalysis } from '@element-plus/icons-vue'
 import { getToken, removeToken } from './utils/request'
 import { AUTH_CHANGED_EVENT, dispatchAuthChanged, getUserInfo, isAdmin, removeUserInfo } from './utils/user'
+import CampusLogo from './components/CampusLogo.vue'
 
 const router = useRouter()
 const route = useRoute()
@@ -111,8 +112,7 @@ watch(
   <el-container class="app-shell">
     <el-header class="top-nav">
       <div class="brand-wrap" @click="goHome">
-        <div class="brand">校园二手交易系统</div>
-        <span class="brand-subtitle">CAMPUS MARKET</span>
+        <CampusLogo :size="34" compact />
       </div>
 
       <div class="nav-search-wrap">
@@ -203,19 +203,6 @@ watch(
   flex-direction: column;
   gap: 2px;
   cursor: pointer;
-}
-
-.brand {
-  font-size: 17px;
-  font-weight: 700;
-  color: var(--theme-text-primary);
-  line-height: 1.1;
-}
-
-.brand-subtitle {
-  font-size: 11px;
-  letter-spacing: 1.1px;
-  color: #a07b31;
 }
 
 .nav-search-wrap {
