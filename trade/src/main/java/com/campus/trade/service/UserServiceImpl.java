@@ -36,7 +36,8 @@ public class UserServiceImpl implements UserService {
             return false;
         }
 
-        user.setRole(SystemRole.from(user.getRole()).name());
+        // 注册场景固定写入普通用户角色，禁止前端透传 ADMIN
+        user.setRole(SystemRole.USER.name());
         if (user.getStatus() == null) {
             user.setStatus(1);
         }
