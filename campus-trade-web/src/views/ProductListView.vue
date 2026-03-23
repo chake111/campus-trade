@@ -1,35 +1,5 @@
 <template>
   <div class="product-list">
-    <section class="trade-hero">
-      <div class="hero-main">
-        <p class="hero-badge">CAMPUS MARKET</p>
-        <h1>校园二手交易广场</h1>
-        <p class="hero-subtitle">在校内轻松浏览好物、关注最新挂售、快速发布你的闲置</p>
-        <div class="hero-entrance-tags">
-          <span class="entry-tag">校园交易</span>
-          <span class="entry-tag">可浏览</span>
-          <span class="entry-tag">可发布</span>
-        </div>
-      </div>
-
-      <div class="hero-actions">
-        <el-button v-if="isLoggedIn" class="publish-btn" @click="createProduct">+ 发布闲置</el-button>
-        <el-button v-else class="publish-btn" @click="goLogin">登录后发布闲置</el-button>
-      </div>
-
-      <div class="hero-meta">
-        <span class="meta-item">
-          <b>{{ products.length }}</b>
-          在售商品
-        </span>
-        <span class="meta-item">
-          <b>{{ recommendProducts.length }}</b>
-          今日推荐
-        </span>
-        <span class="meta-item">校园内可当面交易</span>
-      </div>
-    </section>
-
     <div v-loading="loading" class="product-grid">
       <section class="recommend-section">
           <div class="recommend-head">
@@ -168,7 +138,6 @@ import { ref, reactive, computed, onMounted, onUnmounted, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { getProductList } from '../api/product'
 import { getRecommendProducts, getRecommendDetails } from '../api/recommend'
-import { getToken } from '../utils/request'
 import { AUTH_CHANGED_EVENT, getUserId } from '../utils/user'
 import { Star, ShoppingCart, InfoFilled } from '@element-plus/icons-vue'
 
@@ -182,7 +151,6 @@ const loading = ref(false)
 const recommendLoading = ref(false)
 const recommendError = ref(false)
 const currentUserId = ref(getUserId())
-const isLoggedIn = ref(Boolean(getToken() && currentUserId.value))
 const SOLD_STATUS = ['SOLD', 'FINISHED', '已售出', 'OFF_SHELF', 'DISABLED', '已下架']
 
 const getProductId = (item) => {
@@ -231,7 +199,6 @@ const fetchProducts = async (params = {}) => {
 
 const fetchRecommendations = async () => {
   currentUserId.value = getUserId()
-  isLoggedIn.value = Boolean(getToken() && currentUserId.value)
   recommendProducts.value = []
   Object.keys(recommendExplainMap).forEach((key) => delete recommendExplainMap[key])
   recommendError.value = false
@@ -294,17 +261,8 @@ const viewDetail = (item) => {
   router.push({ name: 'product-detail', params: { id } })
 }
 
-const createProduct = () => {
-  router.push('/product/create')
-}
-
-const goLogin = () => {
-  router.push('/login')
-}
-
 const syncAuthState = () => {
   currentUserId.value = getUserId()
-  isLoggedIn.value = Boolean(getToken() && currentUserId.value)
   fetchRecommendations()
 }
 
@@ -335,34 +293,9 @@ watch(
 .product-list {
   width: min(100%, 1440px);
   margin: 0 auto;
-  padding: 18px 22px 34px;
+  padding: 20px 22px 34px;
 }
 
-.trade-hero {
-  display: grid;
-  grid-template-columns: 1.2fr auto;
-  gap: 16px;
-  align-items: center;
-  margin-bottom: 38px;
-  padding: 20px 22px;
-  border-radius: 18px;
-  border: 1px solid #efddad;
-  background: linear-gradient(125deg, #fffdf4 0%, #fff8e3 58%, #fff4d3 100%);
-  box-shadow: 0 14px 26px rgba(117, 91, 45, 0.08);
-}
-
-.hero-main { display: flex; flex-direction: column; gap: 8px; }
-.hero-badge { margin: 0; font-size: 11px; letter-spacing: 0.12em; color: #a68343; font-weight: 700; }
-.trade-hero h1 { font-size: clamp(28px, 2.6vw, 34px); margin: 0; line-height: 1.18; color: #31260f; }
-.hero-subtitle { margin: 0; font-size: 14px; color: #735b33; }
-.hero-entrance-tags { display: flex; gap: 8px; flex-wrap: wrap; }
-.entry-tag { padding: 4px 10px; font-size: 12px; color: #775013; border-radius: 999px; border: 1px solid #f0d59a; background: #fff7dd; }
-.hero-actions { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; justify-content: flex-end; }
-.publish-btn { min-height: 44px; min-width: 138px; color: #5e3b00; background: linear-gradient(135deg, #ffe59d 0%, #ffd167 100%); border: 1px solid #f2bf4c; font-weight: 700; box-shadow: 0 6px 14px rgba(242, 180, 57, 0.26); }
-.publish-btn:hover { color: #4b2f00; border-color: #e0a92f; background: linear-gradient(135deg, #ffdc81 0%, #ffc94d 100%); transform: translateY(-1px); }
-.hero-meta { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; grid-column: 1 / -1; }
-.meta-item { font-size: 12px; color: #705627; padding: 6px 10px; border-radius: 999px; background: rgba(255, 251, 238, 0.85); border: 1px solid #f0dfb3; }
-.meta-item b { margin-right: 3px; color: #4a360e; }
 
 .product-grid { display: flex; flex-direction: column; gap: 24px; }
 
@@ -476,16 +409,12 @@ watch(
 .empty-state { padding: 58px 0; }
 
 @media (max-width: 1024px) {
-  .trade-hero { grid-template-columns: 1fr; align-items: flex-start; }
-  .hero-actions { width: 100%; justify-content: flex-start; }
   .all-products-grid,
   .recommend-list { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px 14px; }
 }
 
 @media (max-width: 768px) {
   .product-list { padding: 12px; }
-  .trade-hero { padding: 16px; gap: 12px; margin-bottom: 22px; }
-  .hero-meta { width: 100%; }
   .recommend-section { padding: 16px 12px; }
   .all-products-grid,
   .recommend-list { grid-template-columns: repeat(auto-fill, minmax(168px, 1fr)); gap: 16px 12px; }
