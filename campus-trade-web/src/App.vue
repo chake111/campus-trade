@@ -2,7 +2,7 @@
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import { Plus, Search, Tickets, UserFilled, User, DataAnalysis } from '@element-plus/icons-vue'
+import { House, Plus, Search, Tickets, UserFilled, User, DataAnalysis } from '@element-plus/icons-vue'
 import { getToken, removeToken } from './utils/request'
 import { AUTH_CHANGED_EVENT, dispatchAuthChanged, getUserInfo, isAdmin, removeUserInfo } from './utils/user'
 
@@ -33,12 +33,6 @@ const navSearchKeyword = ref('')
 
 const showFloatingCapsule = computed(() => {
   return !route.path.startsWith('/login') && !route.path.startsWith('/register')
-})
-
-const activeMenu = computed(() => {
-  const path = route.path
-  if (path.startsWith('/login')) return '/login'
-  return '/products'
 })
 
 function goHome() {
@@ -121,17 +115,7 @@ watch(
         <span class="brand-subtitle">CAMPUS MARKET</span>
       </div>
 
-      <div class="nav-capsule-group">
-        <el-menu
-          :default-active="activeMenu"
-          mode="horizontal"
-          :ellipsis="false"
-          router
-          class="nav-menu"
-        >
-          <el-menu-item index="/products">首页</el-menu-item>
-        </el-menu>
-
+      <div class="nav-search-wrap">
         <el-input
           v-if="showNavSearch"
           v-model="navSearchKeyword"
@@ -164,6 +148,10 @@ watch(
     </el-main>
 
     <div v-if="showFloatingCapsule" class="floating-capsule">
+      <button class="capsule-item" type="button" @click="goHome">
+        <el-icon><House /></el-icon>
+        <span>首页</span>
+      </button>
       <button class="capsule-item" type="button" @click="goPublish">
         <el-icon><Plus /></el-icon>
         <span>发布商品</span>
@@ -230,54 +218,15 @@ watch(
   color: #a07b31;
 }
 
-.nav-capsule-group {
+.nav-search-wrap {
   flex: 1 1 680px;
   min-width: 420px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 6px;
-  border-radius: 999px;
-  border: 1px solid #efd9aa;
-  background: rgba(255, 248, 230, 0.9);
-}
-
-.nav-menu {
-  --el-menu-bg-color: transparent;
-  --el-menu-text-color: var(--theme-text-secondary);
-  --el-menu-hover-text-color: var(--theme-text-primary);
-  --el-menu-hover-bg-color: rgba(255, 230, 172, 0.55);
-  --el-menu-active-color: var(--theme-text-primary);
-  --el-menu-item-height: 38px;
-  --el-menu-horizontal-height: 38px;
-  flex: 0 0 auto;
-  margin: 0;
-  border-bottom: none;
-  min-width: 0;
-}
-
-.nav-menu :deep(.el-menu-item) {
-  height: 38px;
-  line-height: 38px;
-  padding: 0 12px;
-  font-size: 13px;
-  border-radius: 999px;
-  margin: 0 2px;
-}
-
-.nav-menu :deep(.el-menu-item.is-active) {
-  background: #ffe6b1;
-  color: #6f4a11;
-  font-weight: 600;
-}
-
-.nav-menu :deep(.el-menu--horizontal > .el-menu-item.is-active) {
-  border-bottom: none;
+  display: block;
 }
 
 .nav-search-input {
-  flex: 1.2 1 360px;
-  min-width: 250px;
+  width: 100%;
+  min-width: 0;
 }
 
 .nav-search-input :deep(.el-input__wrapper) {
@@ -371,7 +320,7 @@ watch(
   top: 50%;
   transform: translateY(-50%);
   z-index: 25;
-  width: 124px;
+  width: 120px;
   padding: 5px;
   border-radius: 20px;
   border: 1px solid #efdfba;
@@ -382,8 +331,8 @@ watch(
 
 .capsule-item {
   width: 100%;
-  height: 34px;
-  margin: 2px 0;
+  height: 32px;
+  margin: 1px 0;
   border: none;
   border-radius: 12px;
   background: transparent;
@@ -402,11 +351,11 @@ watch(
 }
 
 @media (max-width: 1100px) {
-  .nav-capsule-group { min-width: 0; }
+  .nav-search-wrap { min-width: 0; }
 
   .floating-capsule {
     right: 12px;
-    width: 122px;
+    width: 118px;
   }
 }
 
@@ -419,19 +368,13 @@ watch(
     font-size: 16px;
   }
 
-  .nav-menu {
-    flex: 0 0 auto;
-  }
-
   .user-actions {
     min-width: 0;
   }
 
-  .nav-capsule-group {
+  .nav-search-wrap {
     order: 3;
     flex: 1 1 100%;
-    border-radius: 18px;
-    flex-wrap: wrap;
   }
 
   .nav-search-input {
