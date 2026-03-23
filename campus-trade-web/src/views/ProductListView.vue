@@ -61,10 +61,10 @@
 
         <template v-if="!currentUserId">
           <div v-if="fallbackRecommendProducts.length > 0" class="recommend-list">
-            <el-card
+            <article
               v-for="item in fallbackRecommendProducts"
               :key="`fallback-${getCardKey(item)}`"
-              class="recommend-card"
+              class="recommend-item"
               @click="viewDetail(item)"
             >
               <div class="image-container">
@@ -84,7 +84,7 @@
                   <span class="quality-pill">{{ getQualityTag(item) }}</span>
                 </div>
               </div>
-            </el-card>
+            </article>
           </div>
           <el-empty v-else description="登录后查看个性化推荐，当前暂无可展示商品" />
         </template>
@@ -103,10 +103,10 @@
           />
 
           <div v-else-if="recommendProducts.length > 0" class="recommend-list">
-            <el-card
+            <article
               v-for="item in recommendProducts"
               :key="getCardKey(item)"
-              class="recommend-card"
+              class="recommend-item"
               @click="viewDetail(item)"
             >
               <div class="image-container">
@@ -126,7 +126,7 @@
                   <span class="quality-pill">{{ getQualityTag(item) }}</span>
                 </div>
               </div>
-            </el-card>
+            </article>
           </div>
 
           <el-empty v-else description="暂无推荐商品" />
@@ -147,10 +147,10 @@
       </div>
 
       <div v-if="products.length" class="all-products-grid">
-        <el-card
+        <article
           v-for="item in products"
           :key="getCardKey(item)"
-          class="product-card"
+          class="product-item"
           @click="viewDetail(item)"
         >
           <div class="image-container">
@@ -169,7 +169,7 @@
               <span class="selling-point">{{ getSellingPoint(item) }}</span>
             </div>
           </div>
-        </el-card>
+        </article>
       </div>
 
       <div v-if="!products.length && !loading" class="empty-state">
@@ -559,20 +559,17 @@ onUnmounted(() => {
   gap: 14px;
 }
 
-.recommend-card {
+.recommend-item {
   cursor: pointer;
-  transition: transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease;
-  border-radius: 12px;
-  border: 1px solid #f2ebde;
-  background: #fffdf8;
-  box-shadow: none;
-  --el-card-box-shadow: none;
+  transition: transform 0.2s ease, background-color 0.2s ease;
+  border-radius: 10px;
+  padding: 8px;
+  background: rgba(255, 252, 244, 0.55);
 }
 
-.recommend-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 14px rgba(82, 74, 57, 0.08);
-  border-color: #ead9b2;
+.recommend-item:hover {
+  transform: translateY(-1px);
+  background: rgba(255, 248, 230, 0.82);
 }
 
 .recommend-placeholder {
@@ -631,10 +628,10 @@ onUnmounted(() => {
   align-items: flex-start;
   gap: 6px;
   padding: 7px;
-  background: #fff9ee;
+  background: #fff7ea;
   border-radius: 7px;
   margin-bottom: 9px;
-  border-left: 3px solid #f2c253;
+  border-left: 2px solid #f2c253;
 }
 
 .reason-text {
@@ -724,20 +721,17 @@ onUnmounted(() => {
   gap: 14px;
 }
 
-.product-card {
+.product-item {
   cursor: pointer;
-  transition: transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease;
-  border-radius: 14px;
-  border: 1px solid #f3ebda;
-  box-shadow: 0 1px 3px rgba(67, 49, 16, 0.04);
-  --el-card-box-shadow: none;
-  background: linear-gradient(180deg, #ffffff 0%, #fffcf5 100%);
+  transition: transform 0.2s ease, background-color 0.2s ease;
+  border-radius: 10px;
+  padding: 8px;
+  background: rgba(255, 253, 247, 0.55);
 }
 
-.product-card:hover {
-  transform: translateY(-2px);
-  border-color: #e9d4a2;
-  box-shadow: 0 6px 14px rgba(82, 63, 27, 0.09);
+.product-item:hover {
+  transform: translateY(-1px);
+  background: rgba(255, 248, 231, 0.82);
 }
 
 .image-container {
@@ -758,8 +752,8 @@ onUnmounted(() => {
   transition: transform 0.28s;
 }
 
-.product-card:hover .image-container img,
-.recommend-card:hover .image-container img {
+.product-item:hover .image-container img,
+.recommend-item:hover .image-container img {
   transform: scale(1.04);
 }
 
