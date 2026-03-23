@@ -10,8 +10,9 @@ public interface ProductMapper {
 
     List<Product> selectAll();
 
+    long countAll();
+
     List<Product> selectByKeyword(@Param("keyword") String keyword);
 
     Product selectById(@Param("id") Long id);
 }
-

@@ -33,6 +33,11 @@
         FROM `product`
     </select>
 
+    <select id="countAll" resultType="long">
+        SELECT COUNT(*)
+        FROM `product`
+    </select>
+
     <select id="selectByKeyword" resultMap="ProductResultMap">
         SELECT id, title, description, image, price, user_id, status, create_time
         FROM `product`
