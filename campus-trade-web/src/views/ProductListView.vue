@@ -140,7 +140,7 @@ import { getProductList } from '../api/product'
 import { getRecommendProducts, getRecommendDetails } from '../api/recommend'
 import { AUTH_CHANGED_EVENT, getUserId } from '../utils/user'
 import { Star, ShoppingCart, InfoFilled } from '@element-plus/icons-vue'
-import { normalizeProductResponseList } from '../utils/productNormalizer'
+import { isProductOrderableStatus, normalizeProductResponseList } from '../utils/productNormalizer'
 
 const router = useRouter()
 const route = useRoute()
@@ -152,7 +152,6 @@ const loading = ref(false)
 const recommendLoading = ref(false)
 const recommendError = ref(false)
 const currentUserId = ref(getUserId())
-const SOLD_STATUS = ['SOLD', 'FINISHED', '已售出', 'OFF_SHELF', 'DISABLED', '已下架']
 
 const getProductId = (item) => {
   if (!item || typeof item !== 'object') return null
@@ -165,10 +164,7 @@ const getCardKey = (item) => {
 }
 
 const onSaleCount = computed(() => {
-  return products.value.filter((item) => {
-    const status = String(item?.status ?? '').toUpperCase()
-    return !SOLD_STATUS.includes(status)
-  }).length
+  return products.value.filter((item) => isProductOrderableStatus(item?.status)).length
 })
 
 const fallbackRecommendProducts = computed(() => products.value.slice(0, 6))

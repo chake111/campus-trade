@@ -73,6 +73,12 @@ const pickStableFallbackImage = (fallbackKey, seed) => {
   return pool[idx]
 }
 
+
+export const isProductOrderableStatus = (status) => {
+  if (status === null || status === undefined || status === '') return true
+  return Number(status) === 1
+}
+
 export const normalizeProduct = (raw) => {
   const id = pickProductId(raw)
   const title = normalizeText(raw?.title ?? raw?.name) || '未命名商品'

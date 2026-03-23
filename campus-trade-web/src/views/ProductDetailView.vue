@@ -76,7 +76,7 @@ import { getProductDetail } from '../api/product'
 import { createOrder } from '../api/order'
 import { getUserId } from '../utils/user'
 import { getToken } from '../utils/request'
-import { normalizeProductResponseDetail } from '../utils/productNormalizer'
+import { isProductOrderableStatus, normalizeProductResponseDetail } from '../utils/productNormalizer'
 
 const route = useRoute()
 const router = useRouter()
@@ -96,13 +96,7 @@ const sellerId = computed(() => {
 const sellerIdDisplay = computed(() => sellerId.value ?? '未知')
 
 const isProductAvailable = computed(() => {
-  const raw = product.value?.status
-  if (raw === null || raw === undefined || raw === '') return true
-
-  const normalized = String(raw).toUpperCase()
-  if (['1', 'ON_SALE', 'AVAILABLE', 'SELLING', '在售'].includes(normalized)) return true
-  if (raw === 1) return true
-  return false
+  return isProductOrderableStatus(product.value?.status)
 })
 
 const isOwnProduct = computed(() => {
@@ -125,8 +119,8 @@ const statusText = computed(() => {
 })
 
 const statusTagType = computed(() => {
+  if (isProductAvailable.value) return 'success'
   const status = String(product.value?.status || '').toUpperCase()
-  if (['ON_SALE', 'AVAILABLE', 'SELLING', '在售'].includes(status)) return 'success'
   if (['SOLD', 'FINISHED', '已售出'].includes(status)) return 'info'
   if (['OFF_SHELF', 'DISABLED', '已下架'].includes(status)) return 'warning'
   return 'primary'
