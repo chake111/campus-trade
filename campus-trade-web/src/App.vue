@@ -1,5 +1,5 @@
 <script setup>
-import { computed, onMounted, onUnmounted, ref } from 'vue'
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { Plus, Search, Tickets, ChatDotRound, UserFilled } from '@element-plus/icons-vue'
@@ -29,6 +29,7 @@ const displayName = computed(() => {
 })
 
 const canAccessDashboard = computed(() => isAdmin(userInfo.value))
+const navSearchKeyword = ref('')
 
 const showFloatingCapsule = computed(() => {
   return !route.path.startsWith('/login') && !route.path.startsWith('/register')
@@ -49,8 +50,13 @@ function goHome() {
 }
 
 function goPlatformSearch() {
-  router.push('/products')
+  const keyword = navSearchKeyword.value.trim()
+  router.push({ path: '/products', query: keyword ? { keyword } : {} })
 }
+
+const showNavSearch = computed(() => {
+  return !route.path.startsWith('/login') && !route.path.startsWith('/register')
+})
 
 function goOrders() {
   if (!isLoggedIn.value) {
@@ -96,6 +102,14 @@ onMounted(() => {
 onUnmounted(() => {
   window.removeEventListener(AUTH_CHANGED_EVENT, syncAuthState)
 })
+
+watch(
+  () => route.query.keyword,
+  (keyword) => {
+    navSearchKeyword.value = typeof keyword === 'string' ? keyword : ''
+  },
+  { immediate: true }
+)
 </script>
 
 <template>
@@ -106,38 +120,41 @@ onUnmounted(() => {
         <span class="brand-subtitle">CAMPUS MARKET</span>
       </div>
 
-      <el-menu
-        :default-active="activeMenu"
-        mode="horizontal"
-        :ellipsis="false"
-        router
-        class="nav-menu"
-      >
-        <el-menu-item index="/products">首页</el-menu-item>
-        <el-menu-item v-if="canAccessDashboard" index="/dashboard">数据看板</el-menu-item>
-
-        <template v-if="isLoggedIn">
+      <div class="nav-capsule-group">
+        <el-menu
+          :default-active="activeMenu"
+          mode="horizontal"
+          :ellipsis="false"
+          router
+          class="nav-menu"
+        >
+          <el-menu-item index="/products">首页</el-menu-item>
           <el-menu-item index="/product/create">发布商品</el-menu-item>
           <el-menu-item index="/orders">我的订单</el-menu-item>
           <el-menu-item index="/profile">个人中心</el-menu-item>
-        </template>
+          <el-menu-item v-if="canAccessDashboard" index="/dashboard">数据看板</el-menu-item>
+        </el-menu>
 
-        <template v-else>
-          <el-menu-item index="/login">登录</el-menu-item>
-        </template>
-      </el-menu>
-
-      <button class="platform-search-entry" type="button" @click="goPlatformSearch">
-        <el-icon><Search /></el-icon>
-        <span>平台搜索</span>
-      </button>
+        <el-input
+          v-if="showNavSearch"
+          v-model="navSearchKeyword"
+          class="nav-search-input"
+          placeholder="搜索教材、数码、日用..."
+          clearable
+          @keyup.enter="goPlatformSearch"
+        >
+          <template #prefix>
+            <el-icon><Search /></el-icon>
+          </template>
+          <template #append>
+            <el-button @click="goPlatformSearch">搜索</el-button>
+          </template>
+        </el-input>
+      </div>
 
       <div v-if="isLoggedIn" class="user-actions">
         <div class="user-avatar"><el-icon><UserFilled /></el-icon></div>
-        <div class="user-brief">
-          <span class="user-label">个人中心</span>
-          <span class="username" :title="displayName">{{ displayName }}</span>
-        </div>
+        <span class="username" :title="displayName">{{ displayName }}</span>
         <el-button link type="danger" @click="handleLogout">退出</el-button>
       </div>
       <div v-else class="user-actions user-actions--guest">
@@ -179,11 +196,11 @@ onUnmounted(() => {
   z-index: 20;
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-start;
   flex-wrap: wrap;
   column-gap: 12px;
   row-gap: 10px;
-  min-height: 62px;
+  min-height: 68px;
   height: auto;
   padding: 10px 20px;
   background: linear-gradient(180deg, #fff9e8 0%, #fffdf5 100%);
@@ -212,32 +229,44 @@ onUnmounted(() => {
   color: #a07b31;
 }
 
+.nav-capsule-group {
+  flex: 1 1 680px;
+  min-width: 420px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px;
+  border-radius: 999px;
+  border: 1px solid #efd9aa;
+  background: rgba(255, 248, 230, 0.9);
+}
+
 .nav-menu {
   --el-menu-bg-color: transparent;
   --el-menu-text-color: var(--theme-text-secondary);
   --el-menu-hover-text-color: var(--theme-text-primary);
-  --el-menu-hover-bg-color: var(--theme-primary-soft-1);
+  --el-menu-hover-bg-color: rgba(255, 230, 172, 0.55);
   --el-menu-active-color: var(--theme-text-primary);
-  --el-menu-item-height: 44px;
-  --el-menu-horizontal-height: 44px;
-  flex: 1 1 460px;
-  margin: 0 2px;
+  --el-menu-item-height: 38px;
+  --el-menu-horizontal-height: 38px;
+  flex: 1 1 410px;
+  margin: 0;
   border-bottom: none;
-  min-width: 280px;
+  min-width: 0;
 }
 
 .nav-menu :deep(.el-menu-item) {
-  height: 44px;
-  line-height: 44px;
-  padding: 0 14px;
-  font-size: 14px;
-  border-radius: 10px;
+  height: 38px;
+  line-height: 38px;
+  padding: 0 12px;
+  font-size: 13px;
+  border-radius: 999px;
   margin: 0 2px;
 }
 
 .nav-menu :deep(.el-menu-item.is-active) {
-  background: #ffe8b4;
-  color: #7d5317;
+  background: #ffe6b1;
+  color: #6f4a11;
   font-weight: 600;
 }
 
@@ -245,66 +274,62 @@ onUnmounted(() => {
   border-bottom: none;
 }
 
-.platform-search-entry {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  height: 38px;
-  padding: 0 14px;
-  border-radius: 999px;
-  border: 1px solid #f1d8a0;
-  background: #fff8e6;
-  color: #876128;
-  font-size: 13px;
-  cursor: pointer;
+.nav-search-input {
+  flex: 1.2 1 360px;
+  min-width: 250px;
 }
 
-.platform-search-entry:hover {
-  background: #ffefc8;
+.nav-search-input :deep(.el-input__wrapper) {
+  box-shadow: none;
+  border: 1px solid #efd7a3;
+  border-radius: 999px 0 0 999px;
+  background: #fffcf3;
+}
+
+.nav-search-input :deep(.el-input-group__append) {
+  background: transparent;
+  box-shadow: none;
+  border: none;
+}
+
+.nav-search-input :deep(.el-input-group__append .el-button) {
+  min-height: 38px;
+  border-radius: 0 999px 999px 0;
+  border: 1px solid #efcd86;
+  background: #ffe8b6;
+  color: #6f4a11;
 }
 
 .user-actions {
+  margin-left: auto;
   flex: 0 0 auto;
   min-width: 0;
   display: flex;
   justify-content: flex-end;
   align-items: center;
-  gap: 8px;
-  padding: 5px 10px 5px 8px;
+  gap: 6px;
+  padding: 4px 8px 4px 6px;
   border-radius: 999px;
-  background: #fff5dd;
-  border: 1px solid #efd7a6;
+  background: rgba(255, 245, 221, 0.66);
+  border: 1px solid #efdbb1;
   white-space: nowrap;
 }
 
 .user-avatar {
-  width: 28px;
-  height: 28px;
+  width: 24px;
+  height: 24px;
   border-radius: 999px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   color: #99671d;
-  background: #ffeab9;
-}
-
-.user-brief {
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-  line-height: 1.1;
-  gap: 1px;
-}
-
-.user-label {
-  font-size: 11px;
-  color: #a08247;
+  background: #ffe8b7;
 }
 
 .username {
-  max-width: 116px;
+  max-width: 84px;
   color: #5a4b2a;
-  font-size: 13px;
+  font-size: 12px;
   overflow: hidden;
   text-overflow: ellipsis;
 }
@@ -345,41 +370,38 @@ onUnmounted(() => {
   top: 50%;
   transform: translateY(-50%);
   z-index: 25;
-  width: 130px;
-  padding: 8px;
+  width: 118px;
+  padding: 6px;
   border-radius: 20px;
-  border: 1px solid #efd6a3;
-  background: rgba(255, 249, 234, 0.92);
-  box-shadow: 0 10px 24px rgba(126, 92, 16, 0.12);
+  border: 1px solid #efdfba;
+  background: rgba(255, 250, 238, 0.88);
+  box-shadow: 0 8px 18px rgba(126, 92, 16, 0.08);
   backdrop-filter: blur(3px);
 }
 
 .capsule-item {
   width: 100%;
-  height: 40px;
+  height: 36px;
   margin: 3px 0;
   border: none;
-  border-radius: 14px;
+  border-radius: 12px;
   background: transparent;
-  color: #855f24;
+  color: #8b6a33;
   display: inline-flex;
   align-items: center;
   justify-content: flex-start;
   gap: 8px;
   padding: 0 10px;
-  font-size: 13px;
+  font-size: 12px;
   cursor: pointer;
 }
 
 .capsule-item:hover {
-  background: #ffefc7;
+  background: #fff1d0;
 }
 
 @media (max-width: 1100px) {
-  .platform-search-entry {
-    order: 4;
-    margin-left: auto;
-  }
+  .nav-capsule-group { min-width: 0; }
 
   .floating-capsule {
     right: 12px;
@@ -397,19 +419,22 @@ onUnmounted(() => {
   }
 
   .nav-menu {
-    order: 3;
     flex: 1 1 100%;
-    min-width: 0;
-    margin: 0;
-  }
-
-  .platform-search-entry {
-    order: 5;
-    margin-left: 0;
   }
 
   .user-actions {
-    margin-left: auto;
+    min-width: 0;
+  }
+
+  .nav-capsule-group {
+    order: 3;
+    flex: 1 1 100%;
+    border-radius: 18px;
+    flex-wrap: wrap;
+  }
+
+  .nav-search-input {
+    flex: 1 1 100%;
     min-width: 0;
   }
 

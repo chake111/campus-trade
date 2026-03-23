@@ -4,29 +4,15 @@
       <div class="hero-main">
         <p class="hero-badge">CAMPUS MARKET</p>
         <h1>校园二手交易广场</h1>
-        <p class="hero-subtitle">在校内快速搜索好物、浏览最新挂售、一键发布你的闲置</p>
+        <p class="hero-subtitle">在校内轻松浏览好物、关注最新挂售、快速发布你的闲置</p>
         <div class="hero-entrance-tags">
-          <span class="entry-tag">可搜索</span>
+          <span class="entry-tag">校园交易</span>
           <span class="entry-tag">可浏览</span>
           <span class="entry-tag">可发布</span>
         </div>
       </div>
 
       <div class="hero-actions">
-        <el-input
-          v-model="keyword"
-          class="search-input"
-          placeholder="搜索教材、数码、日用..."
-          clearable
-          @keyup.enter="searchProducts"
-        >
-          <template #prepend>
-            <el-icon><Search /></el-icon>
-          </template>
-          <template #append>
-            <el-button type="warning" @click="searchProducts">搜索商品</el-button>
-          </template>
-        </el-input>
         <el-button v-if="isLoggedIn" class="publish-btn" @click="createProduct">+ 发布闲置</el-button>
         <el-button v-else class="publish-btn" @click="goLogin">登录后发布闲置</el-button>
       </div>
@@ -178,15 +164,16 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted, onUnmounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { ref, reactive, computed, onMounted, onUnmounted, watch } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
 import { getProductList } from '../api/product'
 import { getRecommendProducts, getRecommendDetails } from '../api/recommend'
 import { getToken } from '../utils/request'
 import { AUTH_CHANGED_EVENT, getUserId } from '../utils/user'
-import { Star, ShoppingCart, InfoFilled, Search } from '@element-plus/icons-vue'
+import { Star, ShoppingCart, InfoFilled } from '@element-plus/icons-vue'
 
 const router = useRouter()
+const route = useRoute()
 const products = ref([])
 const recommendProducts = ref([])
 const recommendExplainMap = reactive({})
@@ -301,10 +288,6 @@ const getSellingPoint = (item) => {
   return '可小刀详聊'
 }
 
-const searchProducts = () => {
-  fetchProducts({ keyword: keyword.value })
-}
-
 const viewDetail = (item) => {
   const id = getProductId(item)
   if (!id) return
@@ -326,7 +309,9 @@ const syncAuthState = () => {
 }
 
 onMounted(() => {
-  fetchProducts()
+  const initialKeyword = typeof route.query.keyword === 'string' ? route.query.keyword : ''
+  keyword.value = initialKeyword
+  fetchProducts(initialKeyword ? { keyword: initialKeyword } : {})
   fetchRecommendations()
   window.addEventListener(AUTH_CHANGED_EVENT, syncAuthState)
 })
@@ -334,6 +319,16 @@ onMounted(() => {
 onUnmounted(() => {
   window.removeEventListener(AUTH_CHANGED_EVENT, syncAuthState)
 })
+
+watch(
+  () => route.query.keyword,
+  (newKeyword) => {
+    const nextKeyword = typeof newKeyword === 'string' ? newKeyword : ''
+    if (nextKeyword === keyword.value) return
+    keyword.value = nextKeyword
+    fetchProducts(nextKeyword ? { keyword: nextKeyword } : {})
+  }
+)
 </script>
 
 <style scoped>
@@ -345,7 +340,7 @@ onUnmounted(() => {
 
 .trade-hero {
   display: grid;
-  grid-template-columns: 1.15fr 1fr;
+  grid-template-columns: 1.2fr auto;
   gap: 16px;
   align-items: center;
   margin-bottom: 38px;
@@ -363,11 +358,6 @@ onUnmounted(() => {
 .hero-entrance-tags { display: flex; gap: 8px; flex-wrap: wrap; }
 .entry-tag { padding: 4px 10px; font-size: 12px; color: #775013; border-radius: 999px; border: 1px solid #f0d59a; background: #fff7dd; }
 .hero-actions { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; justify-content: flex-end; }
-.search-input { flex: 1 1 360px; min-width: 250px; max-width: 540px; }
-.search-input :deep(.el-input-group__prepend) { color: #8b6c30; border-radius: 10px 0 0 10px; background: #fff8e7; box-shadow: 0 0 0 1px #efd8a3 inset; }
-.search-input :deep(.el-input__wrapper) { box-shadow: 0 0 0 1px #efd8a3 inset; min-height: 44px; }
-.search-input :deep(.el-input-group__append .el-button) { min-width: 92px; min-height: 44px; border-radius: 0 10px 10px 0; background: #ffd768; border-color: #ffd768; color: #4a390f; font-weight: 600; }
-.search-input :deep(.el-input-group__append .el-button:hover) { background: #ffca33; border-color: #ffca33; }
 .publish-btn { min-height: 44px; min-width: 138px; color: #5e3b00; background: linear-gradient(135deg, #ffe59d 0%, #ffd167 100%); border: 1px solid #f2bf4c; font-weight: 700; box-shadow: 0 6px 14px rgba(242, 180, 57, 0.26); }
 .publish-btn:hover { color: #4b2f00; border-color: #e0a92f; background: linear-gradient(135deg, #ffdc81 0%, #ffc94d 100%); transform: translateY(-1px); }
 .hero-meta { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; grid-column: 1 / -1; }
@@ -488,7 +478,6 @@ onUnmounted(() => {
 @media (max-width: 1024px) {
   .trade-hero { grid-template-columns: 1fr; align-items: flex-start; }
   .hero-actions { width: 100%; justify-content: flex-start; }
-  .search-input { max-width: 100%; }
   .all-products-grid,
   .recommend-list { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px 14px; }
 }
@@ -497,7 +486,6 @@ onUnmounted(() => {
   .product-list { padding: 12px; }
   .trade-hero { padding: 16px; gap: 12px; margin-bottom: 22px; }
   .hero-meta { width: 100%; }
-  .search-input { min-width: 100%; }
   .recommend-section { padding: 16px 12px; }
   .all-products-grid,
   .recommend-list { grid-template-columns: repeat(auto-fill, minmax(168px, 1fr)); gap: 16px 12px; }
