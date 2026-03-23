@@ -3,6 +3,11 @@ export const AUTH_CHANGED_EVENT = 'auth-changed'
 export const ROLE_USER = 'USER'
 export const ROLE_ADMIN = 'ADMIN'
 
+export function hasValidAuthState(token, userInfo) {
+  const userId = userInfo?.id
+  return Boolean(token && userInfo && userId)
+}
+
 export function dispatchAuthChanged() {
   window.dispatchEvent(new Event(AUTH_CHANGED_EVENT))
 }

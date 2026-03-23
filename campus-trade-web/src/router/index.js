@@ -8,15 +8,9 @@ import OrderListView from '../views/OrderListView.vue'
 import PersonalCenterView from '../views/PersonalCenterView.vue'
 import DashboardView from '../views/DashboardView.vue'
 import ForbiddenView from '../views/ForbiddenView.vue'
+import NotFoundView from '../views/NotFoundView.vue'
 import { getToken } from '../utils/request'
-import { getUserInfo, hasRole, ROLE_ADMIN } from '../utils/user'
-
-const isAuthenticated = () => {
-  const token = getToken()
-  const userInfo = getUserInfo()
-  const userId = userInfo?.id
-  return Boolean(token && userInfo && userId)
-}
+import { getUserInfo, hasRole, hasValidAuthState, ROLE_ADMIN } from '../utils/user'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -76,8 +70,17 @@ const router = createRouter({
       component: ForbiddenView,
     },
     {
+      path: '/404',
+      name: 'not-found',
+      component: NotFoundView,
+    },
+    {
       path: '/',
       redirect: '/products',
+    },
+    {
+      path: '/:pathMatch(.*)*',
+      redirect: '/404',
     },
   ],
 })
@@ -86,12 +89,14 @@ export default router
 
 // 全局路由守卫：未登录跳转到登录页
 router.beforeEach((to) => {
-  if (to.meta && to.meta.requiresAuth && !isAuthenticated()) {
+  const token = getToken()
+  const userInfo = getUserInfo()
+
+  if (to.meta && to.meta.requiresAuth && !hasValidAuthState(token, userInfo)) {
     return { name: 'login', query: { redirect: to.fullPath } }
   }
 
   if (to.meta && Array.isArray(to.meta.roles) && to.meta.roles.length) {
-    const userInfo = getUserInfo()
     if (!hasRole(userInfo, to.meta.roles)) {
       return { name: 'forbidden', query: { from: to.fullPath } }
     }
