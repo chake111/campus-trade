@@ -51,7 +51,13 @@
           </div>
 
           <div class="actions">
-            <el-button type="primary" size="large" :loading="submitting" @click="handleCreateOrder">
+            <el-button
+              type="primary"
+              size="large"
+              :loading="submitting"
+              :disabled="!canCreateOrder"
+              @click="handleCreateOrder"
+            >
               立即下单
             </el-button>
             <el-button size="large" @click="handleContactSeller">联系卖家</el-button>
@@ -80,6 +86,7 @@ const submitting = ref(false)
 const product = ref(null)
 
 const routeProductId = computed(() => route.params.id)
+const buyerId = computed(() => getUserId())
 
 const sellerId = computed(() => {
   if (!product.value) return null
@@ -87,6 +94,29 @@ const sellerId = computed(() => {
 })
 
 const sellerIdDisplay = computed(() => sellerId.value ?? '未知')
+
+const isProductAvailable = computed(() => {
+  const raw = product.value?.status
+  if (raw === null || raw === undefined || raw === '') return true
+
+  const normalized = String(raw).toUpperCase()
+  if (['1', 'ON_SALE', 'AVAILABLE', 'SELLING', '在售'].includes(normalized)) return true
+  if (raw === 1) return true
+  return false
+})
+
+const isOwnProduct = computed(() => {
+  if (!sellerId.value || !buyerId.value) return false
+  return String(sellerId.value) === String(buyerId.value)
+})
+
+const canCreateOrder = computed(() => {
+  if (!product.value || !buyerId.value) return false
+  if (!sellerId.value) return false
+  if (!isProductAvailable.value) return false
+  if (isOwnProduct.value) return false
+  return true
+})
 
 const statusText = computed(() => {
   const raw = product.value?.status
@@ -134,8 +164,7 @@ const handleCreateOrder = async () => {
   }
 
   const token = getToken()
-  const buyerId = getUserId()
-  if (!token || !buyerId) {
+  if (!token || !buyerId.value) {
     ElMessage.warning('请先登录后再下单')
     router.push('/login')
     return
@@ -143,6 +172,16 @@ const handleCreateOrder = async () => {
 
   if (!sellerId.value) {
     ElMessage.error('卖家信息缺失，暂时无法下单')
+    return
+  }
+
+  if (!isProductAvailable.value) {
+    ElMessage.warning('商品当前状态不可下单')
+    return
+  }
+
+  if (isOwnProduct.value) {
+    ElMessage.warning('不能购买自己发布的商品')
     return
   }
 
@@ -160,8 +199,7 @@ const handleCreateOrder = async () => {
   try {
     const payload = {
       productId: product.value.id ?? routeProductId.value,
-      userId: buyerId,
-      sellerId: sellerId.value,
+      userId: buyerId.value,
     }
     await createOrder(payload)
     ElMessage.success('下单成功，正在跳转到订单页')

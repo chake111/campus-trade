@@ -80,18 +80,21 @@ public class OrderController {
     public Result<Map<String, Object>> createOrder(@RequestBody CreateOrderRequest request, Authentication authentication) {
         try {
             // 参数校验
-            if (request == null || request.getUserId() == null || request.getProductId() == null) {
-                return Result.error("userId 和 productId 不能为空");
+            if (request == null || request.getProductId() == null) {
+                return Result.error("productId 不能为空");
             }
             Long currentUserId = SecurityUtil.currentUserId(authentication);
             SystemRole currentRole = SecurityUtil.currentRole(authentication);
-            if (currentRole != SystemRole.ADMIN && !request.getUserId().equals(currentUserId)) {
-                return Result.error(403, "没有访问权限");
+            if (currentUserId == null) {
+                return Result.error(401, "请先登录");
             }
+            Long buyerId = currentRole == SystemRole.ADMIN
+                    ? (request.getUserId() != null ? request.getUserId() : currentUserId)
+                    : currentUserId;
 
             // 构建订单对象
             Order order = new Order();
-            order.setUserId(request.getUserId());
+            order.setUserId(buyerId);
             order.setProductId(request.getProductId());
 
             // 创建订单

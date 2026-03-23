@@ -45,4 +45,9 @@ public interface OrderMapper {
      * 根据卖家 ID 查询订单（通过商品归属）
      */
     java.util.List<Order> selectBySellerId(@Param("sellerId") Long sellerId);
+
+    /**
+     * 根据买家和商品统计订单数量（用于防止重复下单）
+     */
+    int countByUserIdAndProductId(@Param("userId") Long userId, @Param("productId") Long productId);
 }

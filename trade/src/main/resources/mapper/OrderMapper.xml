@@ -56,4 +56,11 @@
         ORDER BY o.create_time DESC
     </select>
 
+    <select id="countByUserIdAndProductId" resultType="int">
+        SELECT COUNT(1)
+        FROM orders
+        WHERE user_id = #{userId}
+          AND product_id = #{productId}
+    </select>
+
 </mapper>
