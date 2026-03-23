@@ -273,6 +273,21 @@ const getSellingPoint = (item) => {
   return '可小刀详聊'
 }
 
+const getQualityTag = (item) => {
+  const text = `${item.title || ''} ${item.description || ''}`
+  if (/全新|未拆|未使用/.test(text)) return '近全新'
+  if (/95新|九五新|9成新/.test(text)) return '9成新'
+  if (/8成新|七成新|旧/.test(text)) return '实用型'
+  return '成色良好'
+}
+
+const getSellingPoint = (item) => {
+  const num = Number(item.price)
+  if (!Number.isNaN(num) && num <= 50) return '学生友好价'
+  if (!Number.isNaN(num) && num <= 300) return '性价比不错'
+  return '可小刀详聊'
+}
+
 const searchProducts = () => {
   fetchProducts({ keyword: keyword.value })
 }
