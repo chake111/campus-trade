@@ -11,9 +11,8 @@ const CATEGORY_FALLBACKS = {
   daily: [dailyFallback],
   sport: [sportFallback],
   ticket: [ticketFallback],
+  default: [defaultFallback],
 }
-
-const DEFAULT_FALLBACKS = [defaultFallback]
 
 const CATEGORY_KEYWORDS = [
   { key: 'book', words: ['书', '教材', '考研', '笔记', '小说', 'book', 'textbook', 'kindle'] },
@@ -68,8 +67,8 @@ const stableHash = (seed) => {
 }
 
 const pickStableFallbackImage = (fallbackKey, seed) => {
-  const pool = CATEGORY_FALLBACKS[fallbackKey] ?? DEFAULT_FALLBACKS
-  if (!pool.length) return DEFAULT_FALLBACKS[0]
+  const pool = CATEGORY_FALLBACKS[fallbackKey] ?? CATEGORY_FALLBACKS.default
+  if (!pool.length) return defaultFallback
   const idx = stableHash(seed) % pool.length
   return pool[idx]
 }
