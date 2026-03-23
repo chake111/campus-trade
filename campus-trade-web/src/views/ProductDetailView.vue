@@ -76,7 +76,7 @@ import { getProductDetail } from '../api/product'
 import { createOrder } from '../api/order'
 import { getUserId } from '../utils/user'
 import { getToken } from '../utils/request'
-import { isProductOrderableStatus, normalizeProductResponseDetail } from '../utils/productNormalizer'
+import { getProductStatusMeta, isProductOrderableStatus, normalizeProductResponseDetail } from '../utils/productNormalizer'
 
 const route = useRoute()
 const router = useRouter()
@@ -112,17 +112,16 @@ const canCreateOrder = computed(() => {
   return true
 })
 
+const statusMeta = computed(() => getProductStatusMeta(product.value?.status))
+
 const statusText = computed(() => {
-  const raw = product.value?.status
-  if (raw === null || raw === undefined || raw === '') return '在售'
-  return String(raw)
+  return statusMeta.value.label
 })
 
 const statusTagType = computed(() => {
-  if (isProductAvailable.value) return 'success'
-  const status = String(product.value?.status || '').toUpperCase()
-  if (['SOLD', 'FINISHED', '已售出'].includes(status)) return 'info'
-  if (['OFF_SHELF', 'DISABLED', '已下架'].includes(status)) return 'warning'
+  if (statusMeta.value.type === 'on-sale') return 'success'
+  if (statusMeta.value.type === 'sold') return 'info'
+  if (statusMeta.value.type === 'off-shelf') return 'warning'
   return 'primary'
 })
 

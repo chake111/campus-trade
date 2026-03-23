@@ -111,7 +111,7 @@
             <img v-if="item.displayImage" :src="item.displayImage" alt="商品图片" />
             <div v-else class="image-placeholder">暂无图片</div>
             <div class="card-badges">
-              <span class="badge sale-badge">在售</span>
+              <span class="badge" :class="getStatusBadgeClass(item)">{{ getStatusLabel(item) }}</span>
               <span class="badge quality-badge">{{ getQualityTag(item) }}</span>
             </div>
           </div>
@@ -140,7 +140,11 @@ import { getProductList } from '../api/product'
 import { getRecommendProducts, getRecommendDetails } from '../api/recommend'
 import { AUTH_CHANGED_EVENT, getUserId } from '../utils/user'
 import { Star, ShoppingCart, InfoFilled } from '@element-plus/icons-vue'
-import { isProductOrderableStatus, normalizeProductResponseList } from '../utils/productNormalizer'
+import {
+  getProductStatusMeta,
+  isProductOrderableStatus,
+  normalizeProductResponseList,
+} from '../utils/productNormalizer'
 
 const router = useRouter()
 const route = useRoute()
@@ -235,6 +239,17 @@ const getSellingPoint = (item) => {
   if (!Number.isNaN(num) && num <= 50) return '学生友好价'
   if (!Number.isNaN(num) && num <= 300) return '性价比不错'
   return '可小刀详聊'
+}
+
+const getStatusMeta = (item) => getProductStatusMeta(item?.status)
+
+const getStatusLabel = (item) => getStatusMeta(item).label
+
+const getStatusBadgeClass = (item) => {
+  const type = getStatusMeta(item).type
+  if (type === 'sold') return 'sold-badge'
+  if (type === 'off-shelf') return 'off-shelf-badge'
+  return 'sale-badge'
 }
 
 const viewDetail = (item) => {
@@ -342,6 +357,8 @@ watch(
 .card-badges { position: absolute; left: 8px; right: 8px; bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
 .badge { padding: 2px 8px; border-radius: 999px; font-size: 11px; color: #fff7e1; backdrop-filter: blur(2px); }
 .sale-badge { background: rgba(40, 28, 5, 0.76); }
+.sold-badge { background: rgba(75, 85, 99, 0.78); }
+.off-shelf-badge { background: rgba(180, 83, 9, 0.78); }
 .quality-badge { background: rgba(129, 88, 24, 0.76); }
 
 .content { padding: 0 2px; }

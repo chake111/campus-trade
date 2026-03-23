@@ -79,6 +79,39 @@ export const isProductOrderableStatus = (status) => {
   return Number(status) === 1
 }
 
+const normalizeStatusToken = (status) => {
+  if (status === null || status === undefined) return ''
+  return String(status).trim().toUpperCase()
+}
+
+export const getProductStatusMeta = (status) => {
+  const token = normalizeStatusToken(status)
+
+  if (!token || token === '1' || token === 'ON_SALE' || token === 'AVAILABLE' || token === '在售') {
+    return { label: '在售', type: 'on-sale' }
+  }
+
+  if (token === '2' || token === 'SOLD' || token === 'FINISHED' || token === '已售出') {
+    return { label: '已售出', type: 'sold' }
+  }
+
+  if (
+    token === '0' ||
+    token === '3' ||
+    token === 'OFF_SHELF' ||
+    token === 'DISABLED' ||
+    token === 'REMOVED' ||
+    token === '已下架'
+  ) {
+    return { label: '已下架', type: 'off-shelf' }
+  }
+
+  if (isProductOrderableStatus(status)) {
+    return { label: '在售', type: 'on-sale' }
+  }
+  return { label: '已下架', type: 'off-shelf' }
+}
+
 export const normalizeProduct = (raw) => {
   const id = pickProductId(raw)
   const title = normalizeText(raw?.title ?? raw?.name) || '未命名商品'
