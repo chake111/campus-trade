@@ -5,6 +5,8 @@ import com.campus.trade.annotation.CreditChanges;
 import com.campus.trade.entity.Order;
 import com.campus.trade.entity.OrderStatus;
 import com.campus.trade.mapper.OrderMapper;
+import com.campus.trade.mapper.ProductMapper;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -17,15 +19,40 @@ import java.time.LocalDateTime;
 public class OrderServiceImpl implements OrderService {
 
     private final OrderMapper orderMapper;
+    private final ProductMapper productMapper;
 
-    public OrderServiceImpl(OrderMapper orderMapper) {
+    public OrderServiceImpl(OrderMapper orderMapper, ProductMapper productMapper) {
         this.orderMapper = orderMapper;
+        this.productMapper = productMapper;
     }
 
     @Override
+    @Transactional
     public Long createOrder(Order order) {
         if (order == null) {
             throw new IllegalArgumentException("订单对象不能为空");
+        }
+        if (order.getUserId() == null || order.getProductId() == null) {
+            throw new IllegalArgumentException("买家ID和商品ID不能为空");
+        }
+
+        var product = productMapper.selectById(order.getProductId());
+        if (product == null) {
+            throw new IllegalArgumentException("商品不存在");
+        }
+
+        if (product.getUserId() != null && product.getUserId().equals(order.getUserId())) {
+            throw new IllegalArgumentException("不能购买自己发布的商品");
+        }
+
+        // 商品状态：1 表示在售，非 1 统一视为不可下单
+        if (product.getStatus() != null && product.getStatus() != 1) {
+            throw new IllegalArgumentException("商品当前状态不可下单");
+        }
+
+        int existed = orderMapper.countByUserIdAndProductId(order.getUserId(), order.getProductId());
+        if (existed > 0) {
+            throw new IllegalArgumentException("请勿重复下单");
         }
 
         // 设置初始状态为 PENDING
