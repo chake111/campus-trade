@@ -22,7 +22,7 @@
               @click="viewDetail(item)"
             >
               <div class="image-container">
-                <img v-if="item.image" :src="item.image" alt="商品图片" />
+                <img v-if="item.displayImage" :src="item.displayImage" alt="商品图片" />
                 <div v-else class="recommend-placeholder">精选推荐</div>
                 <span class="corner-tag">推荐</span>
               </div>
@@ -64,7 +64,7 @@
               @click="viewDetail(item)"
             >
               <div class="image-container">
-                <img v-if="item.image" :src="item.image" alt="商品图片" />
+                <img v-if="item.displayImage" :src="item.displayImage" alt="商品图片" />
                 <div v-else class="recommend-placeholder">精选推荐</div>
                 <span class="corner-tag">推荐</span>
               </div>
@@ -108,7 +108,7 @@
           @click="viewDetail(item)"
         >
           <div class="image-container">
-            <img v-if="item.image" :src="item.image" alt="商品图片" />
+            <img v-if="item.displayImage" :src="item.displayImage" alt="商品图片" />
             <div v-else class="image-placeholder">暂无图片</div>
             <div class="card-badges">
               <span class="badge sale-badge">在售</span>
@@ -140,6 +140,7 @@ import { getProductList } from '../api/product'
 import { getRecommendProducts, getRecommendDetails } from '../api/recommend'
 import { AUTH_CHANGED_EVENT, getUserId } from '../utils/user'
 import { Star, ShoppingCart, InfoFilled } from '@element-plus/icons-vue'
+import { normalizeProductResponseList } from '../utils/productNormalizer'
 
 const router = useRouter()
 const route = useRoute()
@@ -160,7 +161,7 @@ const getProductId = (item) => {
 
 const getCardKey = (item) => {
   const id = getProductId(item)
-  return id ?? `${item?.title || 'product'}-${item?.price || '0'}-${item?.image || 'noimg'}`
+  return id ?? `${item?.title || 'product'}-${item?.price || '0'}-${item?.displayImage || 'noimg'}`
 }
 
 const onSaleCount = computed(() => {
@@ -172,26 +173,11 @@ const onSaleCount = computed(() => {
 
 const fallbackRecommendProducts = computed(() => products.value.slice(0, 6))
 
-const normalizeList = (res) => {
-  if (Array.isArray(res?.data)) return res.data
-  if (Array.isArray(res)) return res
-  return []
-}
-
-const normalizeProduct = (item) => ({
-  ...item,
-  id: getProductId(item),
-  title: item.title ?? item.name ?? '未命名商品',
-  description: item.description ?? item.desc ?? '暂无描述',
-  price: item.price ?? 0,
-  image: item.image ?? item.imageUrl ?? item.cover ?? ''
-})
-
 const fetchProducts = async (params = {}) => {
   loading.value = true
   try {
     const res = await getProductList(params)
-    products.value = normalizeList(res).map(normalizeProduct)
+    products.value = normalizeProductResponseList(res)
   } finally {
     loading.value = false
   }
@@ -210,7 +196,7 @@ const fetchRecommendations = async () => {
   recommendLoading.value = true
   try {
     const res = await getRecommendProducts(currentUserId.value, 6)
-    recommendProducts.value = normalizeList(res).map(normalizeProduct)
+    recommendProducts.value = normalizeProductResponseList(res)
 
     if (recommendProducts.value.length > 0) {
       const productIds = recommendProducts.value.map((item) => getProductId(item)).filter(Boolean).join(',')
