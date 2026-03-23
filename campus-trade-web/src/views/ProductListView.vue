@@ -553,14 +553,16 @@ onUnmounted(() => {
   cursor: pointer;
   transition: transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease;
   border-radius: 12px;
-  border: 1px solid #efe6d4;
+  border: 1px solid #f2ebde;
   background: #fffdf8;
+  box-shadow: none;
+  --el-card-box-shadow: none;
 }
 
 .recommend-card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 10px 20px rgba(82, 74, 57, 0.12);
-  border-color: #ecd392;
+  box-shadow: 0 6px 14px rgba(82, 74, 57, 0.08);
+  border-color: #ead9b2;
 }
 
 .recommend-placeholder {
@@ -716,15 +718,16 @@ onUnmounted(() => {
   cursor: pointer;
   transition: transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease;
   border-radius: 14px;
-  border: 1px solid #f1e7d1;
-  box-shadow: 0 5px 13px rgba(67, 49, 16, 0.06);
+  border: 1px solid #f3ebda;
+  box-shadow: 0 1px 3px rgba(67, 49, 16, 0.04);
+  --el-card-box-shadow: none;
   background: linear-gradient(180deg, #ffffff 0%, #fffcf5 100%);
 }
 
 .product-card:hover {
   transform: translateY(-2px);
-  border-color: #ecd08e;
-  box-shadow: 0 10px 20px rgba(82, 63, 27, 0.13);
+  border-color: #e9d4a2;
+  box-shadow: 0 6px 14px rgba(82, 63, 27, 0.09);
 }
 
 .image-container {
@@ -735,7 +738,7 @@ onUnmounted(() => {
   border-radius: 11px;
   margin-bottom: 10px;
   background: #faf4e7;
-  border: 1px solid #f4e9d1;
+  border: 1px solid #f5edde;
 }
 
 .image-container img {
