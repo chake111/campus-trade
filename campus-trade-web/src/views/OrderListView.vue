@@ -349,6 +349,7 @@ onMounted(() => {
 }
 
 .toolbar {
+  --order-accent: var(--theme-primary);
   margin-bottom: 20px;
   display: flex;
   align-items: center;
@@ -362,9 +363,9 @@ onMounted(() => {
 }
 
 .toolbar :deep(.el-radio-group) {
-  --el-radio-button-checked-bg-color: var(--theme-primary);
+  --el-radio-button-checked-bg-color: var(--order-accent);
   --el-radio-button-checked-text-color: var(--theme-text-primary);
-  --el-radio-button-checked-border-color: var(--theme-primary);
+  --el-radio-button-checked-border-color: var(--order-accent);
 }
 
 .toolbar :deep(.el-radio-button__inner) {
@@ -375,10 +376,10 @@ onMounted(() => {
 
 .toolbar :deep(.el-radio-button.is-active .el-radio-button__inner),
 .toolbar :deep(.el-radio-button__original-radio:checked + .el-radio-button__inner) {
-  background: var(--theme-primary);
-  border-color: var(--theme-primary);
+  background: var(--order-accent);
+  border-color: var(--order-accent);
   color: var(--theme-text-primary);
-  box-shadow: -1px 0 0 0 var(--theme-primary);
+  box-shadow: -1px 0 0 0 var(--order-accent);
 }
 
 .toolbar :deep(.el-button--primary.is-plain) {
