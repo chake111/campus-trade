@@ -14,9 +14,9 @@ public class Product {
     private Long id;
     private String title;
     private String description;
+    private String image;
     private BigDecimal price;
     private Long userId;
     private Integer status;
     private LocalDateTime createTime;
 }
-
