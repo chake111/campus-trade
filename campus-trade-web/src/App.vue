@@ -2,7 +2,7 @@
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import { Plus, Search, Tickets, ChatDotRound, UserFilled } from '@element-plus/icons-vue'
+import { Plus, Search, Tickets, UserFilled, User, DataAnalysis } from '@element-plus/icons-vue'
 import { getToken, removeToken } from './utils/request'
 import { AUTH_CHANGED_EVENT, dispatchAuthChanged, getUserInfo, isAdmin, removeUserInfo } from './utils/user'
 
@@ -37,10 +37,6 @@ const showFloatingCapsule = computed(() => {
 
 const activeMenu = computed(() => {
   const path = route.path
-  if (path.startsWith('/product/create')) return '/product/create'
-  if (path.startsWith('/orders')) return '/orders'
-  if (path.startsWith('/profile')) return '/profile'
-  if (path.startsWith('/dashboard')) return '/dashboard'
   if (path.startsWith('/login')) return '/login'
   return '/products'
 })
@@ -69,20 +65,25 @@ function goOrders() {
 
 function goPublish() {
   if (!isLoggedIn.value) {
-    ElMessage.info('请先登录后发布闲置')
+    ElMessage.info('请先登录后发布商品')
     router.push('/login')
     return
   }
   router.push('/product/create')
 }
 
-function goHelp() {
-  ElMessage.info('可在个人中心查看账号信息并提交反馈')
+function goProfile() {
   if (!isLoggedIn.value) {
+    ElMessage.info('请先登录后查看个人中心')
     router.push('/login')
     return
   }
   router.push('/profile')
+}
+
+function goDashboard() {
+  if (!canAccessDashboard.value) return
+  router.push('/dashboard')
 }
 
 function handleLogout() {
@@ -129,10 +130,6 @@ watch(
           class="nav-menu"
         >
           <el-menu-item index="/products">首页</el-menu-item>
-          <el-menu-item index="/product/create">发布商品</el-menu-item>
-          <el-menu-item index="/orders">我的订单</el-menu-item>
-          <el-menu-item index="/profile">个人中心</el-menu-item>
-          <el-menu-item v-if="canAccessDashboard" index="/dashboard">数据看板</el-menu-item>
         </el-menu>
 
         <el-input
@@ -169,15 +166,19 @@ watch(
     <div v-if="showFloatingCapsule" class="floating-capsule">
       <button class="capsule-item" type="button" @click="goPublish">
         <el-icon><Plus /></el-icon>
-        <span>发布闲置</span>
+        <span>发布商品</span>
       </button>
       <button class="capsule-item" type="button" @click="goOrders">
         <el-icon><Tickets /></el-icon>
         <span>我的订单</span>
       </button>
-      <button class="capsule-item" type="button" @click="goHelp">
-        <el-icon><ChatDotRound /></el-icon>
-        <span>帮助反馈</span>
+      <button class="capsule-item" type="button" @click="goProfile">
+        <el-icon><User /></el-icon>
+        <span>个人中心</span>
+      </button>
+      <button v-if="canAccessDashboard" class="capsule-item" type="button" @click="goDashboard">
+        <el-icon><DataAnalysis /></el-icon>
+        <span>数据看板</span>
       </button>
     </div>
   </el-container>
@@ -249,7 +250,7 @@ watch(
   --el-menu-active-color: var(--theme-text-primary);
   --el-menu-item-height: 38px;
   --el-menu-horizontal-height: 38px;
-  flex: 1 1 410px;
+  flex: 0 0 auto;
   margin: 0;
   border-bottom: none;
   min-width: 0;
@@ -370,8 +371,8 @@ watch(
   top: 50%;
   transform: translateY(-50%);
   z-index: 25;
-  width: 118px;
-  padding: 6px;
+  width: 124px;
+  padding: 5px;
   border-radius: 20px;
   border: 1px solid #efdfba;
   background: rgba(255, 250, 238, 0.88);
@@ -381,8 +382,8 @@ watch(
 
 .capsule-item {
   width: 100%;
-  height: 36px;
-  margin: 3px 0;
+  height: 34px;
+  margin: 2px 0;
   border: none;
   border-radius: 12px;
   background: transparent;
@@ -405,7 +406,7 @@ watch(
 
   .floating-capsule {
     right: 12px;
-    width: 120px;
+    width: 122px;
   }
 }
 
@@ -419,7 +420,7 @@ watch(
   }
 
   .nav-menu {
-    flex: 1 1 100%;
+    flex: 0 0 auto;
   }
 
   .user-actions {
