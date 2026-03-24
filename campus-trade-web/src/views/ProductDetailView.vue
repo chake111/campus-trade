@@ -44,6 +44,19 @@
             <span class="trade-location-chip">校内交易地点：{{ tradeLocationText }}</span>
           </div>
 
+          <div class="seller-card">
+            <template v-if="sellerId">
+              <el-avatar :size="44" :src="sellerAvatar" class="seller-avatar" />
+              <div class="seller-main">
+                <div class="seller-name">{{ sellerName }}</div>
+                <div class="seller-tag">卖家</div>
+              </div>
+            </template>
+            <template v-else>
+              <div class="seller-unavailable">卖家信息暂不可用</div>
+            </template>
+          </div>
+
           <div class="description-block">
             <div class="block-title">商品描述</div>
             <p>{{ product.description || '卖家暂无描述信息' }}</p>
@@ -72,10 +85,12 @@ import { computed, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { getProductDetail } from '../api/product'
+import { getUserById } from '../api/user'
 import { createOrder } from '../api/order'
 import { getUserId } from '../utils/user'
 import { getToken } from '../utils/request'
 import { getProductStatusMeta, isProductOrderableStatus, normalizeProductResponseDetail } from '../utils/productNormalizer'
+import defaultAvatar from '../assets/default-avatar.svg'
 
 const route = useRoute()
 const router = useRouter()
@@ -83,6 +98,7 @@ const router = useRouter()
 const loading = ref(false)
 const submitting = ref(false)
 const product = ref(null)
+const sellerProfile = ref(null)
 
 const routeProductId = computed(() => route.params.id)
 const buyerId = computed(() => getUserId())
@@ -93,6 +109,19 @@ const sellerId = computed(() => {
 })
 
 const sellerIdDisplay = computed(() => sellerId.value ?? '未知')
+
+const sellerName = computed(() => {
+  const username = sellerProfile.value?.username
+  if (username && String(username).trim()) return username
+  return `用户#${sellerIdDisplay.value}`
+})
+
+const sellerAvatar = computed(() => {
+  const avatar = sellerProfile.value?.avatar
+  if (avatar && String(avatar).trim()) return avatar
+  return defaultAvatar
+})
+
 const tradeLocationText = computed(() => {
   const location = product.value?.tradeLocation
   if (!location || !String(location).trim()) return '校内面交（地点待协商）'
@@ -129,6 +158,18 @@ const statusTagType = computed(() => {
   return 'primary'
 })
 
+const loadSellerProfile = async () => {
+  sellerProfile.value = null
+  if (!sellerId.value) return
+
+  try {
+    const res = await getUserById(sellerId.value)
+    sellerProfile.value = res?.data || null
+  } catch (error) {
+    sellerProfile.value = { id: sellerId.value }
+  }
+}
+
 const fetchProductDetail = async () => {
   const id = routeProductId.value
   if (!id) {
@@ -145,6 +186,8 @@ const fetchProductDetail = async () => {
     if (!product.value) {
       ElMessage.warning('未找到该商品信息')
     }
+
+    await loadSellerProfile()
   } catch (error) {
     product.value = null
     const msg = error?.response?.data?.message || error?.message || '获取商品详情失败'
@@ -372,6 +415,44 @@ onMounted(() => {
   color: #1f7a3d;
   background: #edf9f1;
   border: 1px solid #b8ebc8;
+}
+
+.seller-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border: 1px solid #ebeef5;
+  border-radius: 8px;
+  background: #fafcff;
+}
+
+.seller-avatar {
+  flex-shrink: 0;
+}
+
+.seller-main {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.seller-name {
+  font-size: 15px;
+  color: #303133;
+  font-weight: 600;
+  word-break: break-all;
+}
+
+.seller-tag {
+  font-size: 12px;
+  color: #909399;
+}
+
+.seller-unavailable {
+  font-size: 14px;
+  color: #909399;
 }
 
 .description-block {
