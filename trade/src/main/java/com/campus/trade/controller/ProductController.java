@@ -52,6 +52,15 @@ public class ProductController {
         return Result.success(products);
     }
 
+    @GetMapping("/product/mine")
+    public Result<List<Product>> myProducts(@RequestParam(required = false) String keyword, Authentication authentication) {
+        Long currentUserId = SecurityUtil.currentUserId(authentication);
+        if (currentUserId == null) {
+            return Result.error(401, "请先登录");
+        }
+        return Result.success(productService.getMyProducts(currentUserId, keyword));
+    }
+
     @GetMapping("/product/{id}")
     public Result<Product> detail(@PathVariable String id) {
         // 处理特殊路由

@@ -158,7 +158,7 @@ public class RecommendationService {
         // 按顺序查询每个商品（保持推荐顺序）
         for (Long productId : productIds) {
             Product product = productMapper.selectById(productId);
-            if (product != null) {
+            if (product != null && Integer.valueOf(1).equals(product.getStatus())) {
                 products.add(product);
             }
         }

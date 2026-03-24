@@ -8,11 +8,15 @@ public interface ProductMapper {
 
     int insert(Product product);
 
-    List<Product> selectAll();
+    List<Product> selectOnSale();
+
+    List<Product> selectOnSaleByKeyword(@Param("keyword") String keyword);
+
+    List<Product> selectByUserId(@Param("userId") Long userId);
+
+    List<Product> selectByUserIdAndKeyword(@Param("userId") Long userId, @Param("keyword") String keyword);
 
     long countAll();
-
-    List<Product> selectByKeyword(@Param("keyword") String keyword);
 
     Product selectById(@Param("id") Long id);
 }

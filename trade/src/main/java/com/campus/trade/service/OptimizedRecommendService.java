@@ -309,7 +309,7 @@ public class OptimizedRecommendService {
         List<Product> products = new ArrayList<>();
         for (Long productId : productIds) {
             Product product = productMapper.selectById(productId);
-            if (product != null) {
+            if (product != null && Integer.valueOf(1).equals(product.getStatus())) {
                 products.add(product);
             }
         }
