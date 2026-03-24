@@ -130,6 +130,37 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
+    public List<Product> getAdminProducts(String keyword, Integer status) {
+        String normalizedKeyword = keyword == null ? null : keyword.trim();
+        if (normalizedKeyword != null && normalizedKeyword.isEmpty()) {
+            normalizedKeyword = null;
+        }
+        return productMapper.selectAllForAdmin(normalizedKeyword, status);
+    }
+
+    @Override
+    public int updateProductStatus(Long id, Integer status) {
+        if (id == null) {
+            throw new IllegalArgumentException("商品 ID 不能为空");
+        }
+        if (status == null) {
+            throw new IllegalArgumentException("商品状态不能为空");
+        }
+        if (status != 0 && status != 1) {
+            throw new IllegalArgumentException("仅支持更新为在售(1)或下架(0)");
+        }
+        return productMapper.updateStatusById(id, status);
+    }
+
+    @Override
+    public int deleteProduct(Long id) {
+        if (id == null) {
+            throw new IllegalArgumentException("商品 ID 不能为空");
+        }
+        return productMapper.deleteById(id);
+    }
+
+    @Override
     public Product getDetail(Long id) {
         return productMapper.selectById(id);
     }

@@ -18,6 +18,7 @@ public class Product {
     private String image;
     private BigDecimal price;
     private Long userId;
+    private String publisherName;
     private Integer status;
     private LocalDateTime createTime;
 }

@@ -19,4 +19,10 @@ public interface ProductMapper {
     long countAll();
 
     Product selectById(@Param("id") Long id);
+
+    List<Product> selectAllForAdmin(@Param("keyword") String keyword, @Param("status") Integer status);
+
+    int updateStatusById(@Param("id") Long id, @Param("status") Integer status);
+
+    int deleteById(@Param("id") Long id);
 }
