@@ -52,6 +52,9 @@
           <el-descriptions-item label="用户名">
             <el-tag type="success">{{ userInfo.username || '-' }}</el-tag>
           </el-descriptions-item>
+          <el-descriptions-item label="头像">
+            <el-avatar :size="48" :src="profileAvatar" />
+          </el-descriptions-item>
           <el-descriptions-item label="信用分">
             <el-tag :type="getCreditTagType(scoreForDisplay)" size="large">
               {{ creditScoreDisplay }}
@@ -135,6 +138,7 @@ import { User, HomeFilled, SwitchButton } from '@element-plus/icons-vue'
 import { getCreditLogs, getCreditScore } from '../api/credit'
 import { AUTH_CHANGED_EVENT, dispatchAuthChanged, getUserId, getUserInfo, removeUserInfo } from '../utils/user'
 import { getToken, removeToken } from '../utils/request'
+import defaultAvatar from '../assets/default-avatar.svg'
 
 const router = useRouter()
 const loading = ref(false)
@@ -148,9 +152,11 @@ const creditLogsError = ref('')
 const userInfo = ref({
   id: null,
   username: '',
+  avatar: '',
   createTime: '',
   status: 1
 })
+const profileAvatar = computed(() => userInfo.value.avatar || defaultAvatar)
 
 const scoreForDisplay = computed(() => (creditScore.value == null ? 0 : Number(creditScore.value) || 0))
 const progressValue = computed(() => Math.max(0, Math.min(scoreForDisplay.value, 100)))
@@ -213,6 +219,7 @@ const loadUserInfo = () => {
   userInfo.value = {
     id: localUserInfo.id ?? localUserInfo.userId ?? null,
     username: localUserInfo.username || '',
+    avatar: localUserInfo.avatar || '',
     createTime: localUserInfo.createTime || '',
     status: localUserInfo.status ?? 1
   }

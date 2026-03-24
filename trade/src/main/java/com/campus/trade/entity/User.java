@@ -17,6 +17,10 @@ public class User {
      * 系统权限角色：USER / ADMIN
      */
     private String role;
+    /**
+     * 头像 URL（可为空）
+     */
+    private String avatar;
     private Integer creditScore;
     private LocalDateTime createTime;
     private Integer status;
