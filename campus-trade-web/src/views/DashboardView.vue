@@ -1,14 +1,5 @@
 <template>
   <div class="dashboard-page" v-loading="loading">
-    <el-card class="hero-card" shadow="never">
-      <h1>校园二手交易系统总览</h1>
-      <p>聚焦答辩展示的关键业务数据、订单流转与系统能力（优先复用现有接口）。</p>
-      <div class="hero-meta">
-        <span class="hero-badge">轻咸鱼风 · 统一视觉</span>
-        <span class="hero-badge subtle">订单流 + 信用 + 推荐一页可讲清</span>
-      </div>
-    </el-card>
-
     <el-row :gutter="20" class="stats-row">
       <el-col v-for="item in statCards" :key="item.label" :xs="24" :sm="12" :md="8" :lg="12" :xl="8">
         <el-card class="stat-card" shadow="hover">
@@ -52,32 +43,6 @@
       <div class="flow-note">
         说明：该区域展示平台级订单在各状态的分布，用于证明系统订单流程已完整接入。
       </div>
-    </el-card>
-
-    <el-card class="feature-card mt-16">
-      <template #header>
-        <div class="section-title">系统能力展示</div>
-      </template>
-      <el-row :gutter="20">
-        <el-col :xs="24" :md="12" :lg="8">
-          <div class="feature-item">
-            <h3>订单状态机</h3>
-            <p>支持待支付→已支付→已确认→已完成/已取消全链路状态流转。</p>
-          </div>
-        </el-col>
-        <el-col :xs="24" :md="12" :lg="8">
-          <div class="feature-item">
-            <h3>信用系统联动</h3>
-            <p>信用分已接入看板展示，可与个人中心信用日志共同说明信任约束机制。</p>
-          </div>
-        </el-col>
-        <el-col :xs="24" :md="12" :lg="8">
-          <div class="feature-item">
-            <h3>个性化推荐</h3>
-            <p>推荐模块已在系统中可用，可结合看板能力说明“交易 + 推荐”双驱动。</p>
-          </div>
-        </el-col>
-      </el-row>
     </el-card>
 
     <el-card class="feature-card mt-16">
@@ -357,20 +322,6 @@ onMounted(() => {
   margin-top: 16px;
 }
 
-.hero-badge {
-  display: inline-block;
-  padding: 6px 14px;
-  border-radius: 999px;
-  font-size: 13px;
-  color: #7d5a06;
-  background: #ffefbe;
-  border: 1px solid #efd18a;
-}
-
-.hero-badge.subtle {
-  color: #8c6a1d;
-  background: #fff4d9;
-}
 
 .stats-row {
   margin-top: 6px;

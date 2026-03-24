@@ -28,9 +28,6 @@
             <el-button type="warning" plain @click="goToProducts">
               去逛商品广场
             </el-button>
-            <el-button type="danger" plain @click="handleLogout">
-              退出登录
-            </el-button>
           </div>
         </section>
 

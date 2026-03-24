@@ -1,9 +1,5 @@
 <template>
   <div class="product-create-container" v-loading="loading">
-    <div class="page-hero">
-      <h1>发布商品</h1>
-      <p>让闲置流转起来，用更轻松的方式完成校园交易。</p>
-    </div>
 
     <el-card class="box-card">
       <template #header>

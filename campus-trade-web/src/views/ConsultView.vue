@@ -5,7 +5,6 @@
         <div class="header-row">
           <div>
             <h2>商品咨询</h2>
-            <p>围绕具体商品与买/卖家沟通（轮询刷新）</p>
           </div>
           <el-button text @click="goProducts">返回商品列表</el-button>
         </div>
@@ -13,7 +12,6 @@
 
       <div class="consult-layout">
         <aside class="session-list">
-          <div class="section-title">我的会话</div>
           <el-empty v-if="!sessions.length" description="暂无咨询会话" :image-size="70" />
           <el-scrollbar v-else max-height="520px">
             <button
