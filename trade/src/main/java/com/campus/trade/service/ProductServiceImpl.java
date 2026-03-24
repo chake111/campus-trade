@@ -4,7 +4,6 @@ import com.campus.trade.entity.Product;
 import com.campus.trade.mapper.ProductMapper;
 import com.campus.trade.service.RedisExampleService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -49,9 +48,12 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public List<Product> getList() {
+    public List<Product> getList(String keyword, Long ownerUserId) {
         // 1. 先从 Redis 缓存中获取
-        String cacheKey = PRODUCT_LIST_CACHE_KEY;
+        String normalizedKeyword = keyword == null ? "" : keyword.trim();
+        String cacheKey = PRODUCT_LIST_CACHE_KEY
+                + ":keyword:" + normalizedKeyword
+                + ":owner:" + (ownerUserId == null ? "public" : ownerUserId);
         
         // 尝试从缓存获取数据
         String cachedData = redisExampleService.getValue(cacheKey);
@@ -66,7 +68,7 @@ public class ProductServiceImpl implements ProductService {
         
         // 2. 缓存未命中，查询数据库
         System.out.println("缓存未命中，查询数据库获取商品列表");
-        List<Product> products = productMapper.selectAll();
+        List<Product> products = productMapper.selectList(normalizedKeyword, ownerUserId);
         
         // 3. 查询成功后存入 Redis 缓存
         if (products != null && !products.isEmpty()) {
@@ -84,38 +86,7 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public List<Product> searchByKeyword(String keyword) {
-        if (keyword == null || keyword.trim().isEmpty()) {
-            // 如果关键字为空，返回所有商品
-            return getList();
-        }
-        
-        // 构建缓存键
-        String cacheKey = PRODUCT_LIST_CACHE_KEY + ":search:" + keyword.trim();
-        
-        // 1. 先从 Redis 缓存中获取
-        String cachedData = redisExampleService.getValue(cacheKey);
-        if (cachedData != null && !cachedData.isEmpty()) {
-            System.out.println("从 Redis 缓存中获取搜索结果: " + keyword);
-            // TODO: 实际项目中应实现 JSON 反序列化
-            // return parseProductsFromJson(cachedData);
-        }
-        
-        // 2. 缓存未命中，查询数据库
-        System.out.println("缓存未命中，查询数据库获取搜索结果: " + keyword);
-        List<Product> products = productMapper.selectByKeyword(keyword.trim());
-        
-        // 3. 查询成功后存入 Redis 缓存
-        if (products != null && !products.isEmpty()) {
-            // TODO: 实际项目中应实现对象序列化为 JSON
-            // String jsonData = serializeProductsToJson(products);
-            // redisExampleService.setValue(cacheKey, jsonData, CACHE_EXPIRE_TIME);
-            
-            // 简化演示：存储一个标志表示缓存已更新
-            redisExampleService.setValue(cacheKey + ":exists", "true", CACHE_EXPIRE_TIME);
-            System.out.println("搜索结果已存入 Redis 缓存，过期时间：" + CACHE_EXPIRE_TIME + "秒");
-        }
-        
-        return products;
+        return getList(keyword, null);
     }
 
     @Override
