@@ -53,7 +53,12 @@
         <section class="message-panel">
           <el-empty v-if="!activeSessionId" description="请选择左侧会话" />
           <template v-else>
-            <div v-if="activeSession" class="product-context">
+            <div
+              v-if="activeSession"
+              class="product-context"
+              :class="{ 'is-clickable': !!getSessionProductId(activeSession) }"
+              @click="goProductDetail(activeSession)"
+            >
               <img
                 v-if="activeSession.productImage"
                 :src="activeSession.productImage"
@@ -165,6 +170,20 @@ const counterpartAvatar = computed(() => {
 
 const goProducts = () => {
   router.push('/products')
+}
+
+const getSessionProductId = (session) => {
+  const rawId = session?.productId
+  if (rawId === null || rawId === undefined || rawId === '') return null
+  const id = Number(rawId)
+  if (!Number.isInteger(id) || id <= 0) return null
+  return id
+}
+
+const goProductDetail = (session) => {
+  const productId = getSessionProductId(session)
+  if (!productId) return
+  router.push({ name: 'product-detail', params: { id: productId } })
 }
 
 const formatTime = (value) => {
@@ -571,6 +590,16 @@ onUnmounted(() => {
   padding: 10px;
   background: #fafcff;
   margin-bottom: 10px;
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.product-context.is-clickable {
+  cursor: pointer;
+}
+
+.product-context.is-clickable:hover {
+  box-shadow: 0 4px 14px rgba(64, 158, 255, 0.12);
+  transform: translateY(-1px);
 }
 
 .context-image {
