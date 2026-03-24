@@ -8,13 +8,13 @@
         </el-radio-group>
 
         <div class="toolbar-right">
-          <el-select v-model="statusFilter" placeholder="状态筛选" clearable class="status-filter">
-            <el-option label="全部" value="ALL" />
-            <el-option label="PENDING" value="PENDING" />
-            <el-option label="PAID" value="PAID" />
-            <el-option label="CONFIRMED" value="CONFIRMED" />
-            <el-option label="FINISHED" value="FINISHED" />
-            <el-option label="CANCELLED" value="CANCELLED" />
+          <el-select v-model="statusFilter" placeholder="状态筛选" class="status-filter">
+            <el-option
+              v-for="item in statusTabs"
+              :key="item.value"
+              :label="item.label"
+              :value="item.value"
+            />
           </el-select>
 
           <el-input
