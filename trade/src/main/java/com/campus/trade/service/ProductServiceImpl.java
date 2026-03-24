@@ -9,9 +9,12 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Pattern;
 
 @Service
 public class ProductServiceImpl implements ProductService {
+    private static final int MAX_TRADE_LOCATION_LENGTH = 30;
+    private static final Pattern PRECISE_ADDRESS_PATTERN = Pattern.compile(".*(宿舍\\s*\\d+|\\d+\\s*栋|\\d+\\s*单元|\\d+\\s*室|门牌|详细地址|经纬度).*");
 
     private final ProductMapper productMapper;
     
@@ -31,6 +34,16 @@ public class ProductServiceImpl implements ProductService {
     public int publish(Product product) {
         if (product.getUserId() == null) {
             throw new IllegalArgumentException("用户 ID 不能为空，请确认已登录或请求中包含 user_id 字段");
+        }
+        if (product.getTradeLocation() != null) {
+            String normalizedTradeLocation = product.getTradeLocation().trim();
+            if (normalizedTradeLocation.length() > MAX_TRADE_LOCATION_LENGTH) {
+                throw new IllegalArgumentException("校内交易地点最多 30 个字");
+            }
+            if (PRECISE_ADDRESS_PATTERN.matcher(normalizedTradeLocation).matches()) {
+                throw new IllegalArgumentException("请填写校内模糊交易地点，不要包含宿舍号、门牌号等精确地址");
+            }
+            product.setTradeLocation(normalizedTradeLocation);
         }
         return productMapper.insert(product);
     }
@@ -110,4 +123,3 @@ public class ProductServiceImpl implements ProductService {
         return productMapper.selectById(id);
     }
 }
-

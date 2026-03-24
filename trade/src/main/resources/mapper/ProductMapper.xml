@@ -8,6 +8,7 @@
         <id column="id" property="id"/>
         <result column="title" property="title"/>
         <result column="description" property="description"/>
+        <result column="trade_location" property="tradeLocation"/>
         <result column="image" property="image"/>
         <result column="price" property="price"/>
         <result column="user_id" property="userId"/>
@@ -16,10 +17,11 @@
     </resultMap>
 
     <insert id="insert" parameterType="com.campus.trade.entity.Product" useGeneratedKeys="true" keyProperty="id">
-        INSERT INTO `product`(title, description, image, price, user_id, status, create_time)
+        INSERT INTO `product`(title, description, trade_location, image, price, user_id, status, create_time)
         VALUES(
             #{title},
             #{description},
+            #{tradeLocation},
             #{image},
             IFNULL(#{price}, 0),
             #{userId},
@@ -29,7 +31,7 @@
     </insert>
 
     <select id="selectAll" resultMap="ProductResultMap">
-        SELECT id, title, description, image, price, user_id, status, create_time
+        SELECT id, title, description, trade_location, image, price, user_id, status, create_time
         FROM `product`
     </select>
 
@@ -39,14 +41,14 @@
     </select>
 
     <select id="selectByKeyword" resultMap="ProductResultMap">
-        SELECT id, title, description, image, price, user_id, status, create_time
+        SELECT id, title, description, trade_location, image, price, user_id, status, create_time
         FROM `product`
         WHERE (title LIKE CONCAT('%', #{keyword}, '%') OR description LIKE CONCAT('%', #{keyword}, '%'))
           AND status = 1
     </select>
 
     <select id="selectById" resultMap="ProductResultMap" parameterType="long">
-        SELECT id, title, description, image, price, user_id, status, create_time
+        SELECT id, title, description, trade_location, image, price, user_id, status, create_time
         FROM `product`
         WHERE id = #{id}
     </select>
