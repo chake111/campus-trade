@@ -49,4 +49,11 @@
         SET credit_score = #{creditScore}
         WHERE id = #{userId}
     </update>
+
+    <update id="updateProfile" parameterType="map">
+        UPDATE `user`
+        SET username = #{username},
+            avatar = #{avatar}
+        WHERE id = #{id}
+    </update>
 </mapper>

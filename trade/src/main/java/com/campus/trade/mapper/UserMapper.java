@@ -20,4 +20,6 @@ public interface UserMapper {
      * @return 影响的行数
      */
     int updateCreditScore(@Param("userId") Long userId, @Param("creditScore") Integer creditScore);
+
+    int updateProfile(@Param("id") Long id, @Param("username") String username, @Param("avatar") String avatar);
 }

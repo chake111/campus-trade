@@ -22,3 +22,11 @@ export function getUserInfo() {
     method: 'get'
   })
 }
+
+export function updateMyProfile(data) {
+  return request({
+    url: '/api/users/me/profile',
+    method: 'put',
+    data
+  })
+}

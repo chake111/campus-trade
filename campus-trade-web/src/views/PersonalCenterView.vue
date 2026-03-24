@@ -10,6 +10,9 @@
         <div class="card-header">
           <el-icon size="24"><User /></el-icon>
           <span>个人中心</span>
+          <el-button class="edit-profile-btn" type="primary" plain @click="openEditDialog">
+            编辑资料
+          </el-button>
         </div>
       </template>
 
@@ -127,6 +130,31 @@
         </div>
       </div>
     </el-card>
+
+    <el-dialog v-model="editDialogVisible" title="编辑个人资料" width="460px">
+      <el-form label-position="top" @submit.prevent>
+        <el-form-item label="用户名" required>
+          <el-input
+            v-model="editForm.username"
+            maxlength="30"
+            show-word-limit
+            placeholder="请输入用户名"
+          />
+        </el-form-item>
+        <el-form-item label="头像 URL">
+          <el-input
+            v-model="editForm.avatar"
+            placeholder="https://example.com/avatar.png"
+          />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="editDialogVisible = false">取消</el-button>
+        <el-button type="primary" :loading="savingProfile" @click="submitProfile">
+          保存
+        </el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
@@ -135,8 +163,16 @@ import { computed, ref, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { User, HomeFilled, SwitchButton } from '@element-plus/icons-vue'
+import { updateMyProfile } from '../api/user'
 import { getCreditLogs, getCreditScore } from '../api/credit'
-import { AUTH_CHANGED_EVENT, dispatchAuthChanged, getUserId, getUserInfo, removeUserInfo } from '../utils/user'
+import {
+  AUTH_CHANGED_EVENT,
+  dispatchAuthChanged,
+  getUserId,
+  getUserInfo,
+  removeUserInfo,
+  setUserInfo
+} from '../utils/user'
 import { getToken, removeToken } from '../utils/request'
 import defaultAvatar from '../assets/default-avatar.svg'
 
@@ -157,6 +193,12 @@ const userInfo = ref({
   status: 1
 })
 const profileAvatar = computed(() => userInfo.value.avatar || defaultAvatar)
+const editDialogVisible = ref(false)
+const savingProfile = ref(false)
+const editForm = ref({
+  username: '',
+  avatar: ''
+})
 
 const scoreForDisplay = computed(() => (creditScore.value == null ? 0 : Number(creditScore.value) || 0))
 const progressValue = computed(() => Math.max(0, Math.min(scoreForDisplay.value, 100)))
@@ -222,6 +264,41 @@ const loadUserInfo = () => {
     avatar: localUserInfo.avatar || '',
     createTime: localUserInfo.createTime || '',
     status: localUserInfo.status ?? 1
+  }
+}
+
+const openEditDialog = () => {
+  editForm.value = {
+    username: userInfo.value.username || '',
+    avatar: userInfo.value.avatar || ''
+  }
+  editDialogVisible.value = true
+}
+
+const submitProfile = async () => {
+  const username = editForm.value.username?.trim()
+  const avatar = editForm.value.avatar?.trim() || ''
+  if (!username) {
+    ElMessage.warning('用户名不能为空')
+    return
+  }
+
+  savingProfile.value = true
+  try {
+    const res = await updateMyProfile({ username, avatar })
+    const latestUser = {
+      ...userInfo.value,
+      ...(res?.data || {}),
+      username,
+      avatar
+    }
+    userInfo.value = latestUser
+    setUserInfo(latestUser)
+    dispatchAuthChanged()
+    editDialogVisible.value = false
+    ElMessage.success('资料更新成功')
+  } finally {
+    savingProfile.value = false
   }
 }
 
@@ -391,6 +468,10 @@ onUnmounted(() => {
   font-size: 20px;
   font-weight: 600;
   color: #4a3915;
+}
+
+.edit-profile-btn {
+  margin-left: auto;
 }
 
 .user-info {
