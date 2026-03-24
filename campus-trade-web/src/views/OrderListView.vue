@@ -5,7 +5,7 @@
       <p>统一查看买入与卖出订单，状态清晰、流程可追踪。</p>
     </div>
 
-    <div class="order-table" v-loading="loading">
+    <div class="order-flow" v-loading="loading">
       <div class="toolbar">
         <el-radio-group v-model="activeRole" size="default" @change="handleRoleChange">
           <el-radio-button label="buyer">我买到的</el-radio-button>
@@ -37,107 +37,93 @@
         </div>
       </div>
 
-      <el-table :data="filteredOrders" border style="width: 100%">
-        <el-table-column prop="id" label="订单编号" width="100" />
+      <div v-if="filteredOrders.length" class="order-cards">
+        <el-card
+          v-for="row in filteredOrders"
+          :key="row.id"
+          class="order-card"
+          shadow="hover"
+        >
+          <div class="order-main">
+            <div class="goods-media">
+              <img
+                v-if="getProductImage(row)"
+                :src="getProductImage(row)"
+                alt="商品图片"
+              />
+              <div v-else class="image-placeholder">暂无商品图片</div>
+            </div>
 
-        <el-table-column label="商品信息" width="300">
-          <template #default="{ row }">
-            <div class="product-info">
-              <div class="product-title">
-                {{ row.product?.title || row.productName || row.name || row.productTitle || `商品ID: ${row.productId || '-'} ` }}
+            <div class="goods-content">
+              <div class="goods-title">{{ getProductTitle(row) }}</div>
+              <div class="goods-price">¥{{ formatPrice(row.product?.price ?? row.productPrice ?? 0) }}</div>
+              <div class="meta-row">
+                <span>{{ getCounterpartLabel(row) }}</span>
+                <span class="dot">·</span>
+                <span>下单时间：{{ formatTime(row.createTime || row.createdAt) }}</span>
               </div>
-              <div class="product-price">¥{{ row.product?.price ?? row.productPrice ?? 0 }}</div>
+              <div class="meta-row minor">
+                <span>订单号：{{ row.id || '-' }}</span>
+              </div>
             </div>
-          </template>
-        </el-table-column>
 
-        <el-table-column prop="status" label="订单状态" width="120">
-          <template #default="{ row }">
-            <el-tag :type="getStatusType(row.status)">
-              {{ getStatusText(row.status) }}
-            </el-tag>
-          </template>
-        </el-table-column>
-
-        <el-table-column label="买家/卖家" width="220">
-          <template #default="{ row }">
-            <div class="user-info">
-              <div>买家：{{ row.buyerName || row.buyerId || '-' }}</div>
-              <div>卖家：{{ row.sellerName || row.sellerId || '-' }}</div>
-            </div>
-          </template>
-        </el-table-column>
-
-        <el-table-column prop="createTime" label="创建时间" width="180">
-          <template #default="{ row }">
-            {{ formatTime(row.createTime || row.createdAt) }}
-          </template>
-        </el-table-column>
-
-        <el-table-column label="订单进度" min-width="250">
-          <template #default="{ row }">
-            <el-steps :active="getStepActive(row.status)" finish-status="success" align-center>
-              <el-step title="待支付" />
-              <el-step title="已支付" />
-              <el-step title="已确认" />
-              <el-step title="已完成" />
-            </el-steps>
-          </template>
-        </el-table-column>
-
-        <el-table-column label="操作" width="260" fixed="right">
-          <template #default="{ row }">
-            <div class="actions">
-              <el-button
-                v-if="canBuyerOperate(row) && row.status === 'PENDING'"
-                type="primary"
-                size="small"
-                :loading="isActionLoading(row.id, 'PAID')"
-                :disabled="isAnyActionLoading(row.id)"
-                @click="handleStatusUpdate(row, 'PAID', '支付')"
-              >
-                支付
-              </el-button>
-              <el-button
-                v-if="canBuyerOperate(row) && row.status === 'PENDING'"
-                type="danger"
-                size="small"
-                :loading="isActionLoading(row.id, 'CANCELLED')"
-                :disabled="isAnyActionLoading(row.id)"
-                @click="handleStatusUpdate(row, 'CANCELLED', '取消')"
-              >
-                取消
-              </el-button>
-              <el-button
-                v-if="canBuyerOperate(row) && row.status === 'PAID'"
-                type="success"
-                size="small"
-                :loading="isActionLoading(row.id, 'CONFIRMED')"
-                :disabled="isAnyActionLoading(row.id)"
-                @click="handleStatusUpdate(row, 'CONFIRMED', '确认')"
-              >
-                确认
-              </el-button>
-              <el-button
-                v-if="canBuyerOperate(row) && row.status === 'CONFIRMED'"
-                type="warning"
-                size="small"
-                :loading="isActionLoading(row.id, 'FINISHED')"
-                :disabled="isAnyActionLoading(row.id)"
-                @click="handleStatusUpdate(row, 'FINISHED', '完成')"
-              >
-                完成
-              </el-button>
-              <el-tag v-if="row.status === 'FINISHED'" type="success" size="small">
-                已完成
+            <div class="order-side">
+              <el-tag :type="getStatusType(row.status)" size="large">
+                {{ getStatusText(row.status) }}
               </el-tag>
-              <el-tag v-if="row.status === 'CANCELLED'" type="info" size="small">
-                已取消
-              </el-tag>
+              <div class="mini-progress">进度：{{ getStepText(row.status) }}</div>
+              <div class="actions">
+                <el-button
+                  v-if="canBuyerOperate(row) && row.status === 'PENDING'"
+                  type="primary"
+                  size="small"
+                  :loading="isActionLoading(row.id, 'PAID')"
+                  :disabled="isAnyActionLoading(row.id)"
+                  @click="handleStatusUpdate(row, 'PAID', '支付')"
+                >
+                  支付
+                </el-button>
+                <el-button
+                  v-if="canBuyerOperate(row) && row.status === 'PENDING'"
+                  type="danger"
+                  size="small"
+                  :loading="isActionLoading(row.id, 'CANCELLED')"
+                  :disabled="isAnyActionLoading(row.id)"
+                  @click="handleStatusUpdate(row, 'CANCELLED', '取消')"
+                >
+                  取消
+                </el-button>
+                <el-button
+                  v-if="canBuyerOperate(row) && row.status === 'PAID'"
+                  type="success"
+                  size="small"
+                  :loading="isActionLoading(row.id, 'CONFIRMED')"
+                  :disabled="isAnyActionLoading(row.id)"
+                  @click="handleStatusUpdate(row, 'CONFIRMED', '确认')"
+                >
+                  确认
+                </el-button>
+                <el-button
+                  v-if="canBuyerOperate(row) && row.status === 'CONFIRMED'"
+                  type="warning"
+                  size="small"
+                  :loading="isActionLoading(row.id, 'FINISHED')"
+                  :disabled="isAnyActionLoading(row.id)"
+                  @click="handleStatusUpdate(row, 'FINISHED', '完成')"
+                >
+                  完成
+                </el-button>
+                <el-tag v-if="row.status === 'FINISHED'" type="success" size="small">
+                  已完成
+                </el-tag>
+                <el-tag v-if="row.status === 'CANCELLED'" type="info" size="small">
+                  已取消
+                </el-tag>
+              </div>
             </div>
-          </template>
-        </el-table-column>
-      </el-table>
+          </div>
+        </el-card>
+      </div>
 
       <div v-if="!filteredOrders.length && !loading" class="empty-state">
         <el-empty description="暂无订单" />
@@ -255,15 +241,15 @@ const getStatusText = (status) => {
   return texts[status] || status
 }
 
-const getStepActive = (status) => {
+const getStepText = (status) => {
   const steps = {
-    PENDING: 1,
-    PAID: 2,
-    CONFIRMED: 3,
-    FINISHED: 4,
-    CANCELLED: 0
+    PENDING: '待支付',
+    PAID: '已支付',
+    CONFIRMED: '已确认',
+    FINISHED: '已完成',
+    CANCELLED: '已取消'
   }
-  return steps[status] || 0
+  return steps[status] || '处理中'
 }
 
 const formatTime = (time) => {
@@ -274,6 +260,41 @@ const formatTime = (time) => {
 
 const isActionLoading = (orderId, targetStatus) => {
   return actionLoading.value.id === orderId && actionLoading.value.status === targetStatus
+}
+
+const getProductTitle = (order) => {
+  return (
+    order?.product?.title ||
+    order?.productName ||
+    order?.name ||
+    order?.productTitle ||
+    `商品ID: ${order?.productId || '-'}`
+  )
+}
+
+const getProductImage = (order) => {
+  return (
+    order?.product?.displayImage ||
+    order?.product?.cover ||
+    order?.product?.image ||
+    order?.productImage ||
+    order?.cover ||
+    order?.image ||
+    ''
+  )
+}
+
+const getCounterpartLabel = (order) => {
+  if (activeRole.value === 'buyer') {
+    return `卖家：${order?.sellerName || order?.sellerId || '-'}`
+  }
+  return `买家：${order?.buyerName || order?.buyerId || order?.userId || '-'}`
+}
+
+const formatPrice = (price) => {
+  const numericPrice = Number(price)
+  if (Number.isNaN(numericPrice)) return price
+  return numericPrice.toFixed(2)
 }
 
 
@@ -351,7 +372,7 @@ onMounted(() => {
   color: var(--theme-text-secondary);
 }
 
-.order-table {
+.order-flow {
   background: var(--theme-card-bg);
   border-radius: 16px;
   padding: 24px;
@@ -419,47 +440,95 @@ onMounted(() => {
   width: 300px;
 }
 
-.order-table :deep(.el-table) {
-  font-size: 14px;
-}
-
-.order-table :deep(.el-table td.el-table__cell),
-.order-table :deep(.el-table th.el-table__cell) {
-  padding: 13px 0;
-}
-
-.order-table :deep(.el-table th.el-table__cell) {
-  background: var(--theme-bg-soft);
-  color: var(--theme-text-secondary);
-}
-
-.product-info {
+.order-cards {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 14px;
 }
 
-.product-title {
-  font-size: 14px;
-  font-weight: 600;
-  color: #303133;
+.order-card {
+  border: 1px solid var(--el-border-color-lighter);
+}
+
+.order-main {
+  display: grid;
+  grid-template-columns: 132px minmax(0, 1fr) 280px;
+  gap: 16px;
+  align-items: center;
+}
+
+.goods-media {
+  width: 132px;
+  height: 132px;
+  border-radius: 10px;
   overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  border: 1px solid var(--theme-border);
+  background: var(--theme-bg-soft);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.product-price {
-  font-size: 16px;
+.goods-media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.image-placeholder {
+  padding: 0 8px;
+  text-align: center;
+  color: var(--theme-text-secondary);
+  font-size: 12px;
+}
+
+.goods-content {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.goods-title {
+  font-size: 17px;
+  line-height: 1.4;
+  font-weight: 600;
+  color: var(--theme-text-primary);
+}
+
+.goods-price {
+  font-size: 22px;
   font-weight: 700;
   color: #f56c6c;
 }
 
-.user-info {
+.meta-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--theme-text-secondary);
+  font-size: 13px;
+}
+
+.meta-row.minor {
+  color: #909399;
+}
+
+.dot {
+  color: #c0c4cc;
+}
+
+.order-side {
+  justify-self: end;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  align-items: flex-end;
+  gap: 12px;
+}
+
+.mini-progress {
   font-size: 13px;
-  color: #606266;
+  color: var(--theme-text-secondary);
 }
 
 .actions {
@@ -467,14 +536,6 @@ onMounted(() => {
   gap: 8px;
   align-items: center;
   flex-wrap: wrap;
-}
-
-:deep(.el-steps) {
-  font-size: 12px;
-}
-
-:deep(.el-step__title) {
-  font-size: 13px;
 }
 
 .empty-state {
@@ -495,8 +556,23 @@ onMounted(() => {
     font-size: 28px;
   }
 
-  .order-table {
+  .order-flow {
     padding: 14px;
+  }
+
+  .order-main {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .goods-media {
+    width: 100%;
+    height: 180px;
+  }
+
+  .order-side {
+    justify-self: start;
+    align-items: flex-start;
   }
 
   .keyword-input,
