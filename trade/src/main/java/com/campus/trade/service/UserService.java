@@ -18,5 +18,6 @@ public interface UserService {
      * @return 成功返回用户；失败返回 null
      */
     User login(String username, String password);
-}
 
+    User updateProfile(Long userId, String username, String avatar);
+}

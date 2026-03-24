@@ -63,4 +63,28 @@ public class UserServiceImpl implements UserService {
 
         return user;
     }
+
+    @Override
+    public User updateProfile(Long userId, String username, String avatar) {
+        if (userId == null) {
+            return null;
+        }
+
+        String normalizedUsername = username == null ? "" : username.trim();
+        String normalizedAvatar = avatar == null ? "" : avatar.trim();
+        if (normalizedUsername.isEmpty()) {
+            return null;
+        }
+
+        User existing = userMapper.selectByUsername(normalizedUsername);
+        if (existing != null && !userId.equals(existing.getId())) {
+            return null;
+        }
+
+        int rows = userMapper.updateProfile(userId, normalizedUsername, normalizedAvatar);
+        if (rows <= 0) {
+            return null;
+        }
+        return userMapper.selectById(userId);
+    }
 }
