@@ -23,6 +23,10 @@ public class Order {
      */
     private BigDecimal productPrice;
     /**
+     * 冗余展示字段：商品图片（订单列表联表查询填充）
+     */
+    private String productImage;
+    /**
      * 冗余展示字段：卖家 ID（订单列表联表查询填充）
      */
     private Long sellerId;

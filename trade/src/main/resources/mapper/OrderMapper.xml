@@ -10,6 +10,7 @@
         <result column="product_id" property="productId"/>
         <result column="product_title" property="productTitle"/>
         <result column="product_price" property="productPrice"/>
+        <result column="product_image" property="productImage"/>
         <result column="seller_id" property="sellerId"/>
         <result column="seller_name" property="sellerName"/>
         <result column="status" property="status" 
@@ -33,6 +34,7 @@
                o.product_id,
                p.title AS product_title,
                p.price AS product_price,
+               p.image AS product_image,
                p.user_id AS seller_id,
                u.username AS seller_name,
                o.status,
@@ -55,6 +57,7 @@
                o.product_id,
                p.title AS product_title,
                p.price AS product_price,
+               p.image AS product_image,
                p.user_id AS seller_id,
                u.username AS seller_name,
                o.status,
@@ -71,6 +74,7 @@
                o.product_id,
                p.title AS product_title,
                p.price AS product_price,
+               p.image AS product_image,
                p.user_id AS seller_id,
                u.username AS seller_name,
                o.status,
@@ -88,6 +92,7 @@
                o.product_id,
                p.title AS product_title,
                p.price AS product_price,
+               p.image AS product_image,
                p.user_id AS seller_id,
                u.username AS seller_name,
                o.status,
