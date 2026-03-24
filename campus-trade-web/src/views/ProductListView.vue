@@ -28,7 +28,7 @@
               </div>
               <div class="content">
                 <h3 class="title">{{ item.title }}</h3>
-                <p class="description">{{ item.description }}</p>
+                <p class="location">{{ getTradeLocation(item) }}</p>
                 <div class="reason-box">
                   <el-icon size="14"><InfoFilled /></el-icon>
                   <span class="reason-text">登录后可查看个性化推荐</span>
@@ -37,6 +37,7 @@
                   <span class="price">¥{{ item.price }}</span>
                   <span class="quality-pill">{{ getQualityTag(item) }}</span>
                 </div>
+                <p class="description muted">{{ item.description }}</p>
               </div>
             </article>
           </div>
@@ -70,7 +71,7 @@
               </div>
               <div class="content">
                 <h3 class="title">{{ item.title }}</h3>
-                <p class="description">{{ item.description }}</p>
+                <p class="location">{{ getTradeLocation(item) }}</p>
                 <div class="reason-box">
                   <el-icon size="14"><InfoFilled /></el-icon>
                   <span class="reason-text">{{ getRecommendReason(item) }}</span>
@@ -79,6 +80,7 @@
                   <span class="price">¥{{ item.price }}</span>
                   <span class="quality-pill">{{ getQualityTag(item) }}</span>
                 </div>
+                <p class="description muted">{{ item.description }}</p>
               </div>
             </article>
           </div>
@@ -117,11 +119,12 @@
           </div>
           <div class="content">
             <h3 class="title">{{ item.title }}</h3>
-            <p class="description">{{ item.description }}</p>
+            <p class="location">{{ getTradeLocation(item) }}</p>
             <div class="footer">
               <span class="price">¥{{ item.price }}</span>
               <span class="selling-point">{{ getSellingPoint(item) }}</span>
             </div>
+            <p class="description muted">{{ item.description }}</p>
           </div>
         </article>
       </div>
@@ -250,6 +253,12 @@ const getStatusBadgeClass = (item) => {
   if (type === 'sold') return 'sold-badge'
   if (type === 'off-shelf') return 'off-shelf-badge'
   return 'sale-badge'
+}
+
+const getTradeLocation = (item) => {
+  const location = item?.tradeLocation
+  if (!location || !String(location).trim()) return '校内面交（地点待协商）'
+  return location
 }
 
 const viewDetail = (item) => {
@@ -386,6 +395,19 @@ watch(
   -webkit-box-orient: vertical;
   min-height: 36px;
   line-height: 1.5;
+}
+.description.muted {
+  margin: 8px 0 0;
+  color: #a59b8d;
+  -webkit-line-clamp: 1;
+  min-height: 18px;
+}
+.location {
+  margin: 0 0 8px;
+  font-size: 12px;
+  color: #7b5b1e;
+  line-height: 1.45;
+  font-weight: 600;
 }
 .reason-box { display: flex; align-items: flex-start; gap: 6px; padding: 0; background: transparent; margin-bottom: 10px; }
 .reason-text { font-size: 12px; color: #8a6d2f; line-height: 1.45; flex: 1; }
