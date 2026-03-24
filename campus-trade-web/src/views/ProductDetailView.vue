@@ -11,37 +11,22 @@
         </div>
       </template>
 
-      <el-empty
-        v-if="!loading && !product"
-        description="商品不存在或已下架"
-      />
+      <el-empty v-if="!loading && !product" description="商品不存在或已下架" />
 
       <div v-else-if="product" class="detail-content">
         <div class="image-panel">
-          <el-image
-            v-if="product.displayImage"
-            :src="product.displayImage"
-            fit="cover"
-            class="product-image"
-            :preview-src-list="[product.displayImage]"
-          />
+          <el-image v-if="product.displayImage" :src="product.displayImage" fit="cover" class="product-image"
+            :preview-src-list="[product.displayImage]" />
           <div v-else class="image-placeholder">暂无商品图片</div>
         </div>
 
         <div class="info-panel">
           <div class="name-row">
             <h3>{{ product.title || product.name || '未命名商品' }}</h3>
-            <el-tag :type="statusTagType" effect="light">{{ statusText }}</el-tag>
-          </div>
-
-          <div class="price-row">
-            <span class="label">价格</span>
-            <span class="price">¥{{ product.price ?? '--' }}</span>
-          </div>
-
-          <div class="decision-row">
-            <span class="status-chip">商品状态：{{ statusText }}</span>
-            <span class="trade-location-chip">校内交易地点：{{ tradeLocationText }}</span>
+            <div class="decision-row">
+              <el-tag :type="statusTagType" effect="light">{{ statusText }}</el-tag>
+              <el-tag :type="tradeLocationTagType" effect="light">{{ tradeLocationText }}</el-tag>
+            </div>
           </div>
 
           <div class="seller-card">
@@ -57,19 +42,19 @@
             </template>
           </div>
 
+          <div class="price-row">
+            <span class="label">价格</span>
+            <span class="price">¥{{ product.price ?? '--' }}</span>
+          </div>
+
           <div class="description-block">
             <div class="block-title">商品描述</div>
             <p>{{ product.description || '卖家暂无描述信息' }}</p>
           </div>
 
           <div class="actions">
-            <el-button
-              type="primary"
-              size="large"
-              :loading="submitting"
-              :disabled="!canCreateOrder"
-              @click="handleCreateOrder"
-            >
+            <el-button type="primary" size="large" :loading="submitting" :disabled="!canCreateOrder"
+              @click="handleCreateOrder">
               立即下单
             </el-button>
             <el-button size="large" @click="handleContactSeller">联系卖家</el-button>
@@ -364,14 +349,6 @@ onMounted(() => {
   color: #303133;
 }
 
-.price-row {
-  display: flex;
-  align-items: baseline;
-  gap: 12px;
-  padding: 14px;
-  background: #f5f7fa;
-  border-radius: 8px;
-}
 
 .price-row .label {
   font-size: 14px;
@@ -392,6 +369,7 @@ onMounted(() => {
   display: flex;
   align-items: center;
   gap: 10px;
+  padding: 4px 12px;
   flex-wrap: wrap;
 }
 
@@ -406,25 +384,13 @@ onMounted(() => {
   border: 1px solid #f6d7a6;
 }
 
-.status-chip {
-  display: inline-flex;
-  align-items: center;
-  border-radius: 999px;
-  padding: 5px 12px;
-  font-size: 13px;
-  color: #1f7a3d;
-  background: #edf9f1;
-  border: 1px solid #b8ebc8;
-}
 
 .seller-card {
   display: flex;
   align-items: center;
   gap: 12px;
   padding: 12px 14px;
-  border: 1px solid #ebeef5;
   border-radius: 8px;
-  background: #fafcff;
 }
 
 .seller-avatar {
