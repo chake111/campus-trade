@@ -1,10 +1,14 @@
 import request from '../utils/request'
 
-export function ensureConsultSession(productId) {
+export function ensureConsultSession(productId, counterpartId) {
+  const data = { productId }
+  if (counterpartId !== undefined && counterpartId !== null && counterpartId !== '') {
+    data.counterpartId = counterpartId
+  }
   return request({
     url: '/api/consult/sessions/ensure',
     method: 'post',
-    data: { productId },
+    data,
   })
 }
 

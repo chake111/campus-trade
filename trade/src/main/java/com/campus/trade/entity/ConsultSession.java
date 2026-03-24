@@ -1,6 +1,7 @@
 package com.campus.trade.entity;
 
 import java.time.LocalDateTime;
+import java.math.BigDecimal;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -18,6 +19,10 @@ public class ConsultSession {
     private LocalDateTime sellerLastReadTime;
     private LocalDateTime createTime;
     private String productTitle;
+    private String productImage;
+    private BigDecimal productPrice;
+    private Integer productStatus;
+    private String tradeLocation;
     private String lastMessage;
     private LocalDateTime lastMessageTime;
 }

@@ -31,11 +31,11 @@ public class ConsultServiceImpl implements ConsultService {
 
     @Override
     @Transactional
-    public ConsultSession ensureSession(Long productId, Long buyerId) {
+    public ConsultSession ensureSession(Long productId, Long currentUserId, Long counterpartId) {
         if (productId == null) {
             throw new IllegalArgumentException("productId 不能为空");
         }
-        if (buyerId == null) {
+        if (currentUserId == null) {
             throw new IllegalArgumentException("请先登录后联系卖家");
         }
 
@@ -46,7 +46,17 @@ public class ConsultServiceImpl implements ConsultService {
         if (product.getUserId() == null) {
             throw new IllegalArgumentException("商品卖家信息缺失");
         }
-        if (product.getUserId().equals(buyerId)) {
+        Long sellerId = product.getUserId();
+        Long buyerId = currentUserId;
+        if (sellerId.equals(currentUserId)) {
+            buyerId = counterpartId;
+            if (buyerId == null) {
+                throw new IllegalArgumentException("缺少买家信息，无法从订单发起咨询");
+            }
+            if (sellerId.equals(buyerId)) {
+                throw new IllegalArgumentException("会话参与方错误，买卖家不能相同");
+            }
+        } else if (sellerId.equals(buyerId)) {
             throw new IllegalArgumentException("不能联系自己发布的商品");
         }
 
@@ -59,7 +69,7 @@ public class ConsultServiceImpl implements ConsultService {
         ConsultSession session = new ConsultSession();
         session.setProductId(productId);
         session.setBuyerId(buyerId);
-        session.setSellerId(product.getUserId());
+        session.setSellerId(sellerId);
         LocalDateTime now = LocalDateTime.now();
         session.setBuyerLastReadTime(now);
         session.setSellerLastReadTime(now);

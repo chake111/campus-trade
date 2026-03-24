@@ -35,7 +35,8 @@ public class ConsultController {
             return Result.error("productId 不能为空");
         }
 
-        ConsultSession session = consultService.ensureSession(request.getProductId(), currentUserId);
+        ConsultSession session = consultService.ensureSession(
+                request.getProductId(), currentUserId, request.getCounterpartId());
         return Result.success(session);
     }
 
@@ -95,6 +96,7 @@ public class ConsultController {
 
     public static class EnsureSessionRequest {
         private Long productId;
+        private Long counterpartId;
 
         public Long getProductId() {
             return productId;
@@ -102,6 +104,14 @@ public class ConsultController {
 
         public void setProductId(Long productId) {
             this.productId = productId;
+        }
+
+        public Long getCounterpartId() {
+            return counterpartId;
+        }
+
+        public void setCounterpartId(Long counterpartId) {
+            this.counterpartId = counterpartId;
         }
     }
 

@@ -33,6 +33,24 @@
         <section class="message-panel">
           <el-empty v-if="!activeSessionId" description="请选择左侧会话" />
           <template v-else>
+            <div v-if="activeSession" class="product-context">
+              <img
+                v-if="activeSession.productImage"
+                :src="activeSession.productImage"
+                alt="商品图片"
+                class="context-image"
+              />
+              <div v-else class="context-image context-image-placeholder">暂无图片</div>
+              <div class="context-main">
+                <div class="context-title">{{ activeSession.productTitle || `商品 #${activeSession.productId}` }}</div>
+                <div class="context-meta">
+                  <span class="context-price">¥{{ formatPrice(activeSession.productPrice) }}</span>
+                  <span>状态：{{ formatProductStatus(activeSession.productStatus) }}</span>
+                  <span>地点：{{ activeSession.tradeLocation || '校内面交（地点待协商）' }}</span>
+                </div>
+              </div>
+            </div>
+
             <el-scrollbar ref="messageScrollbarRef" class="message-list">
               <div v-if="!messages.length" class="empty-message">暂无消息，发送第一条咨询吧</div>
               <div
@@ -73,6 +91,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { ensureConsultSession, getConsultMessages, getMyConsultSessions, sendConsultMessage } from '../api/consult'
 import { getUserId } from '../utils/user'
+import { getProductStatusMeta } from '../utils/productNormalizer'
 
 const POLL_INTERVAL_MS = 4000
 
@@ -88,6 +107,8 @@ const messageScrollbarRef = ref(null)
 const currentUserId = ref(getUserId())
 let pollingTimer = null
 
+const activeSession = ref(null)
+
 const goProducts = () => {
   router.push('/products')
 }
@@ -102,6 +123,8 @@ const formatTime = (value) => {
 const loadSessions = async () => {
   const res = await getMyConsultSessions()
   sessions.value = Array.isArray(res?.data) ? res.data : []
+  activeSession.value =
+    sessions.value.find((item) => String(item.id) === String(activeSessionId.value)) || null
 }
 
 const scrollToBottom = async () => {
@@ -138,15 +161,28 @@ const stopPolling = () => {
 
 const selectSession = async (sessionId) => {
   activeSessionId.value = sessionId
+  activeSession.value =
+    sessions.value.find((item) => String(item.id) === String(activeSessionId.value)) || null
   await loadMessages()
   startPolling()
 }
 
 const ensureByRouteProduct = async () => {
   const productId = route.query.productId
+  const counterpartId = route.query.counterpartId
   if (!productId) return null
-  const res = await ensureConsultSession(productId)
+  const res = await ensureConsultSession(productId, counterpartId)
   return res?.data?.id || null
+}
+
+const formatPrice = (value) => {
+  const price = Number(value)
+  if (Number.isNaN(price)) return '--'
+  return price.toFixed(2)
+}
+
+const formatProductStatus = (status) => {
+  return getProductStatusMeta(status).label
 }
 
 const handleSend = async () => {
@@ -289,6 +325,59 @@ onUnmounted(() => {
   padding: 10px;
   display: flex;
   flex-direction: column;
+}
+
+.product-context {
+  display: grid;
+  grid-template-columns: 72px minmax(0, 1fr);
+  gap: 12px;
+  border: 1px solid #ebeef5;
+  border-radius: 8px;
+  padding: 10px;
+  background: #fafcff;
+  margin-bottom: 10px;
+}
+
+.context-image {
+  width: 72px;
+  height: 72px;
+  border-radius: 8px;
+  object-fit: cover;
+  border: 1px solid #ebeef5;
+}
+
+.context-image-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  color: #909399;
+  background: #f5f7fa;
+}
+
+.context-main {
+  min-width: 0;
+}
+
+.context-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: #303133;
+  line-height: 1.4;
+}
+
+.context-meta {
+  margin-top: 6px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  color: #606266;
+  font-size: 13px;
+}
+
+.context-price {
+  color: #f56c6c;
+  font-weight: 600;
 }
 
 .message-list {
