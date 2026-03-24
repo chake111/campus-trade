@@ -1,133 +1,182 @@
 <template>
   <div class="personal-center">
     <div class="page-hero">
-      <h1>个人中心</h1>
-      <p>集中查看个人信息、信用分与信用记录，沉淀可信校园交易身份。</p>
+      <h1>个人主页</h1>
+      <p>展示你的校园交易身份与在售商品，买卖动态一眼可见。</p>
     </div>
 
     <el-card class="user-card">
       <template #header>
         <div class="card-header">
           <el-icon size="24"><User /></el-icon>
-          <span>个人中心</span>
-          <el-button class="edit-profile-btn" type="primary" plain @click="openEditDialog">
-            编辑资料
-          </el-button>
+          <span>我的主页</span>
         </div>
       </template>
 
       <div v-loading="loading" class="user-info">
-        <div class="credit-score-section">
-          <el-alert
-            v-if="creditScoreState === 'forbidden'"
-            title="信用分没有访问权限"
-            type="warning"
-            :closable="false"
-            class="credit-alert"
-          />
-          <el-alert
-            v-else-if="creditScoreState === 'error'"
-            :title="creditScoreError || '信用分获取失败'"
-            type="error"
-            :closable="false"
-            class="credit-alert"
-          />
-          <div class="credit-score">
-            <div class="score-value">{{ creditScoreDisplay }}</div>
-            <div class="score-label">信用接口实时信用分</div>
+        <section class="profile-header">
+          <div class="profile-main">
+            <el-avatar :size="70" :src="profileAvatar" />
+            <div class="profile-text">
+              <div class="name-row">
+                <h2>{{ userInfo.username || '未命名用户' }}</h2>
+                <el-tag :type="getCreditTagType(scoreForDisplay)">信用{{ creditLevelText }}</el-tag>
+              </div>
+              <p>用户编号：{{ userInfo.id || '-' }}</p>
+              <p>注册时间：{{ formatTime(userInfo.createTime) }}</p>
+            </div>
           </div>
-          <el-progress
-            :percentage="progressValue"
-            :stroke-width="10"
-            :color="getCreditColor(scoreForDisplay)"
-            :show-text="false"
-            class="credit-progress"
-          />
-          <div class="score-tag-wrap">
-            <el-tag :type="getCreditTagType(scoreForDisplay)" size="large">信用等级：{{ creditLevelText }}</el-tag>
+          <div class="profile-actions">
+            <el-button class="edit-profile-btn" type="primary" plain @click="openEditDialog">
+              编辑资料
+            </el-button>
+            <el-button type="warning" plain @click="goToProducts">
+              去逛商品广场
+            </el-button>
+            <el-button type="danger" plain @click="handleLogout">
+              退出登录
+            </el-button>
           </div>
-        </div>
+        </section>
 
-        <el-descriptions :column="1" border class="user-details">
-          <el-descriptions-item label="用户编号">
-            {{ userInfo.id || '-' }}
-          </el-descriptions-item>
-          <el-descriptions-item label="用户名">
-            <el-tag type="success">{{ userInfo.username || '-' }}</el-tag>
-          </el-descriptions-item>
-          <el-descriptions-item label="头像">
-            <el-avatar :size="48" :src="profileAvatar" />
-          </el-descriptions-item>
-          <el-descriptions-item label="信用分">
-            <el-tag :type="getCreditTagType(scoreForDisplay)" size="large">
-              {{ creditScoreDisplay }}
-            </el-tag>
-          </el-descriptions-item>
-          <el-descriptions-item label="注册时间">
-            {{ formatTime(userInfo.createTime) }}
-          </el-descriptions-item>
-          <el-descriptions-item label="用户状态">
-            <el-tag :type="userInfo.status === 1 ? 'success' : 'danger'">
-              {{ userInfo.status === 1 ? '正常' : '冻结' }}
-            </el-tag>
-          </el-descriptions-item>
-        </el-descriptions>
-
-        <el-card shadow="never" class="credit-log-card">
-          <template #header>
-            <div class="log-header">信用变动明细</div>
-          </template>
+        <section class="my-products-section">
+          <div class="section-title">
+            <div class="section-title-main">
+              <el-icon><Goods /></el-icon>
+              <span>我发布的商品</span>
+            </div>
+            <span class="section-tip">共 {{ myProducts.length }} 件</span>
+          </div>
 
           <el-alert
-            v-if="creditLogsState === 'forbidden'"
-            title="信用记录没有访问权限"
-            type="warning"
-            :closable="false"
-            class="credit-alert"
-          />
-          <el-alert
-            v-else-if="creditLogsState === 'error'"
-            :title="creditLogsError || '信用记录获取失败'"
+            v-if="productsState === 'error'"
+            :title="productsError || '我的商品加载失败'"
             type="error"
             :closable="false"
             class="credit-alert"
           />
 
-          <el-table
-            v-if="creditLogsState === 'success' && creditLogs.length"
-            :data="creditLogs"
-            border
-            stripe
-            style="width: 100%"
+          <div v-if="productsState === 'success' && myProducts.length" class="all-products-grid">
+            <article
+              v-for="item in myProducts"
+              :key="getCardKey(item)"
+              class="product-item"
+              @click="viewDetail(item)"
+            >
+              <div class="image-container">
+                <img v-if="item.displayImage" :src="item.displayImage" alt="商品图片" />
+                <div v-else class="image-placeholder">暂无图片</div>
+                <div class="card-badges">
+                  <span class="badge" :class="getStatusBadgeClass(item)">{{ getStatusLabel(item) }}</span>
+                  <span class="badge quality-badge">{{ getQualityTag(item) }}</span>
+                </div>
+              </div>
+              <div class="content">
+                <h3 class="title">{{ item.title }}</h3>
+                <p class="description">{{ item.description }}</p>
+                <div class="footer">
+                  <span class="price">¥{{ item.price }}</span>
+                  <span class="selling-point">{{ getSellingPoint(item) }}</span>
+                </div>
+              </div>
+            </article>
+          </div>
+
+          <el-empty
+            v-else-if="productsState === 'success'"
+            description="你还没有发布商品，去发布第一件吧"
           >
-            <el-table-column label="变动分值" width="140" align="center">
-              <template #default="{ row }">
-                <el-tag :type="row.change > 0 ? 'success' : row.change < 0 ? 'danger' : 'info'">
-                  {{ formatChange(row.change) }}
-                </el-tag>
-              </template>
-            </el-table-column>
-            <el-table-column prop="reason" label="变动原因" min-width="220" show-overflow-tooltip />
-            <el-table-column prop="createTime" label="时间" min-width="180">
-              <template #default="{ row }">
-                {{ formatTime(row.createTime) }}
-              </template>
-            </el-table-column>
-          </el-table>
+            <el-button type="primary" @click="router.push('/product/create')">发布商品</el-button>
+          </el-empty>
+        </section>
 
-          <el-empty v-else-if="creditLogsState === 'success'" description="暂无信用记录" />
-        </el-card>
+        <section class="credit-module">
+          <div class="section-title">
+            <div class="section-title-main">
+              <el-icon><DataAnalysis /></el-icon>
+              <span>信用概览</span>
+            </div>
+            <span class="section-tip">辅助参考</span>
+          </div>
 
-        <div class="action-buttons">
-          <el-button type="primary" @click="goToProducts">
-            <el-icon><HomeFilled /></el-icon>
-            返回商品列表
-          </el-button>
-          <el-button type="danger" @click="handleLogout">
-            <el-icon><SwitchButton /></el-icon>
-            退出登录
-          </el-button>
-        </div>
+          <el-row :gutter="16" class="credit-grid">
+            <el-col :xs="24" :md="8">
+              <div class="credit-score-section">
+                <el-alert
+                  v-if="creditScoreState === 'forbidden'"
+                  title="信用分没有访问权限"
+                  type="warning"
+                  :closable="false"
+                  class="credit-alert"
+                />
+                <el-alert
+                  v-else-if="creditScoreState === 'error'"
+                  :title="creditScoreError || '信用分获取失败'"
+                  type="error"
+                  :closable="false"
+                  class="credit-alert"
+                />
+                <div class="credit-score">
+                  <div class="score-value">{{ creditScoreDisplay }}</div>
+                  <div class="score-label">信用分</div>
+                </div>
+                <el-progress
+                  :percentage="progressValue"
+                  :stroke-width="8"
+                  :color="getCreditColor(scoreForDisplay)"
+                  :show-text="false"
+                  class="credit-progress"
+                />
+              </div>
+            </el-col>
+            <el-col :xs="24" :md="16">
+              <el-card shadow="never" class="credit-log-card">
+                <template #header>
+                  <div class="log-header">信用变动明细</div>
+                </template>
+
+                <el-alert
+                  v-if="creditLogsState === 'forbidden'"
+                  title="信用记录没有访问权限"
+                  type="warning"
+                  :closable="false"
+                  class="credit-alert"
+                />
+                <el-alert
+                  v-else-if="creditLogsState === 'error'"
+                  :title="creditLogsError || '信用记录获取失败'"
+                  type="error"
+                  :closable="false"
+                  class="credit-alert"
+                />
+
+                <el-table
+                  v-if="creditLogsState === 'success' && creditLogs.length"
+                  :data="creditLogs"
+                  border
+                  stripe
+                  style="width: 100%"
+                >
+                  <el-table-column label="变动分值" width="120" align="center">
+                    <template #default="{ row }">
+                      <el-tag :type="row.change > 0 ? 'success' : row.change < 0 ? 'danger' : 'info'">
+                        {{ formatChange(row.change) }}
+                      </el-tag>
+                    </template>
+                  </el-table-column>
+                  <el-table-column prop="reason" label="变动原因" min-width="180" show-overflow-tooltip />
+                  <el-table-column prop="createTime" label="时间" min-width="160">
+                    <template #default="{ row }">
+                      {{ formatTime(row.createTime) }}
+                    </template>
+                  </el-table-column>
+                </el-table>
+
+                <el-empty v-else-if="creditLogsState === 'success'" description="暂无信用记录" />
+              </el-card>
+            </el-col>
+          </el-row>
+        </section>
       </div>
     </el-card>
 
@@ -162,8 +211,9 @@
 import { computed, ref, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import { User, HomeFilled, SwitchButton } from '@element-plus/icons-vue'
+import { User, DataAnalysis, Goods } from '@element-plus/icons-vue'
 import { updateMyProfile } from '../api/user'
+import { getProductList } from '../api/product'
 import { getCreditLogs, getCreditScore } from '../api/credit'
 import {
   AUTH_CHANGED_EVENT,
@@ -174,6 +224,7 @@ import {
   setUserInfo
 } from '../utils/user'
 import { getToken, removeToken } from '../utils/request'
+import { getProductStatusMeta, normalizeProductResponseList } from '../utils/productNormalizer'
 import defaultAvatar from '../assets/default-avatar.svg'
 
 const router = useRouter()
@@ -184,6 +235,9 @@ const creditScoreState = ref('idle')
 const creditLogsState = ref('idle')
 const creditScoreError = ref('')
 const creditLogsError = ref('')
+const myProducts = ref([])
+const productsState = ref('idle')
+const productsError = ref('')
 
 const userInfo = ref({
   id: null,
@@ -318,6 +372,32 @@ const fetchCreditLogs = async (userId) => {
   creditLogsState.value = 'success'
 }
 
+const normalizeMineProducts = (products, userId) => {
+  if (!Array.isArray(products)) return []
+
+  const ownFields = products.some((item) =>
+    [item?.sellerId, item?.userId, item?.ownerId, item?.publisherId].some((id) => id !== null && id !== undefined && id !== '')
+  )
+
+  if (!ownFields) {
+    return products
+  }
+
+  return products.filter((item) => {
+    const ownerId = item?.sellerId ?? item?.userId ?? item?.ownerId ?? item?.publisherId ?? null
+    return ownerId !== null && String(ownerId) === String(userId)
+  })
+}
+
+const fetchMyProducts = async (userId) => {
+  productsState.value = 'loading'
+  productsError.value = ''
+  const res = await getProductList({ userId, sellerId: userId })
+  const normalized = normalizeProductResponseList(res)
+  myProducts.value = normalizeMineProducts(normalized, userId)
+  productsState.value = 'success'
+}
+
 const resolveCreditError = (error, fallback) => {
   const status = error?.status || error?.response?.status
   const data = error?.data || error?.response?.data || {}
@@ -334,7 +414,7 @@ const resolveCreditError = (error, fallback) => {
   return { state: 'error', message }
 }
 
-const fetchCreditData = async () => {
+const fetchPageData = async () => {
   const token = getToken()
   const userId = getUserId() ?? userInfo.value.id
   if (!token || !userId) {
@@ -344,6 +424,15 @@ const fetchCreditData = async () => {
   }
 
   loading.value = true
+
+  try {
+    await fetchMyProducts(userId)
+  } catch (error) {
+    productsState.value = 'error'
+    productsError.value = error?.response?.data?.message || error?.message || '获取我的商品失败'
+    myProducts.value = []
+  }
+
   try {
     await fetchCreditScore(userId)
   } catch (error) {
@@ -388,6 +477,47 @@ const getCreditTagType = (score) => {
   return 'danger'
 }
 
+const getProductId = (item) => {
+  if (!item || typeof item !== 'object') return null
+  return item.id ?? item.productId ?? item.goodsId ?? item.product_id ?? null
+}
+
+const getCardKey = (item) => {
+  const id = getProductId(item)
+  return id ?? `${item?.title || 'product'}-${item?.price || '0'}-${item?.displayImage || 'noimg'}`
+}
+
+const getStatusMeta = (item) => getProductStatusMeta(item?.status)
+const getStatusLabel = (item) => getStatusMeta(item).label
+
+const getStatusBadgeClass = (item) => {
+  const type = getStatusMeta(item).type
+  if (type === 'sold') return 'sold-badge'
+  if (type === 'off-shelf') return 'off-shelf-badge'
+  return 'sale-badge'
+}
+
+const getQualityTag = (item) => {
+  const text = `${item.title || ''} ${item.description || ''}`
+  if (/全新|未拆|未使用/.test(text)) return '近全新'
+  if (/95新|九五新|9成新/.test(text)) return '9成新'
+  if (/8成新|七成新|旧/.test(text)) return '实用型'
+  return '成色良好'
+}
+
+const getSellingPoint = (item) => {
+  const num = Number(item.price)
+  if (!Number.isNaN(num) && num <= 50) return '学生友好价'
+  if (!Number.isNaN(num) && num <= 300) return '性价比不错'
+  return '可小刀详聊'
+}
+
+const viewDetail = (item) => {
+  const id = getProductId(item)
+  if (!id) return
+  router.push({ name: 'product-detail', params: { id } })
+}
+
 const goToProducts = () => {
   router.push('/products')
 }
@@ -402,12 +532,12 @@ const handleLogout = () => {
 
 const syncAuthState = () => {
   loadUserInfo()
-  fetchCreditData()
+  fetchPageData()
 }
 
 onMounted(() => {
   loadUserInfo()
-  fetchCreditData()
+  fetchPageData()
   window.addEventListener(AUTH_CHANGED_EVENT, syncAuthState)
 })
 
@@ -424,8 +554,8 @@ onUnmounted(() => {
 }
 
 .page-hero {
-  margin-bottom: 22px;
-  padding: 24px 28px;
+  margin-bottom: 20px;
+  padding: 22px 26px;
   border-radius: 16px;
   border: 1px solid #efdca8;
   background: linear-gradient(135deg, #fffef8 0%, #fff4cf 100%);
@@ -433,13 +563,13 @@ onUnmounted(() => {
 
 .page-hero h1 {
   margin: 0;
-  font-size: 34px;
+  font-size: 32px;
   color: #3d3220;
 }
 
 .page-hero p {
-  margin: 10px 0 0;
-  font-size: 16px;
+  margin: 8px 0 0;
+  font-size: 15px;
   color: #7a6740;
 }
 
@@ -450,15 +580,11 @@ onUnmounted(() => {
 }
 
 .user-card :deep(.el-card__header) {
-  padding: 18px 24px;
+  padding: 16px 24px;
 }
 
 .user-card :deep(.el-card__body) {
-  padding: 24px;
-}
-
-.credit-alert {
-  margin-bottom: 12px;
+  padding: 22px;
 }
 
 .card-header {
@@ -470,57 +596,221 @@ onUnmounted(() => {
   color: #4a3915;
 }
 
-.edit-profile-btn {
-  margin-left: auto;
+.user-info {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
 }
 
-.user-info {
-  padding: 4px 0;
+.profile-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 18px;
+  align-items: center;
+  padding: 16px;
+  border-radius: 12px;
+  border: 1px solid #f0e3be;
+  background: #fffdf6;
+}
+
+.profile-main {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+}
+
+.profile-text h2 {
+  margin: 0;
+  font-size: 24px;
+  color: #3d3220;
+}
+
+.profile-text p {
+  margin: 4px 0 0;
+  color: #7c6b45;
+  font-size: 14px;
+}
+
+.name-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.profile-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.section-title {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.section-title-main {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 18px;
+  font-weight: 600;
+  color: #4a3915;
+}
+
+.section-tip {
+  font-size: 13px;
+  color: #8e7e56;
+}
+
+.my-products-section,
+.credit-module {
+  border: 1px solid #f0e4c5;
+  border-radius: 12px;
+  padding: 16px;
+}
+
+.all-products-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 16px;
+}
+
+.product-item {
+  border: 1px solid #f3e7cb;
+  border-radius: 14px;
+  overflow: hidden;
+  background: #fff;
+  cursor: pointer;
+  transition: all .2s ease;
+}
+
+.product-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(163, 132, 59, 0.16);
+}
+
+.image-container {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  background: #f8f3e6;
+  overflow: hidden;
+}
+
+.image-container img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.image-placeholder {
+  width: 100%;
+  height: 100%;
+  display: grid;
+  place-items: center;
+  color: #9c8c64;
+  font-size: 14px;
+}
+
+.card-badges {
+  position: absolute;
+  left: 10px;
+  right: 10px;
+  bottom: 10px;
+  display: flex;
+  gap: 8px;
+}
+
+.badge {
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  color: #fff;
+  background: #67c23a;
+}
+
+.sale-badge { background: #67c23a; }
+.sold-badge { background: #f56c6c; }
+.off-shelf-badge { background: #909399; }
+.quality-badge { background: rgba(61, 50, 32, 0.78); }
+
+.content {
+  padding: 12px;
+}
+
+.title {
+  margin: 0;
+  font-size: 15px;
+  color: #2d2a23;
+}
+
+.description {
+  margin: 6px 0 10px;
+  color: #7f7768;
+  font-size: 13px;
+  line-height: 1.45;
+  min-height: 38px;
+}
+
+.footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.price {
+  color: #e36a00;
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.selling-point {
+  color: #9b7d38;
+  font-size: 12px;
+}
+
+.credit-grid {
+  align-items: stretch;
 }
 
 .credit-score-section {
   text-align: center;
-  margin-bottom: 28px;
-  padding: 24px;
-  background: linear-gradient(135deg, #fffef8 0%, #fff1c5 100%);
+  height: 100%;
+  padding: 18px 14px;
+  background: linear-gradient(135deg, #fffef8 0%, #fff5d8 100%);
   border: 1px solid #efdba1;
-  border-radius: 8px;
+  border-radius: 10px;
   color: #3d3526;
 }
 
 .credit-score {
-  margin-bottom: 15px;
+  margin-bottom: 12px;
 }
 
 .score-value {
-  font-size: 56px;
+  font-size: 40px;
   font-weight: 700;
   line-height: 1;
 }
 
 .score-label {
-  font-size: 18px;
-  margin-top: 10px;
+  font-size: 14px;
+  margin-top: 8px;
   color: #7b6541;
 }
 
-.score-tag-wrap {
-  margin-top: 16px;
-}
-
 .credit-progress {
-  max-width: 520px;
+  max-width: 280px;
   margin: 0 auto;
 }
 
-.user-details {
-  margin-bottom: 20px;
-}
-
 .credit-log-card {
-  margin-bottom: 30px;
   border: 1px solid #f0e4c5;
-  border-radius: 12px;
+  border-radius: 10px;
+  min-height: 100%;
 }
 
 .log-header {
@@ -528,63 +818,28 @@ onUnmounted(() => {
   color: #4b3a16;
 }
 
-:deep(.el-descriptions__label) {
-  font-weight: 600;
-  width: 120px;
-}
-
-:deep(.el-descriptions__content) {
-  font-size: 15px;
-}
-
-.action-buttons {
-  display: flex;
-  gap: 15px;
-  justify-content: center;
-}
-
-.action-buttons .el-button {
-  min-width: 150px;
-  font-size: 16px;
-  padding: 12px 24px;
-}
-
-.action-buttons .el-button .el-icon {
-  margin-right: 8px;
-}
-
-.action-buttons :deep(.el-button--primary) {
-  background: #ffd45a;
-  border-color: #ffd45a;
-  color: #3c3c3c;
-}
-
-.action-buttons :deep(.el-button--primary:hover) {
-  background: #ffca33;
-  border-color: #ffca33;
+.credit-alert {
+  margin-bottom: 10px;
 }
 
 @media (max-width: 992px) {
-  .personal-center {
-    max-width: 100%;
-    padding: 4px 0 16px;
+  .profile-header {
+    flex-direction: column;
+    align-items: flex-start;
   }
 
-  .page-hero {
-    padding: 18px 20px;
+  .profile-actions {
+    justify-content: flex-start;
   }
+}
 
+@media (max-width: 768px) {
   .page-hero h1 {
     font-size: 28px;
   }
 
-  .user-card :deep(.el-card__header),
-  .user-card :deep(.el-card__body) {
-    padding: 16px;
-  }
-
-  .action-buttons {
-    flex-wrap: wrap;
+  .all-products-grid {
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
   }
 }
 </style>
