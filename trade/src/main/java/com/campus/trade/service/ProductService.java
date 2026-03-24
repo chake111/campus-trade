@@ -13,7 +13,7 @@ public interface ProductService {
     /**
      * 获取商品列表
      */
-    List<Product> getList();
+    List<Product> getList(String keyword, Long ownerUserId);
 
     /**
      * 根据关键字搜索商品
@@ -27,4 +27,3 @@ public interface ProductService {
      */
     Product getDetail(Long id);
 }
-

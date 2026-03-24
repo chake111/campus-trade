@@ -42,13 +42,22 @@ public class ProductController {
     }
 
     @GetMapping("/product/list")
-    public Result<List<Product>> list(@RequestParam(required = false) String keyword) {
-        List<Product> products;
-        if (keyword == null || keyword.trim().isEmpty()) {
-            products = productService.getList();
-        } else {
-            products = productService.searchByKeyword(keyword);
+    public Result<List<Product>> list(@RequestParam(required = false) String keyword,
+                                      @RequestParam(required = false) Long userId,
+                                      @RequestParam(required = false) Long sellerId,
+                                      Authentication authentication) {
+        Long ownerUserId = sellerId != null ? sellerId : userId;
+        if (ownerUserId != null) {
+            Long currentUserId = SecurityUtil.currentUserId(authentication);
+            SystemRole currentRole = SecurityUtil.currentRole(authentication);
+            if (currentUserId == null) {
+                return Result.error(401, "请先登录后查看我的商品");
+            }
+            if (currentRole != SystemRole.ADMIN && !ownerUserId.equals(currentUserId)) {
+                return Result.error(403, "没有访问权限");
+            }
         }
+        List<Product> products = productService.getList(keyword, ownerUserId);
         return Result.success(products);
     }
 

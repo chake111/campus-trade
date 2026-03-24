@@ -238,29 +238,11 @@ const fetchCreditScore = async (userId) => {
   creditScore.value = normalizeCreditScore(res)
 }
 
-const normalizeMineProducts = (products, userId) => {
-  if (!Array.isArray(products)) return []
-
-  const ownFields = products.some((item) =>
-    [item?.sellerId, item?.userId, item?.ownerId, item?.publisherId].some((id) => id !== null && id !== undefined && id !== '')
-  )
-
-  if (!ownFields) {
-    return products
-  }
-
-  return products.filter((item) => {
-    const ownerId = item?.sellerId ?? item?.userId ?? item?.ownerId ?? item?.publisherId ?? null
-    return ownerId !== null && String(ownerId) === String(userId)
-  })
-}
-
 const fetchMyProducts = async (userId) => {
   productsState.value = 'loading'
   productsError.value = ''
-  const res = await getProductList({ userId, sellerId: userId })
-  const normalized = normalizeProductResponseList(res)
-  myProducts.value = normalizeMineProducts(normalized, userId)
+  const res = await getProductList({ sellerId: userId })
+  myProducts.value = normalizeProductResponseList(res)
   productsState.value = 'success'
 }
 

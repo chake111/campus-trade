@@ -14,5 +14,7 @@ public interface ProductMapper {
 
     List<Product> selectByKeyword(@Param("keyword") String keyword);
 
+    List<Product> selectList(@Param("keyword") String keyword, @Param("ownerUserId") Long ownerUserId);
+
     Product selectById(@Param("id") Long id);
 }

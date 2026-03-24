@@ -44,7 +44,25 @@
         SELECT id, title, description, trade_location, image, price, user_id, status, create_time
         FROM `product`
         WHERE (title LIKE CONCAT('%', #{keyword}, '%') OR description LIKE CONCAT('%', #{keyword}, '%'))
-          AND status = 1
+          AND (status = 1 OR status IS NULL)
+    </select>
+
+    <select id="selectList" resultMap="ProductResultMap">
+        SELECT id, title, description, trade_location, image, price, user_id, status, create_time
+        FROM `product`
+        <where>
+            <if test="keyword != null and keyword != ''">
+                (title LIKE CONCAT('%', #{keyword}, '%') OR description LIKE CONCAT('%', #{keyword}, '%'))
+            </if>
+            <choose>
+                <when test="ownerUserId != null">
+                    AND user_id = #{ownerUserId}
+                </when>
+                <otherwise>
+                    AND (status = 1 OR status IS NULL)
+                </otherwise>
+            </choose>
+        </where>
     </select>
 
     <select id="selectById" resultMap="ProductResultMap" parameterType="long">
