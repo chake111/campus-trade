@@ -9,6 +9,7 @@ import PersonalCenterView from '../views/PersonalCenterView.vue'
 import DashboardView from '../views/DashboardView.vue'
 import ForbiddenView from '../views/ForbiddenView.vue'
 import NotFoundView from '../views/NotFoundView.vue'
+import ConsultView from '../views/ConsultView.vue'
 import { getToken } from '../utils/request'
 import { getUserInfo, hasRole, hasValidAuthState, ROLE_ADMIN } from '../utils/user'
 
@@ -46,6 +47,13 @@ const router = createRouter({
       path: '/orders',
       name: 'orders',
       component: OrderListView,
+      meta: { requiresAuth: true },
+    },
+
+    {
+      path: '/messages',
+      name: 'messages',
+      component: ConsultView,
       meta: { requiresAuth: true },
     },
     {
