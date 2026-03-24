@@ -81,6 +81,7 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
+    @Transactional
     @CreditChanges({
         @CreditChange(onStatus = OrderStatus.FINISHED, value = 2, reason = "订单完成奖励 (#{orderId})"),
         @CreditChange(onStatus = OrderStatus.CANCELLED, value = -3, reason = "订单取消扣除 (#{orderId})")
@@ -105,7 +106,11 @@ public class OrderServiceImpl implements OrderService {
 
         // 更新订单状态
         int result = orderMapper.updateStatus(orderId, newStatus);
-        
+
+        if (result > 0 && newStatus == OrderStatus.FINISHED) {
+            productMapper.updateStatusById(order.getProductId(), 0);
+        }
+
         return result > 0;
     }
 
