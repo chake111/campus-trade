@@ -5,6 +5,7 @@ import { ElMessage } from 'element-plus'
 import { House, Plus, Search, Tickets, User, DataAnalysis, ChatDotRound } from '@element-plus/icons-vue'
 import { getToken, removeToken } from './utils/request'
 import { AUTH_CHANGED_EVENT, dispatchAuthChanged, getUserInfo, hasValidAuthState, isAdmin, removeUserInfo } from './utils/user'
+import { getConsultUnreadCount } from './api/consult'
 import CampusLogo from './components/CampusLogo.vue'
 import defaultAvatar from './assets/default-avatar.svg'
 
@@ -32,6 +33,9 @@ const navAvatar = computed(() => {
   return avatar || defaultAvatar
 })
 const navSearchKeyword = ref('')
+const consultUnreadCount = ref(0)
+const consultUnreadLoading = ref(false)
+let unreadPollingTimer = null
 
 const showFloatingCapsule = computed(() => {
   return !route.path.startsWith('/login') && !route.path.startsWith('/register')
@@ -100,14 +104,61 @@ function handleLogout() {
   router.push('/products')
 }
 
+async function refreshConsultUnreadCount() {
+  if (!isLoggedIn.value || consultUnreadLoading.value) {
+    consultUnreadCount.value = 0
+    return
+  }
+  consultUnreadLoading.value = true
+  try {
+    const res = await getConsultUnreadCount()
+    consultUnreadCount.value = Number(res?.data || 0)
+  } catch (error) {
+    consultUnreadCount.value = 0
+  } finally {
+    consultUnreadLoading.value = false
+  }
+}
+
+function startUnreadPolling() {
+  stopUnreadPolling()
+  if (!isLoggedIn.value) return
+  unreadPollingTimer = window.setInterval(() => {
+    refreshConsultUnreadCount()
+  }, 5000)
+}
+
+function stopUnreadPolling() {
+  if (!unreadPollingTimer) return
+  window.clearInterval(unreadPollingTimer)
+  unreadPollingTimer = null
+}
+
 onMounted(() => {
   syncAuthState()
   window.addEventListener(AUTH_CHANGED_EVENT, syncAuthState)
+  refreshConsultUnreadCount()
+  startUnreadPolling()
 })
 
 onUnmounted(() => {
   window.removeEventListener(AUTH_CHANGED_EVENT, syncAuthState)
+  stopUnreadPolling()
 })
+
+watch(isLoggedIn, () => {
+  refreshConsultUnreadCount()
+  startUnreadPolling()
+})
+
+watch(
+  () => route.path,
+  () => {
+    if (isLoggedIn.value) {
+      refreshConsultUnreadCount()
+    }
+  }
+)
 
 watch(
   () => route.query.keyword,
@@ -170,7 +221,10 @@ watch(
         <el-icon><Tickets /></el-icon>
         <span>我的订单</span>
       </button>
-      <button class="capsule-item" type="button" @click="goMessages">
+      <button class="capsule-item capsule-item--with-badge" type="button" @click="goMessages">
+        <span v-if="isLoggedIn && consultUnreadCount > 0" class="unread-badge">
+          {{ consultUnreadCount > 99 ? '99+' : consultUnreadCount }}
+        </span>
         <el-icon><ChatDotRound /></el-icon>
         <span>商品咨询</span>
       </button>
@@ -339,6 +393,26 @@ watch(
   padding: 0 10px;
   font-size: 12px;
   cursor: pointer;
+}
+
+.capsule-item--with-badge {
+  position: relative;
+}
+
+.unread-badge {
+  position: absolute;
+  top: 6px;
+  right: 14px;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  border-radius: 999px;
+  background: #f56c6c;
+  color: #fff;
+  font-size: 10px;
+  line-height: 16px;
+  text-align: center;
+  box-shadow: 0 0 0 2px #fff;
 }
 
 .capsule-item:hover {

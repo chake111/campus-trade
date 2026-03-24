@@ -1,6 +1,7 @@
 package com.campus.trade.mapper;
 
 import com.campus.trade.entity.ConsultSession;
+import java.time.LocalDateTime;
 import java.util.List;
 import org.apache.ibatis.annotations.Param;
 
@@ -13,4 +14,11 @@ public interface ConsultSessionMapper {
     int insert(ConsultSession session);
 
     List<ConsultSession> selectByParticipant(@Param("userId") Long userId);
+
+    int markSessionRead(
+            @Param("sessionId") Long sessionId,
+            @Param("userId") Long userId,
+            @Param("readTime") LocalDateTime readTime);
+
+    int countUnreadSessions(@Param("userId") Long userId);
 }

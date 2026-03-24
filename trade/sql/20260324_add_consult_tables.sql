@@ -3,6 +3,8 @@ CREATE TABLE IF NOT EXISTS consult_session (
   product_id BIGINT NOT NULL,
   buyer_id BIGINT NOT NULL,
   seller_id BIGINT NOT NULL,
+  buyer_last_read_time DATETIME NULL,
+  seller_last_read_time DATETIME NULL,
   create_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   UNIQUE KEY uk_consult_session_product_buyer (product_id, buyer_id),
   KEY idx_consult_session_buyer (buyer_id),

@@ -14,6 +14,8 @@ public class ConsultSession {
     private Long productId;
     private Long buyerId;
     private Long sellerId;
+    private LocalDateTime buyerLastReadTime;
+    private LocalDateTime sellerLastReadTime;
     private LocalDateTime createTime;
     private String productTitle;
     private String lastMessage;

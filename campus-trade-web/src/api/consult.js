@@ -22,6 +22,13 @@ export function getConsultMessages(sessionId) {
   })
 }
 
+export function getConsultUnreadCount() {
+  return request({
+    url: '/api/consult/sessions/unread-count',
+    method: 'get',
+  })
+}
+
 export function sendConsultMessage(sessionId, content) {
   return request({
     url: `/api/consult/sessions/${sessionId}/messages`,

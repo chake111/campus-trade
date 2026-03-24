@@ -6,6 +6,7 @@ import com.campus.trade.entity.Product;
 import com.campus.trade.mapper.ConsultMessageMapper;
 import com.campus.trade.mapper.ConsultSessionMapper;
 import com.campus.trade.mapper.ProductMapper;
+import java.time.LocalDateTime;
 import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -59,6 +60,9 @@ public class ConsultServiceImpl implements ConsultService {
         session.setProductId(productId);
         session.setBuyerId(buyerId);
         session.setSellerId(product.getUserId());
+        LocalDateTime now = LocalDateTime.now();
+        session.setBuyerLastReadTime(now);
+        session.setSellerLastReadTime(now);
         consultSessionMapper.insert(session);
         session.setProductTitle(product.getTitle());
         return session;
@@ -75,7 +79,9 @@ public class ConsultServiceImpl implements ConsultService {
     @Override
     public List<ConsultMessage> listSessionMessages(Long sessionId, Long currentUserId) {
         ConsultSession session = requireParticipantSession(sessionId, currentUserId);
-        return consultMessageMapper.selectBySessionId(session.getId());
+        List<ConsultMessage> messages = consultMessageMapper.selectBySessionId(session.getId());
+        consultSessionMapper.markSessionRead(session.getId(), currentUserId, LocalDateTime.now());
+        return messages;
     }
 
     @Override
@@ -95,6 +101,14 @@ public class ConsultServiceImpl implements ConsultService {
         message.setContent(normalized);
         consultMessageMapper.insert(message);
         return message;
+    }
+
+    @Override
+    public int countUnreadSessions(Long userId) {
+        if (userId == null) {
+            throw new IllegalArgumentException("请先登录");
+        }
+        return consultSessionMapper.countUnreadSessions(userId);
     }
 
     private ConsultSession requireParticipantSession(Long sessionId, Long userId) {

@@ -9,6 +9,8 @@
         <result column="product_id" property="productId"/>
         <result column="buyer_id" property="buyerId"/>
         <result column="seller_id" property="sellerId"/>
+        <result column="buyer_last_read_time" property="buyerLastReadTime"/>
+        <result column="seller_last_read_time" property="sellerLastReadTime"/>
         <result column="create_time" property="createTime"/>
         <result column="product_title" property="productTitle"/>
         <result column="last_message" property="lastMessage"/>
@@ -16,13 +18,13 @@
     </resultMap>
 
     <select id="selectById" resultMap="ConsultSessionResultMap">
-        SELECT id, product_id, buyer_id, seller_id, create_time
+        SELECT id, product_id, buyer_id, seller_id, buyer_last_read_time, seller_last_read_time, create_time
         FROM consult_session
         WHERE id = #{id}
     </select>
 
     <select id="selectByProductAndBuyer" resultMap="ConsultSessionResultMap">
-        SELECT id, product_id, buyer_id, seller_id, create_time
+        SELECT id, product_id, buyer_id, seller_id, buyer_last_read_time, seller_last_read_time, create_time
         FROM consult_session
         WHERE product_id = #{productId}
           AND buyer_id = #{buyerId}
@@ -30,11 +32,13 @@
     </select>
 
     <insert id="insert" parameterType="com.campus.trade.entity.ConsultSession" useGeneratedKeys="true" keyProperty="id">
-        INSERT INTO consult_session (product_id, buyer_id, seller_id, create_time)
+        INSERT INTO consult_session (product_id, buyer_id, seller_id, buyer_last_read_time, seller_last_read_time, create_time)
         VALUES (
             #{productId},
             #{buyerId},
             #{sellerId},
+            IFNULL(#{buyerLastReadTime}, CURRENT_TIMESTAMP),
+            IFNULL(#{sellerLastReadTime}, CURRENT_TIMESTAMP),
             IFNULL(#{createTime}, CURRENT_TIMESTAMP)
         )
     </insert>
@@ -45,6 +49,8 @@
             cs.product_id,
             cs.buyer_id,
             cs.seller_id,
+            cs.buyer_last_read_time,
+            cs.seller_last_read_time,
             cs.create_time,
             p.title AS product_title,
             cm.content AS last_message,
@@ -60,6 +66,34 @@
         )
         WHERE cs.buyer_id = #{userId} OR cs.seller_id = #{userId}
         ORDER BY COALESCE(cm.create_time, cs.create_time) DESC, cs.id DESC
+    </select>
+
+    <update id="markSessionRead">
+        UPDATE consult_session
+        SET
+            buyer_last_read_time = CASE WHEN buyer_id = #{userId} THEN #{readTime} ELSE buyer_last_read_time END,
+            seller_last_read_time = CASE WHEN seller_id = #{userId} THEN #{readTime} ELSE seller_last_read_time END
+        WHERE id = #{sessionId}
+          AND (buyer_id = #{userId} OR seller_id = #{userId})
+    </update>
+
+    <select id="countUnreadSessions" resultType="int">
+        SELECT COUNT(1)
+        FROM consult_session cs
+        WHERE (cs.buyer_id = #{userId} OR cs.seller_id = #{userId})
+          AND EXISTS (
+              SELECT 1
+              FROM consult_message cm
+              WHERE cm.session_id = cs.id
+                AND cm.sender_id != #{userId}
+                AND cm.create_time > COALESCE(
+                    CASE
+                        WHEN cs.buyer_id = #{userId} THEN cs.buyer_last_read_time
+                        ELSE cs.seller_last_read_time
+                    END,
+                    '1970-01-01 00:00:00'
+                )
+          )
     </select>
 
 </mapper>
