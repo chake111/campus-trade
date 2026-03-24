@@ -85,64 +85,6 @@
           </el-empty>
         </section>
 
-        <section class="credit-module">
-          <div class="section-title">
-            <div class="section-title-main">
-              <el-icon><DataAnalysis /></el-icon>
-              <span>信用概览</span>
-            </div>
-            <span class="section-tip">辅助参考</span>
-          </div>
-
-          <el-row :gutter="16" class="credit-grid">
-            <el-col :span="24">
-              <el-card shadow="never" class="credit-log-card">
-                <template #header>
-                  <div class="log-header">信用变动明细</div>
-                </template>
-
-                <el-alert
-                  v-if="creditLogsState === 'forbidden'"
-                  title="信用记录没有访问权限"
-                  type="warning"
-                  :closable="false"
-                  class="credit-alert"
-                />
-                <el-alert
-                  v-else-if="creditLogsState === 'error'"
-                  :title="creditLogsError || '信用记录获取失败'"
-                  type="error"
-                  :closable="false"
-                  class="credit-alert"
-                />
-
-                <el-table
-                  v-if="creditLogsState === 'success' && creditLogs.length"
-                  :data="creditLogs"
-                  border
-                  stripe
-                  style="width: 100%"
-                >
-                  <el-table-column label="变动分值" width="120" align="center">
-                    <template #default="{ row }">
-                      <el-tag :type="row.change > 0 ? 'success' : row.change < 0 ? 'danger' : 'info'">
-                        {{ formatChange(row.change) }}
-                      </el-tag>
-                    </template>
-                  </el-table-column>
-                  <el-table-column prop="reason" label="变动原因" min-width="180" show-overflow-tooltip />
-                  <el-table-column prop="createTime" label="时间" min-width="160">
-                    <template #default="{ row }">
-                      {{ formatTime(row.createTime) }}
-                    </template>
-                  </el-table-column>
-                </el-table>
-
-                <el-empty v-else-if="creditLogsState === 'success'" description="暂无信用记录" />
-              </el-card>
-            </el-col>
-          </el-row>
-        </section>
       </div>
     </el-card>
 
@@ -177,10 +119,10 @@
 import { computed, ref, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import { User, DataAnalysis, Goods } from '@element-plus/icons-vue'
+import { User, Goods } from '@element-plus/icons-vue'
 import { updateMyProfile } from '../api/user'
 import { getProductList } from '../api/product'
-import { getCreditLogs, getCreditScore } from '../api/credit'
+import { getCreditScore } from '../api/credit'
 import {
   AUTH_CHANGED_EVENT,
   dispatchAuthChanged,
@@ -196,11 +138,6 @@ import defaultAvatar from '../assets/default-avatar.svg'
 const router = useRouter()
 const loading = ref(false)
 const creditScore = ref(null)
-const creditLogs = ref([])
-const creditScoreState = ref('idle')
-const creditLogsState = ref('idle')
-const creditScoreError = ref('')
-const creditLogsError = ref('')
 const myProducts = ref([])
 const productsState = ref('idle')
 const productsError = ref('')
@@ -247,30 +184,6 @@ const normalizeCreditScore = (payload) => {
     toNumber(data?.value, NaN) ||
     0
   )
-}
-
-const normalizeCreditLogs = (payload) => {
-  const data = getApiData(payload)
-  const rawList =
-    (Array.isArray(data) && data) ||
-    (Array.isArray(data?.records) && data.records) ||
-    (Array.isArray(data?.list) && data.list) ||
-    (Array.isArray(data?.data) && data.data) ||
-    []
-
-  return rawList.map((item) => {
-    const change =
-      toNumber(item?.scoreChange, NaN) ||
-      toNumber(item?.changeValue, NaN) ||
-      toNumber(item?.credit, NaN) ||
-      0
-
-    return {
-      change,
-      reason: item?.reason || item?.description || '未提供原因',
-      createTime: item?.createTime || item?.time || ''
-    }
-  })
 }
 
 const loadUserInfo = () => {
@@ -321,19 +234,8 @@ const submitProfile = async () => {
 }
 
 const fetchCreditScore = async (userId) => {
-  creditScoreState.value = 'loading'
-  creditScoreError.value = ''
   const res = await getCreditScore({ userId })
   creditScore.value = normalizeCreditScore(res)
-  creditScoreState.value = 'success'
-}
-
-const fetchCreditLogs = async (userId) => {
-  creditLogsState.value = 'loading'
-  creditLogsError.value = ''
-  const res = await getCreditLogs({ userId })
-  creditLogs.value = normalizeCreditLogs(res)
-  creditLogsState.value = 'success'
 }
 
 const normalizeMineProducts = (products, userId) => {
@@ -362,22 +264,6 @@ const fetchMyProducts = async (userId) => {
   productsState.value = 'success'
 }
 
-const resolveCreditError = (error, fallback) => {
-  const status = error?.status || error?.response?.status
-  const data = error?.data || error?.response?.data || {}
-  const message =
-    data?.message ||
-    data?.data?.message ||
-    error?.message ||
-    fallback
-
-  if (status === 403) {
-    return { state: 'forbidden', message: '当前账号没有信用模块访问权限' }
-  }
-
-  return { state: 'error', message }
-}
-
 const fetchPageData = async () => {
   const token = getToken()
   const userId = getUserId() ?? userInfo.value.id
@@ -399,20 +285,8 @@ const fetchPageData = async () => {
 
   try {
     await fetchCreditScore(userId)
-  } catch (error) {
+  } catch {
     creditScore.value = null
-    const { state, message } = resolveCreditError(error, '获取信用分失败')
-    creditScoreState.value = state
-    creditScoreError.value = message
-  }
-
-  try {
-    await fetchCreditLogs(userId)
-  } catch (error) {
-    const { state, message } = resolveCreditError(error, '获取信用记录失败')
-    creditLogsState.value = state
-    creditLogsError.value = message
-    creditLogs.value = []
   } finally {
     loading.value = false
   }
@@ -422,11 +296,6 @@ const formatTime = (time) => {
   if (!time) return '-'
   if (typeof time !== 'string') return String(time)
   return time.replace('T', ' ')
-}
-
-const formatChange = (change) => {
-  if (change > 0) return `+${change}`
-  return String(change)
 }
 
 const getCreditTagType = (score) => {
@@ -603,8 +472,7 @@ onUnmounted(() => {
   color: #8e7e56;
 }
 
-.my-products-section,
-.credit-module {
+.my-products-section {
   border: 1px solid #f0e4c5;
   border-radius: 12px;
   padding: 16px;
@@ -708,21 +576,6 @@ onUnmounted(() => {
 .selling-point {
   color: #9b7d38;
   font-size: 12px;
-}
-
-.credit-grid {
-  align-items: stretch;
-}
-
-.credit-log-card {
-  border: 1px solid #f0e4c5;
-  border-radius: 10px;
-  min-height: 100%;
-}
-
-.log-header {
-  font-weight: 600;
-  color: #4b3a16;
 }
 
 .credit-alert {
