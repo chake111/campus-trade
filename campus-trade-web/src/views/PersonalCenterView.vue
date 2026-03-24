@@ -1,10 +1,5 @@
 <template>
   <div class="personal-center">
-    <div class="page-hero">
-      <h1>个人主页</h1>
-      <p>展示你的校园交易身份与在售商品，买卖动态一眼可见。</p>
-    </div>
-
     <el-card class="user-card">
       <template #header>
         <div class="card-header">
@@ -551,26 +546,6 @@ onUnmounted(() => {
   max-width: 1320px;
   margin: 10px auto 26px;
   padding: 12px 8px 24px;
-}
-
-.page-hero {
-  margin-bottom: 20px;
-  padding: 22px 26px;
-  border-radius: 16px;
-  border: 1px solid #efdca8;
-  background: linear-gradient(135deg, #fffef8 0%, #fff4cf 100%);
-}
-
-.page-hero h1 {
-  margin: 0;
-  font-size: 32px;
-  color: #3d3220;
-}
-
-.page-hero p {
-  margin: 8px 0 0;
-  font-size: 15px;
-  color: #7a6740;
 }
 
 .user-card {
