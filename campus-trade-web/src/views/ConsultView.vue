@@ -23,8 +23,8 @@
               :class="{ active: String(activeSessionId) === String(item.id) }"
               @click="selectSession(item.id)"
             >
-              <div class="session-title">{{ item.productTitle || `商品 #${item.productId}` }}</div>
-              <div class="session-meta">买家 {{ item.buyerId }} · 卖家 {{ item.sellerId }}</div>
+              <el-avatar :size="44" :src="counterpartAvatar" />
+              <div class="session-title">{{ counterpartName }}</div>
               <div class="session-last">{{ item.lastMessage || '暂无消息，开始咨询吧' }}</div>
             </button>
           </el-scrollbar>
@@ -33,17 +33,6 @@
         <section class="message-panel">
           <el-empty v-if="!activeSessionId" description="请选择左侧会话" />
           <template v-else>
-            <div v-if="activeSession" class="counterpart-header">
-              <el-avatar :size="44" :src="counterpartAvatar" />
-              <div class="counterpart-main">
-                <div class="counterpart-name">{{ counterpartName }}</div>
-                <div class="counterpart-meta">
-                  <span>{{ counterpartRoleLabel }}</span>
-                  <span v-if="activeSession.productTitle">｜{{ activeSession.productTitle }}</span>
-                </div>
-              </div>
-            </div>
-
             <div v-if="activeSession" class="product-context">
               <img
                 v-if="activeSession.productImage"

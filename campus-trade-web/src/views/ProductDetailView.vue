@@ -44,11 +44,6 @@
             <span class="trade-location-chip">校内交易地点：{{ tradeLocationText }}</span>
           </div>
 
-          <el-descriptions :column="1" border class="meta-info">
-            <el-descriptions-item label="商品ID">{{ product.id || routeProductId }}</el-descriptions-item>
-            <el-descriptions-item label="卖家ID">{{ sellerIdDisplay }}</el-descriptions-item>
-          </el-descriptions>
-
           <div class="description-block">
             <div class="block-title">商品描述</div>
             <p>{{ product.description || '卖家暂无描述信息' }}</p>
