@@ -66,7 +66,7 @@ public class ProductServiceImpl implements ProductService {
         
         // 2. 缓存未命中，查询数据库
         System.out.println("缓存未命中，查询数据库获取商品列表");
-        List<Product> products = productMapper.selectAll();
+        List<Product> products = productMapper.selectOnSale();
         
         // 3. 查询成功后存入 Redis 缓存
         if (products != null && !products.isEmpty()) {
@@ -102,7 +102,7 @@ public class ProductServiceImpl implements ProductService {
         
         // 2. 缓存未命中，查询数据库
         System.out.println("缓存未命中，查询数据库获取搜索结果: " + keyword);
-        List<Product> products = productMapper.selectByKeyword(keyword.trim());
+        List<Product> products = productMapper.selectOnSaleByKeyword(keyword.trim());
         
         // 3. 查询成功后存入 Redis 缓存
         if (products != null && !products.isEmpty()) {
@@ -116,6 +116,17 @@ public class ProductServiceImpl implements ProductService {
         }
         
         return products;
+    }
+
+    @Override
+    public List<Product> getMyProducts(Long userId, String keyword) {
+        if (userId == null) {
+            throw new IllegalArgumentException("用户未登录");
+        }
+        if (keyword == null || keyword.trim().isEmpty()) {
+            return productMapper.selectByUserId(userId);
+        }
+        return productMapper.selectByUserIdAndKeyword(userId, keyword.trim());
     }
 
     @Override

@@ -23,8 +23,12 @@ public interface ProductService {
     List<Product> searchByKeyword(String keyword);
 
     /**
+     * 获取当前用户发布的全部商品（包含非在售）
+     */
+    List<Product> getMyProducts(Long userId, String keyword);
+
+    /**
      * 获取商品详情
      */
     Product getDetail(Long id);
 }
-
