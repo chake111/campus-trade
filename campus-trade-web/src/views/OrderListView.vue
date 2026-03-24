@@ -1,10 +1,5 @@
 <template>
   <div class="order-list">
-    <div class="header page-hero">
-      <h1>我的订单</h1>
-      <p>统一查看买入与卖出订单，状态清晰、流程可追踪。</p>
-    </div>
-
     <div class="order-flow" v-loading="loading">
       <div class="toolbar">
         <el-radio-group v-model="activeRole" size="default" @change="handleRoleChange">
@@ -388,30 +383,6 @@ onMounted(() => {
   padding: 12px 8px 24px;
 }
 
-.header {
-  margin-bottom: 22px;
-}
-
-.page-hero {
-  padding: 24px 28px;
-  border-radius: 16px;
-  border: 1px solid var(--theme-border);
-  background: linear-gradient(135deg, #fffef8 0%, var(--theme-primary-soft-2) 100%);
-}
-
-.header h1 {
-  font-size: 34px;
-  font-weight: 600;
-  color: var(--theme-text-primary);
-  margin: 0;
-}
-
-.header p {
-  margin: 10px 0 0;
-  font-size: 16px;
-  color: var(--theme-text-secondary);
-}
-
 .order-flow {
   background: var(--theme-card-bg);
   border-radius: 16px;
@@ -617,14 +588,6 @@ onMounted(() => {
   .order-list {
     max-width: 100%;
     padding: 4px 0 16px;
-  }
-
-  .page-hero {
-    padding: 18px 20px;
-  }
-
-  .header h1 {
-    font-size: 28px;
   }
 
   .order-flow {
