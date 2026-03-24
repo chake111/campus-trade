@@ -32,6 +32,15 @@
         </div>
       </div>
 
+      <el-tabs v-model="statusFilter" class="status-tabs">
+        <el-tab-pane
+          v-for="item in statusTabs"
+          :key="item.value"
+          :label="item.label"
+          :name="item.value"
+        />
+      </el-tabs>
+
       <div v-if="filteredOrders.length" class="order-cards">
         <el-card
           v-for="row in filteredOrders"
@@ -169,6 +178,13 @@ const actionLoading = ref({ id: null, status: '' })
 const statusFilter = ref('ALL')
 const keyword = ref('')
 const activeRole = ref(getInitialRole())
+const statusTabs = [
+  { label: '全部', value: 'ALL' },
+  { label: '待支付', value: 'PENDING' },
+  { label: '已支付/待确认', value: 'PAID' },
+  { label: '已完成', value: 'FINISHED' },
+  { label: '已取消', value: 'CANCELLED' },
+]
 
 function getInitialRole() {
   const role = route.query?.role
@@ -197,7 +213,10 @@ const filteredOrders = computed(() => {
   const normalizedKeyword = keyword.value.trim().toLowerCase()
 
   return orders.value.filter((order) => {
-    const statusMatched = statusFilter.value === 'ALL' || order.status === statusFilter.value
+    const statusMatched =
+      statusFilter.value === 'ALL' ||
+      order.status === statusFilter.value ||
+      (statusFilter.value === 'PAID' && order.status === 'CONFIRMED')
     if (!statusMatched) return false
 
     if (!normalizedKeyword) return true
@@ -326,11 +345,17 @@ const handleViewProduct = (order) => {
 
 const handleContact = (order) => {
   const productId = getProductId(order)
+  const counterpartId =
+    activeRole.value === 'buyer' ? (order?.sellerId ?? null) : (order?.userId ?? null)
   if (!productId) {
     ElMessage.warning('未找到商品信息')
     return
   }
-  router.push({ path: '/messages', query: { productId } })
+  if (!counterpartId) {
+    ElMessage.warning('未找到对方用户信息')
+    return
+  }
+  router.push({ path: '/messages', query: { productId, counterpartId, fromOrderId: order?.id } })
 }
 
 const canBuyerOperate = (order) => {
@@ -441,6 +466,10 @@ onMounted(() => {
   align-items: center;
   gap: 12px;
   flex-wrap: wrap;
+}
+
+.status-tabs {
+  margin-bottom: 14px;
 }
 
 .status-filter {

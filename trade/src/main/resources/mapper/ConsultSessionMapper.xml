@@ -13,6 +13,10 @@
         <result column="seller_last_read_time" property="sellerLastReadTime"/>
         <result column="create_time" property="createTime"/>
         <result column="product_title" property="productTitle"/>
+        <result column="product_image" property="productImage"/>
+        <result column="product_price" property="productPrice"/>
+        <result column="product_status" property="productStatus"/>
+        <result column="trade_location" property="tradeLocation"/>
         <result column="last_message" property="lastMessage"/>
         <result column="last_message_time" property="lastMessageTime"/>
     </resultMap>
@@ -53,6 +57,10 @@
             cs.seller_last_read_time,
             cs.create_time,
             p.title AS product_title,
+            p.image AS product_image,
+            p.price AS product_price,
+            p.status AS product_status,
+            p.trade_location AS trade_location,
             cm.content AS last_message,
             cm.create_time AS last_message_time
         FROM consult_session cs

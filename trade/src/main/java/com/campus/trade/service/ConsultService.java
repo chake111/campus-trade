@@ -6,7 +6,7 @@ import java.util.List;
 
 public interface ConsultService {
 
-    ConsultSession ensureSession(Long productId, Long buyerId);
+    ConsultSession ensureSession(Long productId, Long currentUserId, Long counterpartId);
 
     List<ConsultSession> listMySessions(Long userId);
 
