@@ -49,6 +49,16 @@ public class ConsultController {
         return Result.success(sessions);
     }
 
+    @GetMapping("/sessions/unread-count")
+    public Result<Integer> unreadCount(Authentication authentication) {
+        Long currentUserId = SecurityUtil.currentUserId(authentication);
+        if (currentUserId == null) {
+            return Result.error(401, "请先登录");
+        }
+        int unread = consultService.countUnreadSessions(currentUserId);
+        return Result.success(unread);
+    }
+
     @GetMapping("/sessions/{sessionId}/messages")
     public Result<List<ConsultMessage>> listMessages(@PathVariable Long sessionId, Authentication authentication) {
         Long currentUserId = SecurityUtil.currentUserId(authentication);

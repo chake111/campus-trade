@@ -13,4 +13,6 @@ public interface ConsultService {
     List<ConsultMessage> listSessionMessages(Long sessionId, Long currentUserId);
 
     ConsultMessage sendMessage(Long sessionId, Long senderId, String content);
+
+    int countUnreadSessions(Long userId);
 }
