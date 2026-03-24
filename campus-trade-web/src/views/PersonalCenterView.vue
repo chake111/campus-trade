@@ -95,36 +95,7 @@
           </div>
 
           <el-row :gutter="16" class="credit-grid">
-            <el-col :xs="24" :md="8">
-              <div class="credit-score-section">
-                <el-alert
-                  v-if="creditScoreState === 'forbidden'"
-                  title="信用分没有访问权限"
-                  type="warning"
-                  :closable="false"
-                  class="credit-alert"
-                />
-                <el-alert
-                  v-else-if="creditScoreState === 'error'"
-                  :title="creditScoreError || '信用分获取失败'"
-                  type="error"
-                  :closable="false"
-                  class="credit-alert"
-                />
-                <div class="credit-score">
-                  <div class="score-value">{{ creditScoreDisplay }}</div>
-                  <div class="score-label">信用分</div>
-                </div>
-                <el-progress
-                  :percentage="progressValue"
-                  :stroke-width="8"
-                  :color="getCreditColor(scoreForDisplay)"
-                  :show-text="false"
-                  class="credit-progress"
-                />
-              </div>
-            </el-col>
-            <el-col :xs="24" :md="16">
+            <el-col :span="24">
               <el-card shadow="never" class="credit-log-card">
                 <template #header>
                   <div class="log-header">信用变动明细</div>
@@ -250,8 +221,6 @@ const editForm = ref({
 })
 
 const scoreForDisplay = computed(() => (creditScore.value == null ? 0 : Number(creditScore.value) || 0))
-const progressValue = computed(() => Math.max(0, Math.min(scoreForDisplay.value, 100)))
-const creditScoreDisplay = computed(() => (creditScore.value == null ? '-' : scoreForDisplay.value))
 
 const creditLevelText = computed(() => {
   if (creditScore.value == null) return '-'
@@ -458,12 +427,6 @@ const formatTime = (time) => {
 const formatChange = (change) => {
   if (change > 0) return `+${change}`
   return String(change)
-}
-
-const getCreditColor = (score) => {
-  if (score >= 80) return '#67c23a'
-  if (score >= 60) return '#e6a23c'
-  return '#f56c6c'
 }
 
 const getCreditTagType = (score) => {
@@ -749,37 +712,6 @@ onUnmounted(() => {
 
 .credit-grid {
   align-items: stretch;
-}
-
-.credit-score-section {
-  text-align: center;
-  height: 100%;
-  padding: 18px 14px;
-  background: linear-gradient(135deg, #fffef8 0%, #fff5d8 100%);
-  border: 1px solid #efdba1;
-  border-radius: 10px;
-  color: #3d3526;
-}
-
-.credit-score {
-  margin-bottom: 12px;
-}
-
-.score-value {
-  font-size: 40px;
-  font-weight: 700;
-  line-height: 1;
-}
-
-.score-label {
-  font-size: 14px;
-  margin-top: 8px;
-  color: #7b6541;
-}
-
-.credit-progress {
-  max-width: 280px;
-  margin: 0 auto;
 }
 
 .credit-log-card {
