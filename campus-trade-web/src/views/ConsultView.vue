@@ -23,9 +23,31 @@
               :class="{ active: String(activeSessionId) === String(item.id) }"
               @click="selectSession(item.id)"
             >
-              <el-avatar :size="44" :src="counterpartAvatar" />
-              <div class="session-title">{{ counterpartName }}</div>
-              <div class="session-last">{{ item.lastMessage || '暂无消息，开始咨询吧' }}</div>
+              <el-avatar :size="44" :src="getSessionCounterpartAvatar(item)" class="session-avatar" />
+              <div class="session-main">
+                <div class="session-row session-row-top">
+                  <div class="session-title">{{ getSessionCounterpartName(item) }}</div>
+                  <el-tag
+                    size="small"
+                    effect="plain"
+                    :type="getSessionStatusTag(item).type"
+                    class="session-tag"
+                  >
+                    {{ getSessionStatusTag(item).text }}
+                  </el-tag>
+                </div>
+                <div class="session-row session-last">{{ getSessionSubtitle(item) }}</div>
+                <div class="session-row session-meta">{{ getSessionMeta(item) }}</div>
+              </div>
+              <div class="session-thumb-wrap">
+                <img
+                  v-if="item.productImage"
+                  :src="item.productImage"
+                  alt="商品缩略图"
+                  class="session-thumb"
+                />
+                <div v-else class="session-thumb session-thumb-placeholder">无图</div>
+              </div>
             </button>
           </el-scrollbar>
         </aside>
@@ -157,8 +179,79 @@ const formatTime = (value) => {
 const loadSessions = async () => {
   const res = await getMyConsultSessions()
   sessions.value = Array.isArray(res?.data) ? res.data : []
+  await loadSessionCounterpartUsers(sessions.value)
   activeSession.value =
     sessions.value.find((item) => String(item.id) === String(activeSessionId.value)) || null
+}
+
+const getSessionCounterpartId = (session) => {
+  if (!session || currentUserId.value == null) return null
+  if (String(session.buyerId) === String(currentUserId.value)) return session.sellerId ?? null
+  if (String(session.sellerId) === String(currentUserId.value)) return session.buyerId ?? null
+  return null
+}
+
+const loadSessionCounterpartUsers = async (sessionList) => {
+  if (!Array.isArray(sessionList) || !sessionList.length) return
+  const ids = [...new Set(sessionList.map((item) => getSessionCounterpartId(item)).filter(Boolean))]
+  const pendingIds = ids.filter((id) => !userInfoCache.value[String(id)])
+  if (!pendingIds.length) return
+
+  await Promise.all(
+    pendingIds.map(async (id) => {
+      try {
+        const res = await getUserById(id)
+        userInfoCache.value[String(id)] = res?.data || null
+      } catch (error) {
+        userInfoCache.value[String(id)] = null
+      }
+    })
+  )
+}
+
+const getSessionCounterpartUser = (session) => {
+  const id = getSessionCounterpartId(session)
+  if (!id) return null
+  return userInfoCache.value[String(id)] || null
+}
+
+const getSessionCounterpartName = (session) => {
+  const user = getSessionCounterpartUser(session)
+  const name = user?.username?.trim()
+  if (name) return name
+  const id = getSessionCounterpartId(session)
+  return id ? `用户#${id}` : '未知用户'
+}
+
+const getSessionCounterpartAvatar = (session) => {
+  const user = getSessionCounterpartUser(session)
+  const avatar = user?.avatar
+  if (avatar && String(avatar).trim()) return avatar
+  return defaultAvatar
+}
+
+const getSessionStatusTag = (session) => {
+  const productMeta = getProductStatusMeta(session?.productStatus)
+  const hasLastMessage = Boolean(session?.lastMessage && String(session.lastMessage).trim())
+
+  if (productMeta.type === 'sold' || productMeta.type === 'off-shelf') {
+    return { text: '已完成', type: 'success' }
+  }
+  if (hasLastMessage) {
+    return { text: '咨询中', type: 'warning' }
+  }
+  return { text: '待沟通', type: 'info' }
+}
+
+const getSessionSubtitle = (session) => {
+  const last = session?.lastMessage
+  if (last && String(last).trim()) return last
+  return '你们正在沟通这件商品，发条消息推进交易吧'
+}
+
+const getSessionMeta = (session) => {
+  if (session?.lastMessageTime) return formatTime(session.lastMessageTime)
+  return session?.productTitle || `商品 #${session?.productId ?? '--'}`
 }
 
 const scrollToBottom = async () => {
@@ -348,6 +441,10 @@ onUnmounted(() => {
   margin-bottom: 10px;
   padding: 10px;
   cursor: pointer;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  column-gap: 10px;
 }
 
 .session-item.active {
@@ -358,21 +455,74 @@ onUnmounted(() => {
 .session-title {
   font-weight: 600;
   color: #303133;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .session-meta {
-  margin-top: 5px;
+  margin-top: 4px;
   color: #909399;
   font-size: 12px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .session-last {
-  margin-top: 6px;
+  margin-top: 4px;
   font-size: 12px;
   color: #606266;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.session-main {
+  min-width: 0;
+}
+
+.session-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.session-row-top {
+  justify-content: space-between;
+}
+
+.session-tag {
+  flex-shrink: 0;
+}
+
+.session-avatar {
+  flex-shrink: 0;
+}
+
+.session-thumb-wrap {
+  width: 50px;
+  height: 50px;
+  flex-shrink: 0;
+}
+
+.session-thumb {
+  width: 50px;
+  height: 50px;
+  border-radius: 6px;
+  object-fit: cover;
+  border: 1px solid #ebeef5;
+}
+
+.session-thumb-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  color: #909399;
+  background: #f5f7fa;
 }
 
 .message-panel {
