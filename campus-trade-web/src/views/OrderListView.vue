@@ -44,6 +44,19 @@
           class="order-card"
           shadow="hover"
         >
+          <div class="card-top">
+            <div class="aux-meta">
+              <span>{{ getCounterpartLabel(row) }}</span>
+              <span class="dot">·</span>
+              <span>下单时间：{{ formatTime(row.createTime || row.createdAt) }}</span>
+              <span class="dot">·</span>
+              <span>订单号：{{ row.id || '-' }}</span>
+            </div>
+            <el-tag class="status-badge" :type="getStatusType(row.status)" effect="dark" size="large">
+              {{ getStatusText(row.status) }}
+            </el-tag>
+          </div>
+
           <div class="order-main">
             <div class="goods-media">
               <img
@@ -56,37 +69,28 @@
 
             <div class="goods-content">
               <div class="goods-title">{{ getProductTitle(row) }}</div>
-              <div class="goods-price">¥{{ formatPrice(row.product?.price ?? row.productPrice ?? 0) }}</div>
-              <div class="meta-row">
-                <span>{{ getCounterpartLabel(row) }}</span>
-                <span class="dot">·</span>
-                <span>下单时间：{{ formatTime(row.createTime || row.createdAt) }}</span>
-              </div>
-              <div class="meta-row minor">
-                <span>订单号：{{ row.id || '-' }}</span>
+              <div class="goods-price-wrap">
+                <span class="price-label">成交价</span>
+                <span class="goods-price">¥{{ formatPrice(row.product?.price ?? row.productPrice ?? 0) }}</span>
               </div>
             </div>
 
             <div class="order-side">
-              <el-tag :type="getStatusType(row.status)" size="large">
-                {{ getStatusText(row.status) }}
-              </el-tag>
-              <div class="mini-progress">进度：{{ getStepText(row.status) }}</div>
               <div class="actions">
                 <el-button
                   v-if="canBuyerOperate(row) && row.status === 'PENDING'"
                   type="primary"
-                  size="small"
+                  class="action-primary"
                   :loading="isActionLoading(row.id, 'PAID')"
                   :disabled="isAnyActionLoading(row.id)"
                   @click="handleStatusUpdate(row, 'PAID', '支付')"
                 >
-                  支付
+                  去支付
                 </el-button>
                 <el-button
                   v-if="canBuyerOperate(row) && row.status === 'PENDING'"
-                  type="danger"
-                  size="small"
+                  class="action-secondary"
+                  text
                   :loading="isActionLoading(row.id, 'CANCELLED')"
                   :disabled="isAnyActionLoading(row.id)"
                   @click="handleStatusUpdate(row, 'CANCELLED', '取消')"
@@ -96,29 +100,51 @@
                 <el-button
                   v-if="canBuyerOperate(row) && row.status === 'PAID'"
                   type="success"
-                  size="small"
+                  class="action-primary"
                   :loading="isActionLoading(row.id, 'CONFIRMED')"
                   :disabled="isAnyActionLoading(row.id)"
                   @click="handleStatusUpdate(row, 'CONFIRMED', '确认')"
                 >
-                  确认
+                  确认收货
                 </el-button>
                 <el-button
                   v-if="canBuyerOperate(row) && row.status === 'CONFIRMED'"
                   type="warning"
-                  size="small"
+                  class="action-primary"
                   :loading="isActionLoading(row.id, 'FINISHED')"
                   :disabled="isAnyActionLoading(row.id)"
                   @click="handleStatusUpdate(row, 'FINISHED', '完成')"
                 >
-                  完成
+                  完成订单
                 </el-button>
-                <el-tag v-if="row.status === 'FINISHED'" type="success" size="small">
-                  已完成
-                </el-tag>
-                <el-tag v-if="row.status === 'CANCELLED'" type="info" size="small">
-                  已取消
-                </el-tag>
+                <el-button
+                  v-if="!showStatusAction(row)"
+                  type="primary"
+                  class="action-primary"
+                  :disabled="!getProductId(row)"
+                  @click="handleViewProduct(row)"
+                >
+                  查看详情
+                </el-button>
+                <div class="secondary-actions">
+                  <el-button
+                    class="action-secondary"
+                    text
+                    :disabled="!getProductId(row)"
+                    @click="handleContact(row)"
+                  >
+                    联系{{ activeRole === 'buyer' ? '卖家' : '买家' }}
+                  </el-button>
+                  <el-button
+                    v-if="showStatusAction(row)"
+                    class="action-secondary"
+                    text
+                    :disabled="!getProductId(row)"
+                    @click="handleViewProduct(row)"
+                  >
+                    查看详情
+                  </el-button>
+                </div>
               </div>
             </div>
           </div>
@@ -241,17 +267,6 @@ const getStatusText = (status) => {
   return texts[status] || status
 }
 
-const getStepText = (status) => {
-  const steps = {
-    PENDING: '待支付',
-    PAID: '已支付',
-    CONFIRMED: '已确认',
-    FINISHED: '已完成',
-    CANCELLED: '已取消'
-  }
-  return steps[status] || '处理中'
-}
-
 const formatTime = (time) => {
   if (!time) return '-'
   if (typeof time !== 'string') return String(time)
@@ -297,6 +312,31 @@ const formatPrice = (price) => {
   return numericPrice.toFixed(2)
 }
 
+const getProductId = (order) => {
+  return order?.product?.id || order?.productId || null
+}
+
+const showStatusAction = (order) => {
+  return canBuyerOperate(order) && ['PENDING', 'PAID', 'CONFIRMED'].includes(order?.status)
+}
+
+const handleViewProduct = (order) => {
+  const productId = getProductId(order)
+  if (!productId) {
+    ElMessage.warning('未找到商品信息')
+    return
+  }
+  router.push(`/product/${productId}`)
+}
+
+const handleContact = (order) => {
+  const productId = getProductId(order)
+  if (!productId) {
+    ElMessage.warning('未找到商品信息')
+    return
+  }
+  router.push({ path: '/messages', query: { productId } })
+}
 
 const canBuyerOperate = (order) => {
   const currentUserId = Number(getUserId())
@@ -450,19 +490,41 @@ onMounted(() => {
   border: 1px solid var(--el-border-color-lighter);
 }
 
+.card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.aux-meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #909399;
+  font-size: 12px;
+  flex-wrap: wrap;
+}
+
+.status-badge {
+  letter-spacing: 0.5px;
+  font-weight: 700;
+}
+
 .order-main {
   display: grid;
-  grid-template-columns: 132px minmax(0, 1fr) 280px;
-  gap: 16px;
-  align-items: center;
+  grid-template-columns: 152px minmax(0, 1fr) 280px;
+  gap: 18px;
+  align-items: stretch;
 }
 
 .goods-media {
-  width: 132px;
-  height: 132px;
-  border-radius: 10px;
+  width: 152px;
+  height: 152px;
+  border-radius: 12px;
   overflow: hidden;
-  border: 1px solid var(--theme-border);
+  border: 1px solid #f0e2bf;
   background: var(--theme-bg-soft);
   display: flex;
   align-items: center;
@@ -486,32 +548,33 @@ onMounted(() => {
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  justify-content: center;
+  gap: 14px;
 }
 
 .goods-title {
-  font-size: 17px;
-  line-height: 1.4;
-  font-weight: 600;
+  font-size: 20px;
+  line-height: 1.45;
+  font-weight: 700;
   color: var(--theme-text-primary);
 }
 
+.goods-price-wrap {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.price-label {
+  font-size: 13px;
+  color: #909399;
+}
+
 .goods-price {
-  font-size: 22px;
+  font-size: 30px;
   font-weight: 700;
   color: #f56c6c;
-}
-
-.meta-row {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  color: var(--theme-text-secondary);
-  font-size: 13px;
-}
-
-.meta-row.minor {
-  color: #909399;
+  line-height: 1;
 }
 
 .dot {
@@ -526,16 +589,24 @@ onMounted(() => {
   gap: 12px;
 }
 
-.mini-progress {
-  font-size: 13px;
-  color: var(--theme-text-secondary);
-}
-
 .actions {
   display: flex;
-  gap: 8px;
+  gap: 10px;
+  align-items: flex-end;
+  flex-direction: column;
+}
+
+.action-primary {
+  min-width: 120px;
+  font-weight: 600;
+}
+
+.secondary-actions {
+  display: flex;
+  gap: 6px;
   align-items: center;
   flex-wrap: wrap;
+  justify-content: flex-end;
 }
 
 .empty-state {
@@ -565,6 +636,11 @@ onMounted(() => {
     gap: 12px;
   }
 
+  .card-top {
+    align-items: flex-start;
+    flex-direction: column-reverse;
+  }
+
   .goods-media {
     width: 100%;
     height: 180px;
@@ -573,6 +649,14 @@ onMounted(() => {
   .order-side {
     justify-self: start;
     align-items: flex-start;
+  }
+
+  .actions {
+    align-items: flex-start;
+  }
+
+  .secondary-actions {
+    justify-content: flex-start;
   }
 
   .keyword-input,
