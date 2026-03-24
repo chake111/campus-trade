@@ -215,7 +215,29 @@ const handleCreateOrder = async () => {
 }
 
 const handleContactSeller = () => {
-  ElMessage.info('当前版本暂未接入聊天功能')
+  if (!product.value) {
+    ElMessage.warning('商品信息不存在，无法联系卖家')
+    return
+  }
+
+  const token = getToken()
+  if (!token || !buyerId.value) {
+    ElMessage.warning('请先登录后联系卖家')
+    router.push('/login')
+    return
+  }
+
+  if (!sellerId.value) {
+    ElMessage.error('卖家信息缺失，暂时无法发起咨询')
+    return
+  }
+
+  if (isOwnProduct.value) {
+    ElMessage.warning('不能联系自己发布的商品')
+    return
+  }
+
+  router.push({ path: '/messages', query: { productId: product.value.id ?? routeProductId.value } })
 }
 
 const goBack = () => {

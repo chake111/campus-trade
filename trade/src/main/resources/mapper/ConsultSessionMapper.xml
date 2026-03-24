@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.campus.trade.mapper.ConsultSessionMapper">
+
+    <resultMap id="ConsultSessionResultMap" type="com.campus.trade.entity.ConsultSession">
+        <id column="id" property="id"/>
+        <result column="product_id" property="productId"/>
+        <result column="buyer_id" property="buyerId"/>
+        <result column="seller_id" property="sellerId"/>
+        <result column="create_time" property="createTime"/>
+        <result column="product_title" property="productTitle"/>
+        <result column="last_message" property="lastMessage"/>
+        <result column="last_message_time" property="lastMessageTime"/>
+    </resultMap>
+
+    <select id="selectById" resultMap="ConsultSessionResultMap">
+        SELECT id, product_id, buyer_id, seller_id, create_time
+        FROM consult_session
+        WHERE id = #{id}
+    </select>
+
+    <select id="selectByProductAndBuyer" resultMap="ConsultSessionResultMap">
+        SELECT id, product_id, buyer_id, seller_id, create_time
+        FROM consult_session
+        WHERE product_id = #{productId}
+          AND buyer_id = #{buyerId}
+        LIMIT 1
+    </select>
+
+    <insert id="insert" parameterType="com.campus.trade.entity.ConsultSession" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO consult_session (product_id, buyer_id, seller_id, create_time)
+        VALUES (
+            #{productId},
+            #{buyerId},
+            #{sellerId},
+            IFNULL(#{createTime}, CURRENT_TIMESTAMP)
+        )
+    </insert>
+
+    <select id="selectByParticipant" resultMap="ConsultSessionResultMap">
+        SELECT
+            cs.id,
+            cs.product_id,
+            cs.buyer_id,
+            cs.seller_id,
+            cs.create_time,
+            p.title AS product_title,
+            cm.content AS last_message,
+            cm.create_time AS last_message_time
+        FROM consult_session cs
+        LEFT JOIN product p ON p.id = cs.product_id
+        LEFT JOIN consult_message cm ON cm.id = (
+            SELECT id
+            FROM consult_message
+            WHERE session_id = cs.id
+            ORDER BY create_time DESC, id DESC
+            LIMIT 1
+        )
+        WHERE cs.buyer_id = #{userId} OR cs.seller_id = #{userId}
+        ORDER BY COALESCE(cm.create_time, cs.create_time) DESC, cs.id DESC
+    </select>
+
+</mapper>

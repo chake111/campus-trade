@@ -2,7 +2,7 @@
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import { House, Plus, Search, Tickets, User, DataAnalysis } from '@element-plus/icons-vue'
+import { House, Plus, Search, Tickets, User, DataAnalysis, ChatDotRound } from '@element-plus/icons-vue'
 import { getToken, removeToken } from './utils/request'
 import { AUTH_CHANGED_EVENT, dispatchAuthChanged, getUserInfo, hasValidAuthState, isAdmin, removeUserInfo } from './utils/user'
 import CampusLogo from './components/CampusLogo.vue'
@@ -57,6 +57,15 @@ function goOrders() {
     return
   }
   router.push('/orders')
+}
+
+function goMessages() {
+  if (!isLoggedIn.value) {
+    ElMessage.info('请先登录后查看消息')
+    router.push('/login')
+    return
+  }
+  router.push('/messages')
 }
 
 function goPublish() {
@@ -160,6 +169,10 @@ watch(
       <button class="capsule-item" type="button" @click="goOrders">
         <el-icon><Tickets /></el-icon>
         <span>我的订单</span>
+      </button>
+      <button class="capsule-item" type="button" @click="goMessages">
+        <el-icon><ChatDotRound /></el-icon>
+        <span>商品咨询</span>
       </button>
       <button class="capsule-item" type="button" @click="goProfile">
         <el-icon><User /></el-icon>
