@@ -39,11 +39,14 @@
             <span class="price">¥{{ product.price ?? '--' }}</span>
           </div>
 
+          <div class="decision-row">
+            <span class="status-chip">商品状态：{{ statusText }}</span>
+            <span class="trade-location-chip">校内交易地点：{{ tradeLocationText }}</span>
+          </div>
+
           <el-descriptions :column="1" border class="meta-info">
             <el-descriptions-item label="商品ID">{{ product.id || routeProductId }}</el-descriptions-item>
             <el-descriptions-item label="卖家ID">{{ sellerIdDisplay }}</el-descriptions-item>
-            <el-descriptions-item label="商品状态">{{ statusText }}</el-descriptions-item>
-            <el-descriptions-item label="校内交易地点">{{ tradeLocationText }}</el-descriptions-item>
           </el-descriptions>
 
           <div class="description-block">
@@ -323,6 +326,35 @@ onMounted(() => {
 
 .meta-info {
   margin-top: 4px;
+}
+
+.decision-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.trade-location-chip {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: 5px 12px;
+  font-size: 13px;
+  color: #7a4c00;
+  background: #fff2d8;
+  border: 1px solid #f6d7a6;
+}
+
+.status-chip {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: 5px 12px;
+  font-size: 13px;
+  color: #1f7a3d;
+  background: #edf9f1;
+  border: 1px solid #b8ebc8;
 }
 
 .description-block {
