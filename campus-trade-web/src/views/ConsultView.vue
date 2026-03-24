@@ -33,6 +33,17 @@
         <section class="message-panel">
           <el-empty v-if="!activeSessionId" description="请选择左侧会话" />
           <template v-else>
+            <div v-if="activeSession" class="counterpart-header">
+              <el-avatar :size="44" :src="counterpartAvatar" />
+              <div class="counterpart-main">
+                <div class="counterpart-name">{{ counterpartName }}</div>
+                <div class="counterpart-meta">
+                  <span>{{ counterpartRoleLabel }}</span>
+                  <span v-if="activeSession.productTitle">｜{{ activeSession.productTitle }}</span>
+                </div>
+              </div>
+            </div>
+
             <div v-if="activeSession" class="product-context">
               <img
                 v-if="activeSession.productImage"
@@ -86,10 +97,12 @@
 </template>
 
 <script setup>
-import { nextTick, onMounted, onUnmounted, ref } from 'vue'
+import { computed, nextTick, onMounted, onUnmounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { ensureConsultSession, getConsultMessages, getMyConsultSessions, sendConsultMessage } from '../api/consult'
+import { getUserById } from '../api/user'
+import defaultAvatar from '../assets/default-avatar.svg'
 import { getUserId } from '../utils/user'
 import { getProductStatusMeta } from '../utils/productNormalizer'
 
@@ -108,6 +121,38 @@ const currentUserId = ref(getUserId())
 let pollingTimer = null
 
 const activeSession = ref(null)
+const counterpartUser = ref(null)
+const userInfoCache = ref({})
+
+const counterpartId = computed(() => {
+  const session = activeSession.value
+  if (!session || currentUserId.value == null) return null
+  const isBuyer = String(session.buyerId) === String(currentUserId.value)
+  if (isBuyer) return session.sellerId ?? null
+  const isSeller = String(session.sellerId) === String(currentUserId.value)
+  if (isSeller) return session.buyerId ?? null
+  return null
+})
+
+const counterpartRoleLabel = computed(() => {
+  const session = activeSession.value
+  if (!session || currentUserId.value == null) return '沟通对象'
+  if (String(session.buyerId) === String(currentUserId.value)) return '卖家'
+  if (String(session.sellerId) === String(currentUserId.value)) return '买家'
+  return '沟通对象'
+})
+
+const counterpartName = computed(() => {
+  const name = counterpartUser.value?.username?.trim()
+  if (name) return name
+  return counterpartId.value ? `用户#${counterpartId.value}` : '未知用户'
+})
+
+const counterpartAvatar = computed(() => {
+  const avatar = counterpartUser.value?.avatar
+  if (avatar && String(avatar).trim()) return avatar
+  return defaultAvatar
+})
 
 const goProducts = () => {
   router.push('/products')
@@ -163,8 +208,30 @@ const selectSession = async (sessionId) => {
   activeSessionId.value = sessionId
   activeSession.value =
     sessions.value.find((item) => String(item.id) === String(activeSessionId.value)) || null
+  await loadCounterpartUser()
   await loadMessages()
   startPolling()
+}
+
+const loadCounterpartUser = async () => {
+  const id = counterpartId.value
+  if (!id) {
+    counterpartUser.value = null
+    return
+  }
+  const cacheKey = String(id)
+  if (userInfoCache.value[cacheKey]) {
+    counterpartUser.value = userInfoCache.value[cacheKey]
+    return
+  }
+  try {
+    const res = await getUserById(id)
+    const user = res?.data || null
+    userInfoCache.value[cacheKey] = user
+    counterpartUser.value = user
+  } catch (error) {
+    counterpartUser.value = null
+  }
 }
 
 const ensureByRouteProduct = async () => {
@@ -325,6 +392,37 @@ onUnmounted(() => {
   padding: 10px;
   display: flex;
   flex-direction: column;
+}
+
+.counterpart-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid #ebeef5;
+  border-radius: 8px;
+  padding: 10px;
+  margin-bottom: 10px;
+  background: #fff;
+}
+
+.counterpart-main {
+  min-width: 0;
+}
+
+.counterpart-name {
+  font-size: 15px;
+  font-weight: 600;
+  color: #303133;
+  line-height: 1.2;
+}
+
+.counterpart-meta {
+  margin-top: 4px;
+  font-size: 12px;
+  color: #909399;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .product-context {

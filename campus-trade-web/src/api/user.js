@@ -30,3 +30,10 @@ export function updateMyProfile(data) {
     data
   })
 }
+
+export function getUserById(userId) {
+  return request({
+    url: `/api/users/${userId}`,
+    method: 'get'
+  })
+}
