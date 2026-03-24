@@ -79,15 +79,75 @@
         </el-col>
       </el-row>
     </el-card>
+
+    <el-card class="feature-card mt-16">
+      <template #header>
+        <div class="admin-products-header">
+          <div class="section-title">管理员商品管理</div>
+          <div class="admin-products-filters">
+            <el-input
+              v-model="adminKeyword"
+              placeholder="按商品标题/描述/发布人搜索"
+              clearable
+              style="width: 240px"
+              @keyup.enter="fetchAdminProducts"
+            />
+            <el-select v-model="adminStatus" style="width: 140px" @change="fetchAdminProducts">
+              <el-option v-for="item in statusOptions" :key="item.value" :label="item.label" :value="item.value" />
+            </el-select>
+            <el-button type="primary" @click="fetchAdminProducts">查询</el-button>
+          </div>
+        </div>
+      </template>
+
+      <el-table :data="adminProducts" stripe border v-loading="adminLoading">
+        <el-table-column label="商品图片" width="110">
+          <template #default="{ row }">
+            <img :src="row.displayImage" alt="商品图片" class="thumb" />
+          </template>
+        </el-table-column>
+        <el-table-column prop="title" label="标题" min-width="180" />
+        <el-table-column label="价格" width="100">
+          <template #default="{ row }">¥{{ row.price }}</template>
+        </el-table-column>
+        <el-table-column prop="publisherName" label="发布人" width="140">
+          <template #default="{ row }">{{ row.publisherName || `用户#${row.userId || '-'}` }}</template>
+        </el-table-column>
+        <el-table-column label="状态" width="110">
+          <template #default="{ row }">{{ getStatusLabel(row.status) }}</template>
+        </el-table-column>
+        <el-table-column label="创建时间" min-width="170">
+          <template #default="{ row }">{{ formatDateTime(row.createTime) }}</template>
+        </el-table-column>
+        <el-table-column label="操作" width="250" fixed="right">
+          <template #default="{ row }">
+            <el-button link type="primary" @click="viewProduct(row)">查看</el-button>
+            <el-button v-if="Number(row.status) === 1" link type="warning" @click="handleOffShelf(row)">下架</el-button>
+            <el-button v-else link type="success" @click="handleRestore(row)">恢复上架</el-button>
+            <el-button link type="danger" @click="handleDelete(row)">删除</el-button>
+          </template>
+        </el-table-column>
+      </el-table>
+    </el-card>
   </div>
 </template>
 
 <script setup>
 import { computed, onMounted, ref } from 'vue'
+import { useRouter } from 'vue-router'
+import { ElMessage } from 'element-plus'
 import request from '../utils/request'
+import {
+  deleteProductByAdmin,
+  getAdminProductList,
+  offShelfProduct,
+  restoreProduct,
+} from '../api/product'
+import { getProductStatusMeta, normalizeProductResponseList } from '../utils/productNormalizer'
 
 const loading = ref(false)
 const errorTips = ref([])
+const router = useRouter()
 
 const userTotal = ref('--')
 const productTotal = ref('--')
@@ -101,6 +161,17 @@ const orderStatusCount = ref({
   FINISHED: '--',
   CANCELLED: '--'
 })
+
+const adminLoading = ref(false)
+const adminProducts = ref([])
+const adminKeyword = ref('')
+const adminStatus = ref('')
+const statusOptions = [
+  { value: '', label: '全部状态' },
+  { value: 1, label: '在售' },
+  { value: 0, label: '已下架' },
+  { value: 2, label: '已售出' },
+]
 
 const displayCount = (value) => {
   if (value === '--') return '--'
@@ -175,10 +246,75 @@ const fetchDashboardSummary = async () => {
   }
 }
 
+const getAdminQuery = () => {
+  const query = {}
+  const keyword = adminKeyword.value?.trim()
+  if (keyword) query.keyword = keyword
+  if (adminStatus.value !== '' && adminStatus.value !== null && adminStatus.value !== undefined) {
+    query.status = adminStatus.value
+  }
+  return query
+}
+
+const fetchAdminProducts = async () => {
+  adminLoading.value = true
+  try {
+    const res = await getAdminProductList(getAdminQuery())
+    adminProducts.value = normalizeProductResponseList(res)
+  } catch (error) {
+    adminProducts.value = []
+    ElMessage.error(error?.data?.message || '管理员商品列表获取失败')
+  } finally {
+    adminLoading.value = false
+  }
+}
+
+const getStatusLabel = (status) => getProductStatusMeta(status).label
+
+const formatDateTime = (value) => {
+  if (!value) return '-'
+  if (typeof value === 'string') return value.replace('T', ' ')
+  return String(value)
+}
+
+const getProductId = (row) => row?.id ?? row?.productId ?? null
+
+const viewProduct = (row) => {
+  const id = getProductId(row)
+  if (!id) return
+  router.push(`/product/${id}`)
+}
+
+const refreshAfterAction = async (msg) => {
+  ElMessage.success(msg)
+  await fetchAdminProducts()
+}
+
+const handleOffShelf = async (row) => {
+  const id = getProductId(row)
+  if (!id) return
+  await offShelfProduct(id)
+  await refreshAfterAction('下架成功')
+}
+
+const handleRestore = async (row) => {
+  const id = getProductId(row)
+  if (!id) return
+  await restoreProduct(id)
+  await refreshAfterAction('恢复上架成功')
+}
+
+const handleDelete = async (row) => {
+  const id = getProductId(row)
+  if (!id) return
+  await deleteProductByAdmin(id)
+  await refreshAfterAction('删除成功')
+}
+
 const initDashboard = async () => {
   loading.value = true
   errorTips.value = []
-  await fetchDashboardSummary()
+  await Promise.all([fetchDashboardSummary(), fetchAdminProducts()])
 
   loading.value = false
 }
@@ -369,6 +505,29 @@ onMounted(() => {
   font-size: 15px;
   color: #606266;
   line-height: 1.8;
+}
+
+.admin-products-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.admin-products-filters {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.thumb {
+  width: 64px;
+  height: 64px;
+  border-radius: 8px;
+  object-fit: cover;
+  border: 1px solid #f0e1b9;
 }
 
 .mt-16 {

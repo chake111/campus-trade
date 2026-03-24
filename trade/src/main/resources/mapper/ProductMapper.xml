@@ -12,6 +12,7 @@
         <result column="image" property="image"/>
         <result column="price" property="price"/>
         <result column="user_id" property="userId"/>
+        <result column="publisher_name" property="publisherName"/>
         <result column="status" property="status"/>
         <result column="create_time" property="createTime"/>
     </resultMap>
@@ -62,9 +63,42 @@
     </select>
 
     <select id="selectById" resultMap="ProductResultMap" parameterType="long">
-        SELECT id, title, description, trade_location, image, price, user_id, status, create_time
+        SELECT id, title, description, trade_location, image, price, user_id, NULL AS publisher_name, status, create_time
         FROM `product`
         WHERE id = #{id}
     </select>
+
+    <select id="selectAllForAdmin" resultMap="ProductResultMap">
+        SELECT p.id, p.title, p.description, p.trade_location, p.image, p.price, p.user_id, u.username AS publisher_name, p.status, p.create_time
+        FROM `product` p
+                 LEFT JOIN `user` u ON p.user_id = u.id
+        <where>
+            <if test="status != null">
+                p.status = #{status}
+            </if>
+            <if test="keyword != null and keyword != ''">
+                <if test="status != null">
+                    AND
+                </if>
+                (
+                    p.title LIKE CONCAT('%', #{keyword}, '%')
+                        OR p.description LIKE CONCAT('%', #{keyword}, '%')
+                        OR u.username LIKE CONCAT('%', #{keyword}, '%')
+                )
+            </if>
+        </where>
+        ORDER BY p.create_time DESC
+    </select>
+
+    <update id="updateStatusById">
+        UPDATE `product`
+        SET status = #{status}
+        WHERE id = #{id}
+    </update>
+
+    <delete id="deleteById">
+        DELETE FROM `product`
+        WHERE id = #{id}
+    </delete>
 
 </mapper>

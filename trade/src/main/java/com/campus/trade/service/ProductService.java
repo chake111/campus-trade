@@ -27,6 +27,12 @@ public interface ProductService {
      */
     List<Product> getMyProducts(Long userId, String keyword);
 
+    List<Product> getAdminProducts(String keyword, Integer status);
+
+    int updateProductStatus(Long id, Integer status);
+
+    int deleteProduct(Long id);
+
     /**
      * 获取商品详情
      */
