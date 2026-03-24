@@ -43,6 +43,7 @@
             <el-descriptions-item label="商品ID">{{ product.id || routeProductId }}</el-descriptions-item>
             <el-descriptions-item label="卖家ID">{{ sellerIdDisplay }}</el-descriptions-item>
             <el-descriptions-item label="商品状态">{{ statusText }}</el-descriptions-item>
+            <el-descriptions-item label="校内交易地点">{{ tradeLocationText }}</el-descriptions-item>
           </el-descriptions>
 
           <div class="description-block">
@@ -94,6 +95,11 @@ const sellerId = computed(() => {
 })
 
 const sellerIdDisplay = computed(() => sellerId.value ?? '未知')
+const tradeLocationText = computed(() => {
+  const location = product.value?.tradeLocation
+  if (!location || !String(location).trim()) return '校内面交（地点待协商）'
+  return location
+})
 
 const isProductAvailable = computed(() => {
   return isProductOrderableStatus(product.value?.status)

@@ -37,6 +37,25 @@
             placeholder="请输入商品详细描述"
           />
         </el-form-item>
+        <el-form-item label="校内交易地点" prop="tradeLocation">
+          <el-select
+            v-model="formData.tradeLocation"
+            filterable
+            allow-create
+            default-first-option
+            clearable
+            placeholder="请选择或输入模糊位置（如：东区、图书馆附近）"
+            style="width: 100%"
+          >
+            <el-option
+              v-for="option in tradeLocationOptions"
+              :key="option"
+              :label="option"
+              :value="option"
+            />
+          </el-select>
+          <div class="location-tip">仅支持校内模糊面交地点，请勿填写宿舍号、门牌号等精确住址。</div>
+        </el-form-item>
         <el-form-item label="图片地址" prop="image">
           <el-input
             v-model="formData.image"
@@ -80,8 +99,13 @@ const formData = ref({
   title: '',
   price: undefined,
   description: '',
+  tradeLocation: '',
   image: ''
 })
+
+const tradeLocationOptions = ['东区', '西区', '图书馆附近', '一食堂附近', '宿舍园区附近', '校内面交']
+
+const preciseAddressPattern = /(宿舍\s*\d+|\d+\s*栋|\d+\s*单元|\d+\s*室|门牌|详细地址|经纬度)/
 
 const rules = {
   title: [
@@ -93,6 +117,25 @@ const rules = {
   ],
   description: [
     { required: true, message: '请输入商品描述', trigger: 'blur' }
+  ],
+  tradeLocation: [
+    { required: true, message: '请选择或输入校内交易地点', trigger: 'change' },
+    { min: 2, max: 30, message: '交易地点请控制在 2-30 个字', trigger: 'blur' },
+    {
+      validator: (_rule, value, callback) => {
+        const normalized = String(value || '').trim()
+        if (!normalized) {
+          callback(new Error('请选择或输入校内交易地点'))
+          return
+        }
+        if (preciseAddressPattern.test(normalized)) {
+          callback(new Error('请使用模糊位置，不要填写宿舍号或门牌号'))
+          return
+        }
+        callback()
+      },
+      trigger: ['blur', 'change']
+    }
   ]
 }
 
@@ -214,6 +257,13 @@ const previewImage = () => {
 
 .image-preview {
   margin-top: 10px;
+}
+
+.location-tip {
+  margin-top: 8px;
+  color: #8c6d1f;
+  font-size: 12px;
+  line-height: 1.5;
 }
 
 @media (max-width: 992px) {
