@@ -82,71 +82,26 @@
             <div class="order-side">
               <div class="actions">
                 <el-button
-                  v-if="canBuyerOperate(row) && row.status === 'PENDING'"
-                  type="primary"
+                  v-if="getPrimaryAction(row)"
+                  :type="getActionButtonType(getPrimaryAction(row))"
                   class="action-primary"
-                  :loading="isActionLoading(row.id, 'PAID')"
-                  :disabled="isAnyActionLoading(row.id)"
-                  @click="handleStatusUpdate(row, 'PAID', '支付')"
+                  :loading="getActionLoading(row.id, getPrimaryAction(row))"
+                  :disabled="getActionDisabled(row, getPrimaryAction(row))"
+                  @click="handleOrderAction(row, getPrimaryAction(row))"
                 >
-                  去支付
-                </el-button>
-                <el-button
-                  v-if="canBuyerOperate(row) && row.status === 'PENDING'"
-                  class="action-secondary"
-                  text
-                  :loading="isActionLoading(row.id, 'CANCELLED')"
-                  :disabled="isAnyActionLoading(row.id)"
-                  @click="handleStatusUpdate(row, 'CANCELLED', '取消')"
-                >
-                  取消
-                </el-button>
-                <el-button
-                  v-if="canBuyerOperate(row) && row.status === 'PAID'"
-                  type="success"
-                  class="action-primary"
-                  :loading="isActionLoading(row.id, 'CONFIRMED')"
-                  :disabled="isAnyActionLoading(row.id)"
-                  @click="handleStatusUpdate(row, 'CONFIRMED', '确认')"
-                >
-                  确认收货
-                </el-button>
-                <el-button
-                  v-if="canBuyerOperate(row) && row.status === 'CONFIRMED'"
-                  type="warning"
-                  class="action-primary"
-                  :loading="isActionLoading(row.id, 'FINISHED')"
-                  :disabled="isAnyActionLoading(row.id)"
-                  @click="handleStatusUpdate(row, 'FINISHED', '完成')"
-                >
-                  完成订单
-                </el-button>
-                <el-button
-                  v-if="!showStatusAction(row)"
-                  type="primary"
-                  class="action-primary"
-                  :disabled="!getProductId(row)"
-                  @click="handleViewProduct(row)"
-                >
-                  查看详情
+                  {{ getPrimaryAction(row).label }}
                 </el-button>
                 <div class="secondary-actions">
                   <el-button
+                    v-for="action in getSecondaryActions(row)"
+                    :key="action.key"
                     class="action-secondary"
-                    text
-                    :disabled="!getProductId(row)"
-                    @click="handleContact(row)"
+                    :text="action.isText"
+                    :loading="getActionLoading(row.id, action)"
+                    :disabled="getActionDisabled(row, action)"
+                    @click="handleOrderAction(row, action)"
                   >
-                    联系{{ activeRole === 'buyer' ? '卖家' : '买家' }}
-                  </el-button>
-                  <el-button
-                    v-if="showStatusAction(row)"
-                    class="action-secondary"
-                    text
-                    :disabled="!getProductId(row)"
-                    @click="handleViewProduct(row)"
-                  >
-                    查看详情
+                    {{ action.label }}
                   </el-button>
                 </div>
               </div>
@@ -169,6 +124,14 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import { Search } from '@element-plus/icons-vue'
 import { getOrderList, updateOrder } from '../api/order'
 import { getUserId } from '../utils/user'
+import {
+  getOrderActions,
+  getOrderStatusTagType,
+  getOrderStatusText,
+  getOrderTabOptions,
+  getPrimaryOrderAction,
+  matchesOrderStatusTab,
+} from '../utils/orderDisplay'
 
 const router = useRouter()
 const route = useRoute()
@@ -178,13 +141,7 @@ const actionLoading = ref({ id: null, status: '' })
 const statusFilter = ref('ALL')
 const keyword = ref('')
 const activeRole = ref(getInitialRole())
-const statusTabs = [
-  { label: '全部', value: 'ALL' },
-  { label: '待支付', value: 'PENDING' },
-  { label: '已支付/待确认', value: 'PAID' },
-  { label: '已完成', value: 'FINISHED' },
-  { label: '已取消', value: 'CANCELLED' },
-]
+const statusTabs = getOrderTabOptions()
 
 function getInitialRole() {
   const role = route.query?.role
@@ -214,9 +171,7 @@ const filteredOrders = computed(() => {
 
   return orders.value.filter((order) => {
     const statusMatched =
-      statusFilter.value === 'ALL' ||
-      order.status === statusFilter.value ||
-      (statusFilter.value === 'PAID' && order.status === 'CONFIRMED')
+      matchesOrderStatusTab(order, statusFilter.value)
     if (!statusMatched) return false
 
     if (!normalizedKeyword) return true
@@ -259,27 +214,8 @@ const handleRoleChange = () => {
   fetchOrders()
 }
 
-const getStatusType = (status) => {
-  const types = {
-    PENDING: 'warning',
-    PAID: 'primary',
-    CONFIRMED: 'success',
-    FINISHED: 'success',
-    CANCELLED: 'info'
-  }
-  return types[status] || 'info'
-}
-
-const getStatusText = (status) => {
-  const texts = {
-    PENDING: '待支付',
-    PAID: '已支付',
-    CONFIRMED: '已确认',
-    FINISHED: '已完成',
-    CANCELLED: '已取消'
-  }
-  return texts[status] || status
-}
+const getStatusType = (status) => getOrderStatusTagType(status)
+const getStatusText = (status) => getOrderStatusText(status)
 
 const formatTime = (time) => {
   if (!time) return '-'
@@ -330,8 +266,25 @@ const getProductId = (order) => {
   return order?.product?.id || order?.productId || null
 }
 
-const showStatusAction = (order) => {
-  return canBuyerOperate(order) && ['PENDING', 'PAID', 'CONFIRMED'].includes(order?.status)
+const getActionsForOrder = (order) => {
+  return getOrderActions(order, activeRole.value, { canBuyerOperate: canBuyerOperate(order) })
+}
+
+const getPrimaryAction = (order) => getPrimaryOrderAction(getActionsForOrder(order))
+const getSecondaryActions = (order) =>
+  getActionsForOrder(order).filter((action) => action.level !== 'primary')
+
+const getActionButtonType = (action) => action?.buttonType || 'primary'
+const getActionLoading = (orderId, action) => {
+  if (!action || action.kind !== 'status') return false
+  return isActionLoading(orderId, action.targetStatus)
+}
+
+const getActionDisabled = (order, action) => {
+  if (!action) return true
+  if (action.kind === 'status') return isAnyActionLoading(order.id)
+  if (action.kind === 'view' || action.kind === 'contact') return !getProductId(order)
+  return false
 }
 
 const handleViewProduct = (order) => {
@@ -356,6 +309,21 @@ const handleContact = (order) => {
     return
   }
   router.push({ path: '/messages', query: { productId, counterpartId, fromOrderId: order?.id } })
+}
+
+const handleOrderAction = (order, action) => {
+  if (!action) return
+  if (action.kind === 'status') {
+    handleStatusUpdate(order, action.targetStatus, action.actionText)
+    return
+  }
+  if (action.kind === 'view') {
+    handleViewProduct(order)
+    return
+  }
+  if (action.kind === 'contact') {
+    handleContact(order)
+  }
 }
 
 const canBuyerOperate = (order) => {
