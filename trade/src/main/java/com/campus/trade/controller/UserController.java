@@ -67,6 +67,7 @@ public class UserController {
         userInfo.put("id", user.getId());
         userInfo.put("username", user.getUsername());
         userInfo.put("role", role);
+        userInfo.put("avatar", user.getAvatar());
         userInfo.put("creditScore", user.getCreditScore());
         userInfo.put("createTime", user.getCreateTime());
         userInfo.put("status", user.getStatus());

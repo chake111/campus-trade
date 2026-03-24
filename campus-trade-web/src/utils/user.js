@@ -43,11 +43,17 @@ export function normalizeUserInfo(rawUser) {
   return {
     id,
     username: rawUser.username || rawUser.name || rawUser.nickname || '',
+    avatar: normalizeAvatar(rawUser),
     role,
     creditScore: rawUser.creditScore ?? null,
     createTime: rawUser.createTime ?? null,
     status: rawUser.status ?? null,
   }
+}
+
+function normalizeAvatar(rawUser) {
+  const avatar = rawUser.avatar || rawUser.avatarUrl || rawUser.headImg || rawUser.photo || ''
+  return String(avatar).trim()
 }
 
 export function normalizeRole(rawRole) {

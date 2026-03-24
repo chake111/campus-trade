@@ -2,10 +2,11 @@
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import { House, Plus, Search, Tickets, UserFilled, User, DataAnalysis } from '@element-plus/icons-vue'
+import { House, Plus, Search, Tickets, User, DataAnalysis } from '@element-plus/icons-vue'
 import { getToken, removeToken } from './utils/request'
 import { AUTH_CHANGED_EVENT, dispatchAuthChanged, getUserInfo, hasValidAuthState, isAdmin, removeUserInfo } from './utils/user'
 import CampusLogo from './components/CampusLogo.vue'
+import defaultAvatar from './assets/default-avatar.svg'
 
 const router = useRouter()
 const route = useRoute()
@@ -26,6 +27,10 @@ const displayName = computed(() => {
 })
 
 const canAccessDashboard = computed(() => isAdmin(userInfo.value))
+const navAvatar = computed(() => {
+  const avatar = userInfo.value?.avatar
+  return avatar || defaultAvatar
+})
 const navSearchKeyword = ref('')
 
 const showFloatingCapsule = computed(() => {
@@ -130,7 +135,7 @@ watch(
       </div>
 
       <div v-if="isLoggedIn" class="user-actions">
-        <div class="user-avatar"><el-icon><UserFilled /></el-icon></div>
+        <el-avatar class="user-avatar" :size="24" :src="navAvatar" />
         <span class="username" :title="displayName">{{ displayName }}</span>
         <el-button link type="danger" @click="handleLogout">退出</el-button>
       </div>
@@ -249,14 +254,8 @@ watch(
 }
 
 .user-avatar {
-  width: 24px;
-  height: 24px;
-  border-radius: 999px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  color: #99671d;
-  background: #ffe8b7;
+  flex-shrink: 0;
+  border: 1px solid #efcd86;
 }
 
 .username {

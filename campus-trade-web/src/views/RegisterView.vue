@@ -45,6 +45,14 @@
           />
         </el-form-item>
 
+        <el-form-item label="头像 URL" prop="avatar">
+          <el-input
+            v-model="formData.avatar"
+            placeholder="选填：请输入头像图片链接"
+            size="large"
+          />
+        </el-form-item>
+
         <el-form-item>
           <el-button
             type="primary"
@@ -84,7 +92,8 @@ const loading = ref(false)
 const formData = reactive({
   username: '',
   password: '',
-  confirmPassword: ''
+  confirmPassword: '',
+  avatar: ''
 })
 
 const validateConfirmPassword = (_rule, value, callback) => {
@@ -115,7 +124,8 @@ const handleRegister = async () => {
   try {
     const res = await register({
       username: formData.username,
-      password: formData.password
+      password: formData.password,
+      avatar: formData.avatar?.trim() || null
     })
 
     ElMessage.success(res?.message || '注册成功，请登录')
