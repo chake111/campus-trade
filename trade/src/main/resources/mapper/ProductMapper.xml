@@ -37,6 +37,14 @@
         WHERE status = 1
     </select>
 
+    <select id="selectLatestOnSale" resultMap="ProductResultMap">
+        SELECT id, title, description, trade_location, image, price, user_id, status, create_time
+        FROM `product`
+        WHERE status = 1
+        ORDER BY create_time DESC
+        LIMIT #{limit}
+    </select>
+
     <select id="countAll" resultType="long">
         SELECT COUNT(*)
         FROM `product`
