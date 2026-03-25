@@ -27,9 +27,6 @@
     </el-alert>
 
     <el-card class="flow-card mt-16">
-      <template #header>
-        <div class="section-title">订单状态流转展示区</div>
-      </template>
       <div class="flow-track">
         <template v-for="(item, index) in orderFlowCards" :key="item.status">
           <div class="flow-node">
@@ -40,15 +37,12 @@
           <div v-if="index !== orderFlowCards.length - 1" class="flow-arrow">→</div>
         </template>
       </div>
-      <div class="flow-note">
-        说明：该区域展示平台级订单在各状态的分布，用于证明系统订单流程已完整接入。
-      </div>
     </el-card>
 
     <el-card class="feature-card mt-16">
       <template #header>
         <div class="admin-products-header">
-          <div class="section-title">管理员商品管理</div>
+          <div class="section-title">商品管理</div>
           <div class="admin-products-filters">
             <el-input
               v-model="adminKeyword"
@@ -65,7 +59,7 @@
         </div>
       </template>
 
-      <el-table :data="adminProducts" stripe border v-loading="adminLoading">
+      <el-table :data="adminProducts" stripe  v-loading="adminLoading">
         <el-table-column label="商品图片" width="110">
           <template #default="{ row }">
             <img :src="row.displayImage" alt="商品图片" class="thumb" />
@@ -395,7 +389,6 @@ onMounted(() => {
   min-width: 190px;
   flex: 1;
   background: #fffaf0;
-  border: 1px solid #f3e5c1;
   border-radius: 12px;
   padding: 14px;
 }

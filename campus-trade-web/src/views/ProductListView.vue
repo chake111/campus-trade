@@ -1,97 +1,9 @@
 <template>
   <div class="product-list">
     <div v-loading="loading" class="product-grid">
-      <section class="recommend-section">
-          <div class="recommend-head">
-            <div class="section-header">
-              <span class="recommend-icon-wrap"><el-icon size="18" color="#d99a00"><Star /></el-icon></span>
-              <div>
-                <p class="section-main-title">运营精选推荐</p>
-              </div>
-            </div>
-            <span class="recommend-tag">平台精选</span>
-          </div>
-
-        <template v-if="!currentUserId">
-          <div v-if="fallbackRecommendProducts.length > 0" class="recommend-list">
-            <article
-              v-for="(item, index) in fallbackRecommendProducts"
-              :key="`fallback-${getCardKey(item)}-${index}`"
-              class="recommend-item"
-              @click="viewDetail(item)"
-            >
-              <div class="image-container">
-                <img v-if="item.displayImage" :src="item.displayImage" alt="商品图片" />
-                <div v-else class="recommend-placeholder">精选推荐</div>
-                <span class="corner-tag">推荐</span>
-              </div>
-              <div class="content">
-                <h3 class="title">{{ item.title }}</h3>
-                <p class="location">{{ getTradeLocation(item) }}</p>
-                <div class="reason-box">
-                  <el-icon size="14"><InfoFilled /></el-icon>
-                  <span class="reason-text">登录后可查看商品咨询与个性化推荐</span>
-                </div>
-                <div class="footer">
-                  <span class="price">¥{{ item.price }}</span>
-                  <span class="quality-pill">{{ getQualityTag(item) }}</span>
-                </div>
-                <p class="description muted">{{ item.description }}</p>
-              </div>
-            </article>
-          </div>
-          <el-empty v-else description="暂无推荐商品" />
-        </template>
-
-        <template v-else>
-          <div v-if="recommendLoading" class="recommend-loading">
-            <el-skeleton animated :rows="3" />
-          </div>
-
-          <el-alert
-            v-else-if="recommendError"
-            type="warning"
-            :closable="false"
-            title="推荐服务暂时不可用，先看看全部商品吧"
-            show-icon
-          />
-
-          <div v-else-if="recommendProducts.length > 0" class="recommend-list">
-            <article
-              v-for="item in recommendProducts"
-              :key="getCardKey(item)"
-              class="recommend-item"
-              @click="viewDetail(item)"
-            >
-              <div class="image-container">
-                <img v-if="item.displayImage" :src="item.displayImage" alt="商品图片" />
-                <div v-else class="recommend-placeholder">精选推荐</div>
-                <span class="corner-tag">推荐</span>
-              </div>
-              <div class="content">
-                <h3 class="title">{{ item.title }}</h3>
-                <p class="location">{{ getTradeLocation(item) }}</p>
-                <div class="reason-box">
-                  <span class="reason-text">{{ getRecommendReason(item) }}</span>
-                </div>
-                <div class="footer">
-                  <span class="price">¥{{ item.price }}</span>
-                  <span class="quality-pill">{{ getQualityTag(item) }}</span>
-                </div>
-              </div>
-            </article>
-          </div>
-
-          <el-empty v-else description="暂无推荐商品" />
-        </template>
-      </section>
-
       <div class="section-title">
         <span class="section-icon">
-          <el-icon size="18"><ShoppingCart /></el-icon>
         </span>
-        <span class="section-title-text">全部商品</span>
-        <span class="section-tip">持续上新</span>
       </div>
       <div class="stream-hint">
         <span>在售 {{ onSaleCount }} 件</span>
@@ -111,7 +23,6 @@
             <div v-else class="image-placeholder">暂无图片</div>
             <div class="card-badges">
               <span class="badge" :class="getStatusBadgeClass(item)">{{ getStatusLabel(item) }}</span>
-              <span class="badge quality-badge">{{ getQualityTag(item) }}</span>
             </div>
           </div>
           <div class="content">
@@ -138,7 +49,6 @@ import { useRouter, useRoute } from 'vue-router'
 import { getProductList } from '../api/product'
 import { getRecommendProducts, getRecommendDetails } from '../api/recommend'
 import { AUTH_CHANGED_EVENT, getUserId } from '../utils/user'
-import { Star, ShoppingCart, InfoFilled } from '@element-plus/icons-vue'
 import {
   getProductStatusMeta,
   isProductOrderableStatus,
@@ -219,20 +129,6 @@ const fetchRecommendations = async () => {
   }
 }
 
-const getRecommendReason = (item) => {
-  const productId = getProductId(item)
-  if (!productId) return '根据你的历史行为为你推荐'
-  return recommendExplainMap[productId] || recommendExplainMap[String(productId)] || '根据你的历史行为为你推荐'
-}
-
-const getQualityTag = (item) => {
-  const text = `${item.title || ''} ${item.description || ''}`
-  if (/全新|未拆|未使用/.test(text)) return '近全新'
-  if (/95新|九五新|9成新/.test(text)) return '9成新'
-  if (/8成新|七成新|旧/.test(text)) return '实用型'
-  return '成色良好'
-}
-
 const getSellingPoint = (item) => {
   const num = Number(item.price)
   if (!Number.isNaN(num) && num <= 50) return '学生友好价'
@@ -295,7 +191,7 @@ watch(
 .product-list {
   width: min(100%, 1440px);
   margin: 0 auto;
-  padding: 20px 22px 34px;
+  padding: 0px 22px 34px;
 }
 
 
@@ -420,7 +316,6 @@ watch(
   background: transparent;
 }
 .section-title-text { font-size: 18px; font-weight: 700; color: #5c430e; }
-.section-icon { width: 24px; height: 24px; border-radius: 7px; display: inline-flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #ffe49c 0%, #ffd875 100%); color: #8a6200; }
 .section-tip { margin-left: auto; padding: 2px 9px; border-radius: 999px; font-size: 12px; color: #8a6d2f; background: #fff5d7; }
 .stream-hint { margin-top: -8px; padding: 0 2px; display: flex; align-items: center; gap: 8px; font-size: 12px; color: #8d7650; }
 .empty-state { padding: 58px 0; }

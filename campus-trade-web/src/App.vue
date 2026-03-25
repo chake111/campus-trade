@@ -277,7 +277,7 @@ watch(
         </div>
 
         <div class="nav-user-zone">
-          <div v-if="isLoggedIn" class="user-actions">
+          <div v-if="isLoggedIn" class="user-actions" @click="goProfile">
             <el-avatar class="user-avatar" :size="40" :src="navAvatar" />
             <span class="username" :title="displayName">{{ displayName }}</span>
             <el-button link type="danger" @click="handleLogout">退出</el-button>
@@ -323,30 +323,24 @@ watch(
     <div v-if="showFloatingCapsule" class="floating-capsule">
       <button class="capsule-item" type="button" @click="goHome">
         <el-icon><House /></el-icon>
-        <span>首页</span>
       </button>
       <button class="capsule-item" type="button" @click="goPublish">
         <el-icon><Plus /></el-icon>
-        <span>发布商品</span>
       </button>
       <button class="capsule-item" type="button" @click="goOrders">
         <el-icon><Tickets /></el-icon>
-        <span>我的订单</span>
       </button>
       <button class="capsule-item capsule-item--with-badge" type="button" @click="goMessages">
         <span v-if="isLoggedIn && consultUnreadCount > 0" class="unread-badge">
           {{ consultUnreadCount > 99 ? '99+' : consultUnreadCount }}
         </span>
         <el-icon><ChatDotRound /></el-icon>
-        <span>商品咨询</span>
       </button>
       <button class="capsule-item" type="button" @click="goProfile">
         <el-icon><User /></el-icon>
-        <span>个人中心</span>
       </button>
       <button v-if="canAccessDashboard" class="capsule-item" type="button" @click="goDashboard">
         <el-icon><DataAnalysis /></el-icon>
-        <span>数据看板</span>
       </button>
     </div>
   </el-container>
@@ -543,17 +537,16 @@ watch(
   top: 50%;
   transform: translateY(-50%);
   z-index: 25;
-  width: 120px;
+  width: 50px;
   padding: 5px;
-  border-radius: 20px;
-  border: 1px solid #efdfba;
+  border-radius: 40px;
   background: rgba(255, 250, 238, 0.88);
   box-shadow: 0 8px 18px rgba(126, 92, 16, 0.08);
-  backdrop-filter: blur(3px);
+  backdrop-filter: blur(3px);;
 }
 
 .capsule-item {
-  width: 100%;
+  width: auto;
   height: 32px;
   margin: 1px 0;
   border: none;
@@ -565,7 +558,7 @@ watch(
   justify-content: flex-start;
   gap: 8px;
   padding: 0 10px;
-  font-size: 12px;
+  font-size: 18px;
   cursor: pointer;
 }
 

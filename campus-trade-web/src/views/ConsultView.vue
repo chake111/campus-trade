@@ -1,15 +1,6 @@
 <template>
   <div class="consult-page" v-loading="loading">
     <el-card shadow="never" class="consult-card">
-      <template #header>
-        <div class="header-row">
-          <div>
-            <h2>商品咨询</h2>
-          </div>
-          <el-button text @click="goProducts">返回商品列表</el-button>
-        </div>
-      </template>
-
       <div class="consult-layout">
         <aside class="session-list">
           <el-empty v-if="!sessions.length" description="暂无咨询会话" :image-size="70" />
@@ -452,7 +443,7 @@ onUnmounted(() => {
 .session-item {
   width: 100%;
   text-align: left;
-  border: 1px solid #ebeef5;
+  border: 0px solid #ebeef5;
   border-radius: 8px;
   background: #fff;
   margin-bottom: 10px;
@@ -585,10 +576,8 @@ onUnmounted(() => {
   display: grid;
   grid-template-columns: 72px minmax(0, 1fr);
   gap: 12px;
-  border: 1px solid #ebeef5;
   border-radius: 8px;
   padding: 10px;
-  background: #fafcff;
   margin-bottom: 10px;
   transition: box-shadow 0.2s ease, transform 0.2s ease;
 }
