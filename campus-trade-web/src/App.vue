@@ -39,6 +39,7 @@ const consultUnreadLoading = ref(false)
 let unreadPollingTimer = null
 const loginDialogVisible = ref(false)
 const pendingAction = ref(null)
+const loginFormRef = ref(null)
 
 const showFloatingCapsule = computed(() => {
   return !route.path.startsWith('/login') && !route.path.startsWith('/register')
@@ -87,6 +88,11 @@ function handleLoginSuccess() {
   loginDialogVisible.value = false
   syncAuthState()
   runPendingAction()
+}
+
+function handleLoginDialogClose() {
+  pendingAction.value = null
+  loginFormRef.value?.reset?.()
 }
 
 function handleLoginRegister() {
@@ -241,9 +247,11 @@ watch(
       append-to-body
       destroy-on-close
       :close-on-click-modal="false"
+      @close="handleLoginDialogClose"
       title="登录 / 注册"
     >
-      <LoginForm @success="handleLoginSuccess" @register="handleLoginRegister" />
+      <p class="login-dialog-subtitle">登录后可继续当前操作</p>
+      <LoginForm ref="loginFormRef" @success="handleLoginSuccess" @register="handleLoginRegister" />
     </el-dialog>
 
     <el-main class="page-content">
@@ -403,6 +411,17 @@ watch(
   margin: 0 auto;
   padding: 28px 28px 34px;
   box-sizing: border-box;
+}
+
+:deep(.login-dialog .el-dialog__body) {
+  padding-top: 14px;
+}
+
+.login-dialog-subtitle {
+  margin: 0 0 14px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: #a88f5a;
 }
 
 .floating-capsule {
