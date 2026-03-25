@@ -139,7 +139,7 @@ const submitForm = async () => {
   const token = getToken()
   const userId = getUserId()
   if (!token || !userId) {
-    ElMessage.warning('请先登录')
+    ElMessage.warning('请先登录后再操作')
     router.push('/login')
     return
   }
@@ -155,12 +155,11 @@ const submitForm = async () => {
     }
 
     await createProduct(payload)
-    ElMessage.success('商品发布成功')
+    ElMessage.success('发布成功')
     router.push('/')
   } catch (error) {
-    console.error('发布失败:', error)
-    const backendMessage = error?.message || error?.data?.message || error?.response?.data?.message
-    ElMessage.error(backendMessage || '商品发布失败，请重试')
+    console.error('商品发布失败详情:', error)
+    ElMessage.error('操作失败，请稍后重试')
   } finally {
     loading.value = false
   }

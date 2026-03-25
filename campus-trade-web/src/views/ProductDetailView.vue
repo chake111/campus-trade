@@ -185,8 +185,8 @@ const fetchProductDetail = async () => {
     await loadSellerProfile()
   } catch (error) {
     product.value = null
-    const msg = error?.response?.data?.message || error?.message || '获取商品详情失败'
-    ElMessage.error(msg)
+    console.error('获取商品详情失败:', error)
+    ElMessage.error('加载失败，请刷新后重试')
   } finally {
     loading.value = false
   }
@@ -199,7 +199,7 @@ const handleCreateOrder = async () => {
   }
 
   if (!buyerId.value) {
-    requestLoginForAction(() => handleCreateOrder(), '请先登录后再下单')
+    requestLoginForAction(() => handleCreateOrder(), '请先登录后再操作')
     return
   }
 
@@ -235,11 +235,11 @@ const handleCreateOrder = async () => {
       userId: buyerId.value,
     }
     await createOrder(payload)
-    ElMessage.success('下单成功，正在跳转到订单页')
+    ElMessage.success('提交成功')
     router.push('/orders')
   } catch (error) {
-    const msg = error?.message || error?.response?.data?.message || error?.data?.message || '下单失败，请稍后重试'
-    ElMessage.error(msg)
+    console.error('下单失败:', error)
+    ElMessage.error('操作失败，请稍后重试')
   } finally {
     submitting.value = false
   }
@@ -252,7 +252,7 @@ const handleContactSeller = () => {
   }
 
   if (!buyerId.value) {
-    requestLoginForAction(() => handleContactSeller(), '请先登录后联系卖家')
+    requestLoginForAction(() => handleContactSeller(), '请先登录后再操作')
     return
   }
 

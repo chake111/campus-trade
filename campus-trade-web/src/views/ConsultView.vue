@@ -77,7 +77,7 @@
             </div>
 
             <el-scrollbar ref="messageScrollbarRef" class="message-list">
-              <div v-if="!messages.length" class="empty-message">暂无消息，发送第一条咨询吧</div>
+              <div v-if="!messages.length" class="empty-message">暂无消息，开始咨询吧</div>
               <div
                 v-for="msg in messages"
                 :key="msg.id"
@@ -263,7 +263,7 @@ const getSessionStatusTag = (session) => {
 const getSessionSubtitle = (session) => {
   const last = session?.lastMessage
   if (last && String(last).trim()) return last
-  return '你们正在沟通这件商品，发条消息推进交易吧'
+  return '你们正在沟通这件商品，继续沟通吧'
 }
 
 const getSessionMeta = (session) => {
@@ -387,8 +387,8 @@ const initPage = async () => {
       await selectSession(initialSessionId)
     }
   } catch (error) {
-    const msg = error?.data?.message || error?.message || '加载咨询页面失败'
-    ElMessage.error(msg)
+    console.error('加载咨询页面失败:', error)
+    ElMessage.error('加载失败，请刷新后重试')
   } finally {
     loading.value = false
   }

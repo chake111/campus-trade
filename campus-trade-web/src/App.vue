@@ -70,7 +70,7 @@ function runPendingAction() {
   }
 }
 
-function requireLogin(action, message = '请先登录') {
+function requireLogin(action, message = '请先登录后再操作') {
   if (isLoggedIn.value) {
     if (typeof action === 'function') action()
     return
@@ -101,26 +101,26 @@ function handleExternalRequireLogin(event) {
 }
 
 function goOrders() {
-  requireLogin(() => router.push('/orders'), '请先登录后查看订单')
+  requireLogin(() => router.push('/orders'), '请先登录后再操作')
 }
 
 function goMessages() {
-  requireLogin(() => router.push('/messages'), '请先登录后查看消息')
+  requireLogin(() => router.push('/messages'), '请先登录后再操作')
 }
 
 function goPublish() {
-  requireLogin(() => router.push('/product/create'), '请先登录后发布商品')
+  requireLogin(() => router.push('/product/create'), '请先登录后再操作')
 }
 
 function goProfile() {
-  requireLogin(() => router.push('/profile'), '请先登录后查看个人中心')
+  requireLogin(() => router.push('/profile'), '请先登录后再操作')
 }
 
 function goDashboard() {
   requireLogin(() => {
     if (!canAccessDashboard.value) return
     router.push('/dashboard')
-  }, '请先登录后查看数据看板')
+  }, '请先登录后再操作')
 }
 
 function handleLogout() {

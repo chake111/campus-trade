@@ -31,7 +31,7 @@
                 <p class="location">{{ getTradeLocation(item) }}</p>
                 <div class="reason-box">
                   <el-icon size="14"><InfoFilled /></el-icon>
-                  <span class="reason-text">登录后可查看个性化推荐</span>
+                  <span class="reason-text">登录后可查看商品咨询与个性化推荐</span>
                 </div>
                 <div class="footer">
                   <span class="price">¥{{ item.price }}</span>
@@ -41,7 +41,7 @@
               </div>
             </article>
           </div>
-          <el-empty v-else description="登录后查看个性化推荐，当前暂无可展示商品" />
+          <el-empty v-else description="暂无推荐商品" />
         </template>
 
         <template v-else>
@@ -130,7 +130,7 @@
       </div>
 
       <div v-if="!products.length && !loading" class="empty-state">
-        <el-empty description="暂无商品" />
+        <el-empty description="暂无数据" />
       </div>
     </div>
   </div>
