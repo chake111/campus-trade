@@ -2,7 +2,7 @@
   <div class="login-container">
     <div class="login-box">
       <div class="login-header">
-        <CampusLogo :size="58" :title="'校园二手交易系统'" subtitle="欢迎登录" />
+        <CampusLogo :size="58" :title="'校园二手交易系统'" subtitle="登录后可继续浏览与交易" />
       </div>
 
       <LoginForm @success="handleLoginSuccess" @register="goRegister" />

@@ -73,6 +73,15 @@ const rules = {
   ]
 }
 
+function reset() {
+  loading.value = false
+  formData.username = ''
+  formData.password = ''
+  formRef.value?.clearValidate?.()
+}
+
+defineExpose({ reset })
+
 function pickToken(payload) {
   return payload?.token || payload?.accessToken || payload?.access_token || null
 }
@@ -126,7 +135,7 @@ const handleLogin = async () => {
 
     setUserInfo(user)
     dispatchAuthChanged()
-    ElMessage.success(rootPayload?.message || '登录成功')
+    ElMessage.success('登录成功')
     emit('success', { user, payload: rootPayload })
   } catch (error) {
     console.error('登录失败:', error)
@@ -142,7 +151,7 @@ const handleLogin = async () => {
 
 <style scoped>
 .login-form {
-  margin-bottom: 20px;
+  margin-bottom: 16px;
 }
 
 .login-button {
