@@ -248,7 +248,7 @@ watch(
   <el-container class="app-shell">
     <el-header class="top-nav">
       <div class="brand-wrap" @click="goHome">
-        <CampusLogo :size="34" compact />
+        <CampusLogo :size="60" compact />
       </div>
 
       <div class="nav-search-wrap">
@@ -269,8 +269,8 @@ watch(
         </el-input>
       </div>
 
-      <div v-if="isLoggedIn" class="user-actions">
-        <el-avatar class="user-avatar" :size="24" :src="navAvatar" />
+      <div v-if="isLoggedIn" class="user-actions"  @click="goProfile">
+        <el-avatar class="user-avatar" :size="32" :src="navAvatar" />
         <span class="username" :title="displayName">{{ displayName }}</span>
         <el-button link type="danger" @click="handleLogout">退出</el-button>
       </div>
@@ -363,13 +363,14 @@ watch(
 }
 
 .nav-search-wrap {
-  flex: 1 1 680px;
-  min-width: 420px;
+  align-items: center;
+  flex: 1 1 80px;
+  min-width: 20px;
   display: block;
 }
 
 .nav-search-input {
-  width: 100%;
+  width: 50%;
   min-width: 0;
 }
 
@@ -404,8 +405,6 @@ watch(
   gap: 6px;
   padding: 4px 8px 4px 6px;
   border-radius: 999px;
-  background: rgba(255, 245, 221, 0.66);
-  border: 1px solid #efdbb1;
   white-space: nowrap;
 }
 

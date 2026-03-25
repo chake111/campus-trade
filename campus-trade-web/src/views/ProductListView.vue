@@ -7,7 +7,6 @@
               <span class="recommend-icon-wrap"><el-icon size="18" color="#d99a00"><Star /></el-icon></span>
               <div>
                 <p class="section-main-title">运营精选推荐</p>
-                <p class="recommend-subtitle">结合你的浏览 / 点赞 / 购买偏好，优先展示更可能感兴趣的商品</p>
               </div>
             </div>
             <span class="recommend-tag">平台精选</span>
@@ -73,14 +72,12 @@
                 <h3 class="title">{{ item.title }}</h3>
                 <p class="location">{{ getTradeLocation(item) }}</p>
                 <div class="reason-box">
-                  <el-icon size="14"><InfoFilled /></el-icon>
                   <span class="reason-text">{{ getRecommendReason(item) }}</span>
                 </div>
                 <div class="footer">
                   <span class="price">¥{{ item.price }}</span>
                   <span class="quality-pill">{{ getQualityTag(item) }}</span>
                 </div>
-                <p class="description muted">{{ item.description }}</p>
               </div>
             </article>
           </div>
@@ -124,7 +121,6 @@
               <span class="price">¥{{ item.price }}</span>
               <span class="selling-point">{{ getSellingPoint(item) }}</span>
             </div>
-            <p class="description muted">{{ item.description }}</p>
           </div>
         </article>
       </div>

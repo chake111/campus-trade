@@ -4,14 +4,6 @@ defineProps({
     type: Number,
     default: 36
   },
-  title: {
-    type: String,
-    default: '校园二手交易系统'
-  },
-  subtitle: {
-    type: String,
-    default: 'CAMPUS MARKET'
-  },
   showText: {
     type: Boolean,
     default: true
@@ -83,7 +75,6 @@ defineProps({
     </svg>
 
     <div v-if="showText" class="campus-logo__text">
-      <p class="campus-logo__title">{{ title }}</p>
       <p class="campus-logo__subtitle">{{ subtitle }}</p>
     </div>
   </div>
