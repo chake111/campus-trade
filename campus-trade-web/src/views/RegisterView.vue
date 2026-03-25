@@ -81,11 +81,9 @@
 
 <script setup>
 import { reactive, ref } from 'vue'
-import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { register } from '../api/user'
 
-const router = useRouter()
 const formRef = ref(null)
 const loading = ref(false)
 
@@ -114,6 +112,16 @@ const rules = {
   confirmPassword: [{ validator: validateConfirmPassword, trigger: 'blur' }]
 }
 
+const triggerLoginDialog = (message) => {
+  window.dispatchEvent(
+    new CustomEvent('require-login', {
+      detail: {
+        message,
+      },
+    })
+  )
+}
+
 const handleRegister = async () => {
   if (!formRef.value || loading.value) return
 
@@ -129,7 +137,7 @@ const handleRegister = async () => {
     })
 
     ElMessage.success(res?.message || '注册成功，请登录')
-    router.push('/login')
+    triggerLoginDialog('')
   } catch (error) {
     const message =
       error?.message ||
@@ -143,7 +151,7 @@ const handleRegister = async () => {
 }
 
 const goLogin = () => {
-  router.push('/login')
+  triggerLoginDialog('')
 }
 </script>
 

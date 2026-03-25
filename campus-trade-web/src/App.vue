@@ -42,7 +42,7 @@ const pendingAction = ref(null)
 const loginFormRef = ref(null)
 
 const showFloatingCapsule = computed(() => {
-  return !route.path.startsWith('/login') && !route.path.startsWith('/register')
+  return !route.path.startsWith('/register')
 })
 
 function goHome() {
@@ -55,8 +55,23 @@ function goPlatformSearch() {
 }
 
 const showNavSearch = computed(() => {
-  return !route.path.startsWith('/login') && !route.path.startsWith('/register')
+  return !route.path.startsWith('/register')
 })
+
+function sanitizeRedirectPath(value) {
+  if (typeof value !== 'string') return ''
+  if (!value.startsWith('/')) return ''
+  if (value.startsWith('//')) return ''
+  return value
+}
+
+function clearLoginQueryTrigger() {
+  const query = { ...route.query }
+  if (!('login' in query) && !('loginRedirect' in query)) return
+  delete query.login
+  delete query.loginRedirect
+  router.replace({ path: route.path, query })
+}
 
 function openLoginDialog() {
   pendingAction.value = null
@@ -88,11 +103,13 @@ function handleLoginSuccess() {
   loginDialogVisible.value = false
   syncAuthState()
   runPendingAction()
+  clearLoginQueryTrigger()
 }
 
 function handleLoginDialogClose() {
   pendingAction.value = null
   loginFormRef.value?.reset?.()
+  clearLoginQueryTrigger()
 }
 
 function handleLoginRegister() {
@@ -103,7 +120,13 @@ function handleLoginRegister() {
 
 function handleExternalRequireLogin(event) {
   const detail = event?.detail || {}
-  requireLogin(detail.action, detail.message)
+  const redirectPath = sanitizeRedirectPath(detail.redirectPath)
+  const action = typeof detail.action === 'function'
+    ? detail.action
+    : redirectPath
+      ? () => router.push(redirectPath)
+      : null
+  requireLogin(action, detail.message)
 }
 
 function goOrders() {
@@ -186,6 +209,22 @@ watch(isLoggedIn, () => {
   refreshConsultUnreadCount()
   startUnreadPolling()
 })
+
+watch(
+  () => [route.query.login, route.query.loginRedirect, isLoggedIn.value],
+  ([loginTrigger, loginRedirect]) => {
+    if (!loginTrigger) return
+    const redirectPath = sanitizeRedirectPath(loginRedirect)
+    if (isLoggedIn.value) {
+      clearLoginQueryTrigger()
+      return
+    }
+
+    pendingAction.value = redirectPath ? () => router.push(redirectPath) : null
+    loginDialogVisible.value = true
+  },
+  { immediate: true }
+)
 
 watch(
   () => route.path,

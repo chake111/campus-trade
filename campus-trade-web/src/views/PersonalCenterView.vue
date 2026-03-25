@@ -154,6 +154,17 @@ const editForm = ref({
   avatar: ''
 })
 
+const triggerLoginDialog = (message, redirectPath) => {
+  window.dispatchEvent(
+    new CustomEvent('require-login', {
+      detail: {
+        message,
+        redirectPath,
+      },
+    })
+  )
+}
+
 const scoreForDisplay = computed(() => (creditScore.value == null ? 0 : Number(creditScore.value) || 0))
 
 const creditLevelText = computed(() => {
@@ -265,8 +276,7 @@ const fetchPageData = async () => {
   const token = getToken()
   const userId = getUserId() ?? userInfo.value.id
   if (!token || !userId) {
-    ElMessage.warning('请先登录后再操作')
-    router.push('/login')
+    triggerLoginDialog('请先登录后再操作', '/profile')
     return
   }
 
@@ -352,7 +362,7 @@ const handleLogout = () => {
   removeUserInfo()
   dispatchAuthChanged()
   ElMessage.success('已退出登录')
-  router.push('/login')
+  router.push('/products')
 }
 
 const syncAuthState = () => {
