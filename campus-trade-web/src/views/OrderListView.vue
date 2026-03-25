@@ -8,14 +8,6 @@
         </el-radio-group>
 
         <div class="toolbar-right">
-          <el-select v-model="statusFilter" placeholder="状态筛选" class="status-filter">
-            <el-option
-              v-for="item in statusTabs"
-              :key="item.value"
-              :label="item.label"
-              :value="item.value"
-            />
-          </el-select>
 
           <el-input
             v-model="keyword"
@@ -27,8 +19,6 @@
               <el-icon><Search /></el-icon>
             </template>
           </el-input>
-
-          <el-button type="primary" plain @click="fetchOrders">刷新</el-button>
         </div>
       </div>
 
@@ -382,7 +372,6 @@ onMounted(() => {
   background: var(--theme-card-bg);
   border-radius: 16px;
   padding: 24px;
-  border: 1px solid var(--el-border-color-light);
 }
 
 .toolbar {
@@ -394,8 +383,6 @@ onMounted(() => {
   gap: 12px;
   flex-wrap: wrap;
   padding: 14px 16px;
-  background: var(--theme-bg-soft);
-  border: 1px solid var(--el-border-color-light);
   border-radius: 10px;
 }
 

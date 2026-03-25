@@ -1,12 +1,6 @@
 <template>
   <div class="personal-center">
     <el-card class="user-card">
-      <template #header>
-        <div class="card-header">
-          <el-icon size="24"><User /></el-icon>
-          <span>我的主页</span>
-        </div>
-      </template>
 
       <div v-loading="loading" class="user-info">
         <section class="profile-header">
@@ -424,8 +418,6 @@ onUnmounted(() => {
   align-items: center;
   padding: 16px;
   border-radius: 12px;
-  border: 1px solid #f0e3be;
-  background: #fffdf6;
 }
 
 .profile-main {
@@ -481,7 +473,6 @@ onUnmounted(() => {
 }
 
 .my-products-section {
-  border: 1px solid #f0e4c5;
   border-radius: 12px;
   padding: 16px;
 }

@@ -93,7 +93,6 @@ defineProps({
 
 .campus-logo__icon {
   flex-shrink: 0;
-  filter: drop-shadow(0 2px 3px rgba(128, 91, 28, 0.14));
 }
 
 .campus-logo__text {

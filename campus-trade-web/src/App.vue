@@ -277,9 +277,8 @@ watch(
         </div>
 
         <div class="nav-user-zone">
-          <el-button class="nav-order-btn" plain @click="goOrders">我的订单</el-button>
           <div v-if="isLoggedIn" class="user-actions">
-            <el-avatar class="user-avatar" :size="24" :src="navAvatar" />
+            <el-avatar class="user-avatar" :size="40" :src="navAvatar" />
             <span class="username" :title="displayName">{{ displayName }}</span>
             <el-button link type="danger" @click="handleLogout">退出</el-button>
           </div>
@@ -433,8 +432,6 @@ watch(
   gap: 6px;
   padding: 4px 8px 4px 6px;
   border-radius: 999px;
-  background: rgba(255, 245, 221, 0.66);
-  border: 1px solid #efdbb1;
   white-space: nowrap;
 }
 
