@@ -73,7 +73,6 @@ import { getProductDetail } from '../api/product'
 import { getUserById } from '../api/user'
 import { createOrder } from '../api/order'
 import { getUserId } from '../utils/user'
-import { getToken } from '../utils/request'
 import { getProductStatusMeta, isProductOrderableStatus, normalizeProductResponseDetail } from '../utils/productNormalizer'
 import defaultAvatar from '../assets/default-avatar.svg'
 
@@ -155,6 +154,17 @@ const loadSellerProfile = async () => {
   }
 }
 
+const requestLoginForAction = (action, message) => {
+  window.dispatchEvent(
+    new CustomEvent('require-login', {
+      detail: {
+        action,
+        message,
+      },
+    })
+  )
+}
+
 const fetchProductDetail = async () => {
   const id = routeProductId.value
   if (!id) {
@@ -188,10 +198,8 @@ const handleCreateOrder = async () => {
     return
   }
 
-  const token = getToken()
-  if (!token || !buyerId.value) {
-    ElMessage.warning('请先登录后再下单')
-    router.push('/login')
+  if (!buyerId.value) {
+    requestLoginForAction(() => handleCreateOrder(), '请先登录后再下单')
     return
   }
 
@@ -243,10 +251,8 @@ const handleContactSeller = () => {
     return
   }
 
-  const token = getToken()
-  if (!token || !buyerId.value) {
-    ElMessage.warning('请先登录后联系卖家')
-    router.push('/login')
+  if (!buyerId.value) {
+    requestLoginForAction(() => handleContactSeller(), '请先登录后联系卖家')
     return
   }
 
