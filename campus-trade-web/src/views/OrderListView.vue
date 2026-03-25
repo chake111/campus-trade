@@ -36,12 +36,9 @@
           v-for="row in filteredOrders"
           :key="row.id"
           class="order-card"
-          shadow="hover"
         >
           <div class="card-top">
             <div class="aux-meta">
-              <span>{{ getCounterpartLabel(row) }}</span>
-              <span class="dot">·</span>
               <span>下单时间：{{ formatTime(row.createTime || row.createdAt) }}</span>
               <span class="dot">·</span>
               <span>订单号：{{ row.id || '-' }}</span>
@@ -369,6 +366,7 @@ onMounted(() => {
 }
 
 .order-flow {
+  box-shadow: 0 10px 24px rgba(65, 49, 23, 0.08);
   background: var(--theme-card-bg);
   border-radius: 16px;
   padding: 24px;
@@ -440,11 +438,12 @@ onMounted(() => {
 .order-cards {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  box-shadow: none;
 }
 
 .order-card {
-  border: 1px solid var(--el-border-color-lighter);
+  margin: 10px;
+  box-shadow:none;
 }
 
 .card-top {

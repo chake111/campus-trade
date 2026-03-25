@@ -2,11 +2,6 @@
   <div class="product-create-container" v-loading="loading">
 
     <el-card class="box-card">
-      <template #header>
-        <div class="card-header">
-          <span>发布商品</span>
-        </div>
-      </template>
       <el-form
         ref="formRef"
         :model="formData"
