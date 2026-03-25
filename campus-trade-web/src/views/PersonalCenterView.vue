@@ -76,7 +76,7 @@
 
           <el-empty
             v-else-if="productsState === 'success'"
-            description="你还没有发布商品，去发布第一件吧"
+            description="暂无数据"
           >
             <el-button type="primary" @click="router.push('/product/create')">发布商品</el-button>
           </el-empty>
@@ -224,7 +224,7 @@ const submitProfile = async () => {
     setUserInfo(latestUser)
     dispatchAuthChanged()
     editDialogVisible.value = false
-    ElMessage.success('资料更新成功')
+    ElMessage.success('保存成功')
   } finally {
     savingProfile.value = false
   }
@@ -265,7 +265,7 @@ const fetchPageData = async () => {
   const token = getToken()
   const userId = getUserId() ?? userInfo.value.id
   if (!token || !userId) {
-    ElMessage.warning('请先登录')
+    ElMessage.warning('请先登录后再操作')
     router.push('/login')
     return
   }
@@ -276,7 +276,8 @@ const fetchPageData = async () => {
     await fetchMyProducts(userId)
   } catch (error) {
     productsState.value = 'error'
-    productsError.value = error?.response?.data?.message || error?.message || '获取我的商品失败'
+    console.error('获取我的商品失败:', error)
+    productsError.value = '加载失败，请刷新后重试'
     myProducts.value = []
   }
 

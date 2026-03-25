@@ -109,7 +109,8 @@ const handleLogin = async () => {
 
     const token = pickToken(dataPayload) || pickToken(rootPayload)
     if (!token) {
-      ElMessage.error(rootPayload?.message || dataPayload?.message || '登录失败：未获取到 token')
+      console.error('登录返回缺少 token:', { rootPayload, dataPayload })
+      ElMessage.error('登录失败，请检查用户名和密码')
       return
     }
 
@@ -118,7 +119,8 @@ const handleLogin = async () => {
     const user = pickUser(dataPayload) || pickUser(rootPayload)
     if (!user || user.id == null) {
       removeToken()
-      ElMessage.error('登录返回缺少用户信息，请联系后端确认登录返回字段')
+      console.error('登录返回缺少用户信息:', { rootPayload, dataPayload })
+      ElMessage.error('登录失败，请检查用户名和密码')
       return
     }
 
@@ -129,11 +131,9 @@ const handleLogin = async () => {
   } catch (error) {
     console.error('登录失败:', error)
     const message =
-      error?.data?.message ||
-      error?.response?.data?.message ||
-      error?.message ||
-      '登录失败，请稍后重试'
-    ElMessage.error(message)
+      error?.data?.message || error?.response?.data?.message || error?.message
+    console.error('登录失败详情:', message)
+    ElMessage.error('登录失败，请检查用户名和密码')
   } finally {
     loading.value = false
   }

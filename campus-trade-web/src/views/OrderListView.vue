@@ -111,7 +111,7 @@
       </div>
 
       <div v-if="!filteredOrders.length && !loading" class="empty-state">
-        <el-empty description="暂无订单" />
+        <el-empty description="暂无数据" />
       </div>
     </div>
   </div>
@@ -188,7 +188,7 @@ const filteredOrders = computed(() => {
 const fetchOrders = async () => {
   const userId = getUserId()
   if (!userId) {
-    ElMessage.warning('请先登录')
+    ElMessage.warning('请先登录后再操作')
     router.push('/login')
     return
   }
@@ -198,12 +198,8 @@ const fetchOrders = async () => {
     const res = await getOrderList(userId, activeRole.value)
     orders.value = extractOrderList(res)
   } catch (error) {
-    const message =
-      error?.response?.data?.message ||
-      error?.response?.data?.data?.message ||
-      error?.message ||
-      '获取订单列表失败'
-    ElMessage.error(message)
+    console.error('获取订单列表失败:', error)
+    ElMessage.error('加载失败，请刷新后重试')
     orders.value = []
   } finally {
     loading.value = false
@@ -347,18 +343,14 @@ const handleStatusUpdate = async (order, newStatus, actionText) => {
 
     actionLoading.value = { id: order.id, status: newStatus }
     const res = await updateOrder(order.id, newStatus)
-    ElMessage.success(resolveMessage(res, `${actionText}成功`))
+    ElMessage.success(resolveMessage(res, '提交成功'))
     await fetchOrders()
   } catch (error) {
     if (error === 'cancel' || error?.name === 'Cancel') {
       return
     }
-    const message =
-      error?.response?.data?.message ||
-      error?.response?.data?.data?.message ||
-      error?.message ||
-      `${actionText}失败`
-    ElMessage.error(message)
+    console.error(`${actionText}操作失败:`, error)
+    ElMessage.error('操作失败，请稍后重试')
   } finally {
     actionLoading.value = { id: null, status: '' }
   }

@@ -228,7 +228,8 @@ const fetchAdminProducts = async () => {
     adminProducts.value = normalizeProductResponseList(res)
   } catch (error) {
     adminProducts.value = []
-    ElMessage.error(error?.data?.message || '管理员商品列表获取失败')
+    console.error('管理员商品列表获取失败:', error)
+    ElMessage.error('加载失败，请刷新后重试')
   } finally {
     adminLoading.value = false
   }
@@ -259,21 +260,21 @@ const handleOffShelf = async (row) => {
   const id = getProductId(row)
   if (!id) return
   await offShelfProduct(id)
-  await refreshAfterAction('下架成功')
+  await refreshAfterAction('提交成功')
 }
 
 const handleRestore = async (row) => {
   const id = getProductId(row)
   if (!id) return
   await restoreProduct(id)
-  await refreshAfterAction('恢复上架成功')
+  await refreshAfterAction('提交成功')
 }
 
 const handleDelete = async (row) => {
   const id = getProductId(row)
   if (!id) return
   await deleteProductByAdmin(id)
-  await refreshAfterAction('删除成功')
+  await refreshAfterAction('提交成功')
 }
 
 const initDashboard = async () => {
