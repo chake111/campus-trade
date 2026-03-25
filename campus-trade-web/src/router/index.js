@@ -1,5 +1,4 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import LoginView from '../views/LoginView.vue'
 import RegisterView from '../views/RegisterView.vue'
 import ProductListView from '../views/ProductListView.vue'
 import ProductDetailView from '../views/ProductDetailView.vue'
@@ -16,11 +15,6 @@ import { getUserInfo, hasRole, hasValidAuthState, ROLE_ADMIN } from '../utils/us
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
-    {
-      path: '/login',
-      name: 'login',
-      component: LoginView,
-    },
     {
       path: '/register',
       name: 'register',
@@ -95,13 +89,24 @@ const router = createRouter({
 
 export default router
 
-// 全局路由守卫：未登录跳转到登录页
+const sanitizeRedirectPath = (value) => {
+  if (typeof value !== 'string') return ''
+  if (!value.startsWith('/')) return ''
+  if (value.startsWith('//')) return ''
+  return value
+}
+
+// 全局路由守卫：未登录跳转到可承载弹窗页面
 router.beforeEach((to) => {
   const token = getToken()
   const userInfo = getUserInfo()
 
   if (to.meta && to.meta.requiresAuth && !hasValidAuthState(token, userInfo)) {
-    return { name: 'login', query: { redirect: to.fullPath } }
+    const loginRedirect = sanitizeRedirectPath(to.fullPath)
+    return {
+      path: '/products',
+      query: loginRedirect ? { login: '1', loginRedirect } : { login: '1' },
+    }
   }
 
   if (to.meta && Array.isArray(to.meta.roles) && to.meta.roles.length) {

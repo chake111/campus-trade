@@ -31,12 +31,22 @@ function clearAuthState() {
   dispatchAuthChanged()
 }
 
+function sanitizeRedirectPath(path) {
+  if (typeof path !== 'string') return ''
+  if (!path.startsWith('/')) return ''
+  if (path.startsWith('//')) return ''
+  return path
+}
+
 function handleAuthExpired(message) {
   ElMessage.error(message || '登录已过期，请重新登录')
+  const currentPath = sanitizeRedirectPath(router.currentRoute.value.fullPath)
   clearAuthState()
-  if (router.currentRoute.value.path !== '/login') {
-    router.push('/login')
+  const query = { login: '1' }
+  if (currentPath && currentPath !== '/products') {
+    query.loginRedirect = currentPath
   }
+  router.push({ path: '/products', query })
 }
 
 function isAuthFailure(status, payload = {}) {

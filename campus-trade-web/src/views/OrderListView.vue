@@ -143,6 +143,17 @@ const keyword = ref('')
 const activeRole = ref(getInitialRole())
 const statusTabs = getOrderTabOptions()
 
+const triggerLoginDialog = (message, redirectPath) => {
+  window.dispatchEvent(
+    new CustomEvent('require-login', {
+      detail: {
+        message,
+        redirectPath,
+      },
+    })
+  )
+}
+
 function getInitialRole() {
   const role = route.query?.role
   if (typeof role !== 'string') return 'buyer'
@@ -188,8 +199,7 @@ const filteredOrders = computed(() => {
 const fetchOrders = async () => {
   const userId = getUserId()
   if (!userId) {
-    ElMessage.warning('请先登录后再操作')
-    router.push('/login')
+    triggerLoginDialog('请先登录后再操作', '/orders')
     return
   }
 
