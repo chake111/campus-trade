@@ -57,6 +57,12 @@ function goPlatformSearch() {
 const showNavSearch = computed(() => {
   return !route.path.startsWith('/register')
 })
+const navQuickKeywords = ['教材', '数码', '日用', '运动', '票券', '家具', '美妆', '乐器']
+
+function applyQuickKeyword(keyword) {
+  navSearchKeyword.value = keyword
+  goPlatformSearch()
+}
 
 function sanitizeRedirectPath(value) {
   if (typeof value !== 'string') return ''
@@ -247,35 +253,53 @@ watch(
 <template>
   <el-container class="app-shell">
     <el-header class="top-nav">
-      <div class="brand-wrap" @click="goHome">
-        <CampusLogo :size="34" compact />
+      <div class="top-nav-main">
+        <div class="brand-wrap" @click="goHome">
+          <CampusLogo :size="34" compact />
+        </div>
+
+        <div class="nav-search-wrap">
+          <el-input
+            v-if="showNavSearch"
+            v-model="navSearchKeyword"
+            class="nav-search-input"
+            placeholder="搜索教材、数码、日用..."
+            clearable
+            @keyup.enter="goPlatformSearch"
+          >
+            <template #prefix>
+              <el-icon><Search /></el-icon>
+            </template>
+            <template #append>
+              <el-button @click="goPlatformSearch">搜索</el-button>
+            </template>
+          </el-input>
+        </div>
+
+        <div class="nav-user-zone">
+          <el-button class="nav-order-btn" plain @click="goOrders">我的订单</el-button>
+          <div v-if="isLoggedIn" class="user-actions">
+            <el-avatar class="user-avatar" :size="24" :src="navAvatar" />
+            <span class="username" :title="displayName">{{ displayName }}</span>
+            <el-button link type="danger" @click="handleLogout">退出</el-button>
+          </div>
+          <div v-else class="user-actions user-actions--guest">
+            <el-button class="guest-login-btn" @click="openLoginDialog">登录 / 注册</el-button>
+          </div>
+        </div>
       </div>
 
-      <div class="nav-search-wrap">
-        <el-input
-          v-if="showNavSearch"
-          v-model="navSearchKeyword"
-          class="nav-search-input"
-          placeholder="搜索教材、数码、日用..."
-          clearable
-          @keyup.enter="goPlatformSearch"
+      <div v-if="showNavSearch" class="top-nav-sub">
+        <span class="hot-label">热门搜索</span>
+        <button
+          v-for="item in navQuickKeywords"
+          :key="item"
+          class="hot-link"
+          type="button"
+          @click="applyQuickKeyword(item)"
         >
-          <template #prefix>
-            <el-icon><Search /></el-icon>
-          </template>
-          <template #append>
-            <el-button @click="goPlatformSearch">搜索</el-button>
-          </template>
-        </el-input>
-      </div>
-
-      <div v-if="isLoggedIn" class="user-actions">
-        <el-avatar class="user-avatar" :size="24" :src="navAvatar" />
-        <span class="username" :title="displayName">{{ displayName }}</span>
-        <el-button link type="danger" @click="handleLogout">退出</el-button>
-      </div>
-      <div v-else class="user-actions user-actions--guest">
-        <el-button class="guest-login-btn" @click="openLoginDialog">登录 / 注册</el-button>
+          {{ item }}
+        </button>
       </div>
     </el-header>
 
@@ -341,17 +365,23 @@ watch(
   top: 0;
   z-index: 20;
   display: flex;
-  align-items: center;
-  justify-content: flex-start;
-  flex-wrap: wrap;
-  column-gap: 12px;
-  row-gap: 10px;
-  min-height: 68px;
+  flex-direction: column;
+  justify-content: center;
+  gap: 10px;
+  min-height: 92px;
   height: auto;
-  padding: 10px 20px;
+  padding: 10px 20px 8px;
   background: linear-gradient(180deg, #fff9e8 0%, #fffdf5 100%);
   border-bottom: 1px solid var(--theme-border);
   box-shadow: 0 4px 14px rgba(141, 108, 22, 0.07);
+}
+
+.top-nav-main {
+  width: min(100%, 1560px);
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 
 .brand-wrap {
@@ -363,8 +393,8 @@ watch(
 }
 
 .nav-search-wrap {
-  flex: 1 1 680px;
-  min-width: 420px;
+  flex: 1 1 640px;
+  min-width: 360px;
   display: block;
 }
 
@@ -395,7 +425,6 @@ watch(
 }
 
 .user-actions {
-  margin-left: auto;
   flex: 0 0 auto;
   min-width: 0;
   display: flex;
@@ -443,6 +472,54 @@ watch(
   border-color: #efcd89;
   color: #7b5317;
   background: #fff3d0;
+}
+
+.nav-user-zone {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.nav-order-btn {
+  border-radius: 999px;
+  border-color: #efd39b;
+  color: #7a5222;
+  background: #fff7e1;
+}
+
+.top-nav-sub {
+  width: min(100%, 1560px);
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 28px;
+  overflow-x: auto;
+  padding-bottom: 2px;
+}
+
+.hot-label {
+  flex-shrink: 0;
+  font-size: 12px;
+  color: #9e7a44;
+}
+
+.hot-link {
+  flex-shrink: 0;
+  border: none;
+  border-radius: 999px;
+  padding: 4px 10px;
+  font-size: 12px;
+  color: #7e5e27;
+  background: #fff2ce;
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.hot-link:hover {
+  color: #6a4514;
+  background: #ffe7ac;
 }
 
 .page-content {
@@ -533,22 +610,29 @@ watch(
     padding: 8px 12px;
   }
 
-  .brand {
-    font-size: 16px;
+  .top-nav-main {
+    width: 100%;
+    flex-wrap: wrap;
   }
 
-  .user-actions {
-    min-width: 0;
+  .nav-user-zone {
+    margin-left: 0;
+    order: 2;
   }
 
   .nav-search-wrap {
     order: 3;
     flex: 1 1 100%;
+    min-width: 0;
   }
 
   .nav-search-input {
     flex: 1 1 100%;
     min-width: 0;
+  }
+
+  .top-nav-sub {
+    width: 100%;
   }
 
   .page-content {
