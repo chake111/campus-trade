@@ -10,6 +10,8 @@ public interface ProductMapper {
 
     List<Product> selectOnSale();
 
+    List<Product> selectLatestOnSale(@Param("limit") int limit);
+
     List<Product> selectOnSaleByKeyword(@Param("keyword") String keyword);
 
     List<Product> selectByUserId(@Param("userId") Long userId);

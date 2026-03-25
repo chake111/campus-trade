@@ -47,8 +47,9 @@ public class OptimizedRecommendService {
      * @return 推荐商品列表
      */
     public List<Product> smartRecommend(Long userId, int limit) {
+        int safeLimit = sanitizeLimit(limit);
         if (userId == null) {
-            return getPopularProducts(limit);
+            return fallbackLatestOnSale(safeLimit);
         }
 
         // 获取用户行为
@@ -56,11 +57,15 @@ public class OptimizedRecommendService {
         
         // 如果没有行为数据，返回热门商品（冷启动）
         if (userActions == null || userActions.isEmpty()) {
-            return getPopularProducts(limit);
+            return fallbackLatestOnSale(safeLimit);
         }
 
         // 混合推荐：个性化 + 协同过滤 + 热门
-        return hybridRecommend(userId, userActions, limit);
+        List<Product> recommendedProducts = hybridRecommend(userId, userActions, safeLimit);
+        if (recommendedProducts == null || recommendedProducts.isEmpty()) {
+            return fallbackLatestOnSale(safeLimit);
+        }
+        return recommendedProducts;
     }
 
     /**
@@ -315,6 +320,14 @@ public class OptimizedRecommendService {
         }
         
         return products;
+    }
+
+    private List<Product> fallbackLatestOnSale(int limit) {
+        return productMapper.selectLatestOnSale(limit);
+    }
+
+    private int sanitizeLimit(int limit) {
+        return limit > 0 ? limit : 10;
     }
 
     /**
