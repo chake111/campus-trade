@@ -7,6 +7,7 @@ import { getToken, removeToken } from './utils/request'
 import { AUTH_CHANGED_EVENT, dispatchAuthChanged, getUserInfo, hasValidAuthState, isAdmin, removeUserInfo } from './utils/user'
 import { getConsultUnreadCount } from './api/consult'
 import CampusLogo from './components/CampusLogo.vue'
+import LoginForm from './components/LoginForm.vue'
 import defaultAvatar from './assets/default-avatar.svg'
 
 const router = useRouter()
@@ -36,6 +37,8 @@ const navSearchKeyword = ref('')
 const consultUnreadCount = ref(0)
 const consultUnreadLoading = ref(false)
 let unreadPollingTimer = null
+const loginDialogVisible = ref(false)
+const pendingAction = ref(null)
 
 const showFloatingCapsule = computed(() => {
   return !route.path.startsWith('/login') && !route.path.startsWith('/register')
@@ -54,45 +57,70 @@ const showNavSearch = computed(() => {
   return !route.path.startsWith('/login') && !route.path.startsWith('/register')
 })
 
-function goOrders() {
-  if (!isLoggedIn.value) {
-    ElMessage.info('请先登录后查看订单')
-    router.push('/login')
+function openLoginDialog() {
+  pendingAction.value = null
+  loginDialogVisible.value = true
+}
+
+function runPendingAction() {
+  const action = pendingAction.value
+  pendingAction.value = null
+  if (typeof action === 'function') {
+    action()
+  }
+}
+
+function requireLogin(action, message = '请先登录') {
+  if (isLoggedIn.value) {
+    if (typeof action === 'function') action()
     return
   }
-  router.push('/orders')
+
+  if (message) {
+    ElMessage.info(message)
+  }
+  pendingAction.value = typeof action === 'function' ? action : null
+  loginDialogVisible.value = true
+}
+
+function handleLoginSuccess() {
+  loginDialogVisible.value = false
+  syncAuthState()
+  runPendingAction()
+}
+
+function handleLoginRegister() {
+  loginDialogVisible.value = false
+  pendingAction.value = null
+  router.push('/register')
+}
+
+function handleExternalRequireLogin(event) {
+  const detail = event?.detail || {}
+  requireLogin(detail.action, detail.message)
+}
+
+function goOrders() {
+  requireLogin(() => router.push('/orders'), '请先登录后查看订单')
 }
 
 function goMessages() {
-  if (!isLoggedIn.value) {
-    ElMessage.info('请先登录后查看消息')
-    router.push('/login')
-    return
-  }
-  router.push('/messages')
+  requireLogin(() => router.push('/messages'), '请先登录后查看消息')
 }
 
 function goPublish() {
-  if (!isLoggedIn.value) {
-    ElMessage.info('请先登录后发布商品')
-    router.push('/login')
-    return
-  }
-  router.push('/product/create')
+  requireLogin(() => router.push('/product/create'), '请先登录后发布商品')
 }
 
 function goProfile() {
-  if (!isLoggedIn.value) {
-    ElMessage.info('请先登录后查看个人中心')
-    router.push('/login')
-    return
-  }
-  router.push('/profile')
+  requireLogin(() => router.push('/profile'), '请先登录后查看个人中心')
 }
 
 function goDashboard() {
-  if (!canAccessDashboard.value) return
-  router.push('/dashboard')
+  requireLogin(() => {
+    if (!canAccessDashboard.value) return
+    router.push('/dashboard')
+  }, '请先登录后查看数据看板')
 }
 
 function handleLogout() {
@@ -137,12 +165,14 @@ function stopUnreadPolling() {
 onMounted(() => {
   syncAuthState()
   window.addEventListener(AUTH_CHANGED_EVENT, syncAuthState)
+  window.addEventListener('require-login', handleExternalRequireLogin)
   refreshConsultUnreadCount()
   startUnreadPolling()
 })
 
 onUnmounted(() => {
   window.removeEventListener(AUTH_CHANGED_EVENT, syncAuthState)
+  window.removeEventListener('require-login', handleExternalRequireLogin)
   stopUnreadPolling()
 })
 
@@ -200,9 +230,21 @@ watch(
         <el-button link type="danger" @click="handleLogout">退出</el-button>
       </div>
       <div v-else class="user-actions user-actions--guest">
-        <el-button class="guest-login-btn" @click="router.push('/login')">登录 / 注册</el-button>
+        <el-button class="guest-login-btn" @click="openLoginDialog">登录 / 注册</el-button>
       </div>
     </el-header>
+
+    <el-dialog
+      v-model="loginDialogVisible"
+      width="460px"
+      class="login-dialog"
+      append-to-body
+      destroy-on-close
+      :close-on-click-modal="false"
+      title="登录 / 注册"
+    >
+      <LoginForm @success="handleLoginSuccess" @register="handleLoginRegister" />
+    </el-dialog>
 
     <el-main class="page-content">
       <router-view />
