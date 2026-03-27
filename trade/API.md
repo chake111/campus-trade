@@ -16,7 +16,13 @@
 
 - 认证方式：JWT（登录后获取 token）
   - 请求头：`Authorization: Bearer <token>`
-- 公开接口：登录、注册、商品列表/详情、推荐相关、`/test`
+- 公开接口（无需登录）：
+  - `POST /user/register`
+  - `POST /user/login`
+  - `GET /product/list`
+  - `GET /product/{id}`
+  - `GET /api/recommend/**`
+  - `GET /test`
 
 ---
 
@@ -113,7 +119,8 @@
 }
 ```
 
-> 普通用户会以当前登录用户作为买家，管理员可传 `userId` 指定买家。
+> 普通用户会以当前登录用户作为买家，管理员可传 `userId` 指定买家。  
+> 管理员判定基于 JWT 中的角色信息（`role=ADMIN`，对应后端权限 `ROLE_ADMIN`）。
 
 ### 4.2 订单列表
 - **GET** `/order/list`
@@ -191,7 +198,28 @@
 
 接口前缀：`/credit`（需登录）
 
-> 这两个接口返回 `ResponseEntity`（非统一 Result 结构）。
+> 这两个接口返回 `ResponseEntity`（非统一 Result 结构），成功时直接返回实体数据，失败时返回 HTTP 状态码（如 403）。
+>
+> - `/credit/log` 成功响应示例：
+>
+> ```json
+> [
+>   {
+>     "id": 1,
+>     "userId": 1,
+>     "changeType": "ORDER_FINISHED",
+>     "changeValue": 5,
+>     "remark": "订单完成加分",
+>     "createTime": "2026-03-27T00:00:00"
+>   }
+> ]
+> ```
+>
+> - `/credit/score` 成功响应示例：
+>
+> ```json
+> 95
+> ```
 
 ### 7.1 信用记录
 - **GET** `/credit/log?userId=1&page=0&size=10`
