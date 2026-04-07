@@ -41,3 +41,5 @@ mvn spring-boot:run
 ```
 - Get user by id: `GET http://localhost:8080/api/users/{id}`
 
+## API 文档
+- 详细接口文档见：`API.md`
